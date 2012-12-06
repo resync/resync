@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">
+<url><loc>http://localhost:8888/resources/1</loc><lastmod>2012-06-13T17:13:47Z</lastmod><rs:size>794</rs:size></url>
+<url><loc>http://localhost:8888/resources/10</loc><lastmod>2012-06-13T17:13:47Z</lastmod><rs:size>491</rs:size></url>
+<url><loc>http://localhost:8888/resources/100</loc><lastmod>2012-06-13T17:13:47Z</lastmod><rs:size>631</rs:size></url>
+<url><loc>http://localhost:8888/resources/1000</loc><lastmod>2012-06-13T17:13:47Z</lastmod><rs:size>167</rs:size></url>
+<url><loc>http://localhost:8888/resources/1001</loc><lastmod>2012-06-13T17:13:51Z</lastmod><rs:size>983</rs:size></url>
+<url><loc>http://localhost:8888/resources/101</loc><lastmod>2012-06-13T17:13:47Z</lastmod><rs:size>533</rs:size></url>
+</urlset>
