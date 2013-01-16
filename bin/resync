@@ -116,7 +116,7 @@ def main():
     rem.add_option('--parse', '-p', action='store_true',
                    help="just parse the remote sitemap (from mapping or explicit --sitemap)")
     rem.add_option('--explore', action='store_true',
-                   help="just explore links between sitemap and changesets starting from "
+                   help="just explore links between sitemap and changelists starting from "
                         "mapping or explicit --sitemap)")
     # b. modes based solely on files on local disk
     loc = p.add_option_group('LOCAL MODES',
@@ -125,12 +125,12 @@ def main():
                    help="write a sitemap based on files on disk using uri=path mappings "
                         "in reverse to calculate URIs from the local paths. To STDOUT by "
                         "default, override with --outfile")
-    loc.add_option('--changeset', '-c', action='store_true',
-                   help="write a changeset sitemap by comparison of a reference sitemap "
+    loc.add_option('--changelist', '-c', action='store_true',
+                   help="write a changelist sitemap by comparison of a reference sitemap "
                         "(specify file with --reference) and either files on disk (using "
                         "the map provided) or a second sitemap (specify file with "
                         "--newreference). Otherwise follows --write options. Also accepts "
-                        "the --empty option (with no mapping) to write and empy changeset.")
+                        "the --empty option (with no mapping) to write and empy changelist.")
 
     # Specification of map between remote URI and local file paths, and remote sitemap
     nam = p.add_option_group('FILE/URI NAMING OPTIONS')
@@ -140,13 +140,13 @@ def main():
                    help='explicitly set sitemap name, overriding default sitemap.xml '
                         'appended to first source URI specified in the mappings')
     nam.add_option('--reference', type=str, action='store',
-                   help='reference sitemap name for --changeset calculation')
+                   help='reference sitemap name for --changelist calculation')
     nam.add_option('--newreference', type=str, action='store',
-                   help='updated reference sitemap name for --changeset calculation')
+                   help='updated reference sitemap name for --changelist calculation')
     nam.add_option('--dump', metavar="DUMPFILE", type=str, action='store',
-                   help='write dump to specified file for --write or --changeset')
-    nam.add_option('--changeset-uri', type=str, action='store',
-                   help='explicitly set the changeset URI that will be use in --inc mode, '
+                   help='write dump to specified file for --write or --changelist')
+    nam.add_option('--changelist-uri', type=str, action='store',
+                   help='explicitly set the changelist URI that will be use in --inc mode, '
                         'overrides process of getting this from the sitemap')
 
     # Options that apply to multiple modes
@@ -159,7 +159,7 @@ def main():
                    help="exclude resources with URI or filename matching pattern "
                         "(repeat option for multiple excludes)")
     opt.add_option('--empty', action='store_true',
-                   help="combine with --changeset to write and empty changeset, perhaps with links")
+                   help="combine with --changelist to write and empty changelist, perhaps with links")
     opt.add_option('--link', type=str, action='append',
                    help="add discovery links to the output sitemap, "
                         "format: href,att1=val1,att2=val2 "
@@ -205,11 +205,11 @@ def main():
     # groups in argparse is incomplete is python2.6)
     if (not args.baseline and not args.inc and not args.audit and 
         not args.parse and not args.explore and not args.write and 
-        not args.changeset):
+        not args.changelist):
         args.baseline=True
     elif (count_true_args(args.baseline,args.inc,args.audit,args.parse,
-                          args.explore,args.write,args.changeset)>1):
-        p.error("Only one of --baseline, --inc, --audit, --parse, --explore, --write, --changeset modes allowed")
+                          args.explore,args.write,args.changelist)>1):
+        p.error("Only one of --baseline, --inc, --audit, --parse, --explore, --write, --changelist modes allowed")
 
     # Configure logging module and create logger instance
     init_logging( to_file=args.logger, logfile=args.logfile, 
@@ -241,11 +241,11 @@ def main():
         # Links apply to anything that writes sitemaps
         links = parse_links(args.link)
         if (args.prev):
-            links[args.prev] = { 'rel': 'prev http://www.openarchives.org/rs/changeset' }
+            links[args.prev] = { 'rel': 'prev http://www.openarchives.org/rs/changelist' }
         if (args.next):
-            links[args.next] = { 'rel': 'next http://www.openarchives.org/rs/changeset' }
+            links[args.next] = { 'rel': 'next http://www.openarchives.org/rs/changelist' }
         if (args.current):
-            links[args.current] = { 'rel': 'current http://www.openarchives.org/rs/changeset' }
+            links[args.current] = { 'rel': 'current http://www.openarchives.org/rs/changelist' }
 
         # Finally, do something...
         if (args.baseline or args.audit):
@@ -253,7 +253,7 @@ def main():
                             audit_only=args.audit)
         elif (args.inc):
             c.incremental(allow_deletion=args.delete,
-                          changeset_uri=args.changeset_uri)
+                          changelist_uri=args.changelist_uri)
         elif (args.parse):
             c.parse_sitemap()
         elif (args.explore):
@@ -262,10 +262,10 @@ def main():
             c.write_sitemap(outfile=args.outfile,
                             capabilities=links,
                             dump=args.dump)
-        elif (args.changeset):
+        elif (args.changelist):
             if (not args.reference and not args.empty):
-                p.error("Must supply --reference sitemap for --changeset, or --empty")
-            c.changeset_sitemap(ref_sitemap=args.reference,
+                p.error("Must supply --reference sitemap for --changelist, or --empty")
+            c.changelist_sitemap(ref_sitemap=args.reference,
                             newref_sitemap=( args.newreference if (args.newreference) else None ),
                             empty=args.empty,
                             outfile=args.outfile,
