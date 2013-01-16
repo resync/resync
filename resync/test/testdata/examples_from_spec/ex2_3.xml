@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
-   <xhtml:meta name="DCTERMS.modified" content="2012-08-08T16:30:00Z"/>
-   <url>
-     <loc>http://example.com/res1</loc>
-     <lastmod>2012-08-08T08:15:00Z</lastmod>
-     <xhtml:link rel="DCTERMS.subject" href="http://en.wikipedia.org/wiki/Category:Frogs" title="Frogs"/>
-   </url>
-   <url>
-     <loc>http://example.com/res2</loc>
-     <lastmod>2012-08-08T13:22:00Z</lastmod>
-     <xhtml:link rel="DCTERMS.subject" href="http://en.wikipedia.org/wiki/Category:Fish" title="Fish"/>
-   </url>
+      xmlns:rs="http://www.openarchives.org/rs/">
+  <rs:md capability="changelist"
+         modified="2013-01-03T11:00:00Z"/>
+  <url>
+      <loc>http://example.com/res2.pdf</loc>
+      <lastmod>2013-01-02T18:00:00Z</lastmod>
+      <rs:md change="updated"/>
+  </url>
+  <url>
+      <loc>http://example.com/res3.tiff</loc>
+      <lastmod>2013-01-02T13:00:00Z</lastmod>
+      <rs:md change="deleted"/>
+  </url>
 </urlset>

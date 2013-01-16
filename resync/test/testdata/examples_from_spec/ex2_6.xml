@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:rs="http://www.openarchives.org/rs/">
+  <rs:ln href="http://example.com/info-about-source.xml"/>
+        rel="describedby"
+        type="application/xml"
+  <rs:md capability="capabilitylist"
+         modified="2013-01-02T14:00:00Z"/>
+  <url>
+      <loc>http://example.com/dataset1/resourcelist.xml</loc>
+      <rs:md capability="resourcelist"/>
+  </url>
+  <url>
+      <loc>http://example.com/dataset1/resourcedump.xml</loc>
+      <rs:md capability="resourcedump"/>
+  </url>
+</urlset>

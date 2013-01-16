@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+         xmlns:rs="http://www.openarchives.org/rs/">
+  <rs:md capability="resourcedump-manifest"
+         modified="2013-01-03T19:00:00Z"/>
+  <url>
+      <loc>http://example.com/res1</loc>
+      <lastmod>2013-01-03T14:00:00Z</lastmod>
+      <rs:md hash="md5:1584abdf8ebdc9802ac0c6a7402c03b6"
+             path="/resources/res1"/>
+  </url>
+  <url>
+      <loc>http://example.com/res2</loc>
+      <lastmod>2013-01-03T13:00:00Z</lastmod>
+      <rs:md hash="md5:1e0d5cb8ef6ba40c99b14c0237be735e"
+             path="/resources/res2"/>
+  </url>
+</urlset>
