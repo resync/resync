@@ -64,7 +64,7 @@ class TestSitemap(unittest.TestCase):
     def test_10_sitemap(self):
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
-<url><loc>http://e.com/a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:size>12</rs:size><rs:fixity type="md5">Q2hlY2sgSW50ZWdyaXR5IQ==</rs:fixity></url>\
+<url><loc>http://e.com/a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md size="12" hash="md5:Q2hlY2sgSW50ZWdyaXR5IQ=="/></url>\
 </urlset>'
         s=Sitemap()
         i=s.inventory_parse_xml(fh=StringIO.StringIO(xml))
@@ -144,8 +144,8 @@ class TestSitemap(unittest.TestCase):
     def test_30_parse_changelist(self):
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
-<url><loc>/tmp/rs_test/src/file_a</loc><lastmod rs:type="updated">2012-03-14T18:37:36Z</lastmod><rs:size>12</rs:size></url>\
-<url><loc>/tmp/rs_test/src/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:size>32</rs:size></url>\
+<url><loc>/tmp/rs_test/src/file_a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md change="updated" size="12"/></url>\
+<url><loc>/tmp/rs_test/src/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md size="32"/></url>\
 </urlset>'
         s=Sitemap()
         s.resource_class=Resource
@@ -154,7 +154,7 @@ class TestSitemap(unittest.TestCase):
         i = iter(c)
         r1 = i.next()
         self.assertEqual( r1.uri, '/tmp/rs_test/src/file_a' )
-        self.assertEqual( r1.changetype, 'UPDATED' )
+        self.assertEqual( r1.changetype, 'updated' )
         r2 = i.next()
         self.assertEqual( r2.uri, '/tmp/rs_test/src/file_b' )
         self.assertEqual( r2.changetype, None )

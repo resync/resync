@@ -1,6 +1,9 @@
-===========
-Resync
-===========
+======
+resync
+======
 
-Resync is xyz. Typical usage
-often looks like this::
+resync is ResourceSync client and library.
+
+Typical usage often looks like this:
+
+

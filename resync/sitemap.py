@@ -17,8 +17,6 @@ from url_authority import UrlAuthority
 
 SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9'
 RS_NS = 'http://www.openarchives.org/rs/terms/'
-#XHTML_NS = 'http://www.w3.org/1999/xhtml'
-XHTML_NS = 'http://www.w3.org/1999/xhtml_DEFANGED'
 
 class SitemapIndexError(Exception):
     """Exception on attempt to read a sitemapindex instead of sitemap"""
@@ -271,11 +269,11 @@ class Sitemap(object):
                 resource.changetype is not None):
                 # Not a plain old <lastmod>, use <lastmod> with 
                 # rs:type attribute or <expires>
-                if (resource.changetype == 'CREATED'):
+                if (resource.changetype == 'created'):
                     lastmod_attrib = {'rs:type': 'created'}
-                elif (resource.changetype == 'UPDATED'):
+                elif (resource.changetype == 'updated'):
                     lastmod_attrib = {'rs:type': 'updated'}
-                elif (resource.changetype == 'DELETED'):
+                elif (resource.changetype == 'deleted'):
                     lastmod_name = 'expires'
                 else:
                     raise Exception("Unknown change type '%s' for resource %s" % (resource.changetype,resource.uri))
@@ -322,56 +320,62 @@ class Sitemap(object):
         loc = etree.findtext('{'+SITEMAP_NS+"}loc")
         if (loc is None):
             raise SitemapError("Missing <loc> element while parsing <url> in sitemap")
-        # We at least have a URI, make this object
+        ###FIXME - test for mutliple <loc> -> error
+        # must at least have a URI, make this object
         resource=resource_class(uri=loc)
-        # and then proceed to look for other resource attributes
-        changetype = None
-        lastmod_element = etree.find('{'+SITEMAP_NS+"}lastmod")
-        if (lastmod_element is not None):
-            lastmod = lastmod_element.text
-            if (lastmod is not None):
-                resource.lastmod=lastmod
-            type = lastmod_element.attrib.get('{'+RS_NS+'}type',None)
-            if (type is not None):
-                if (type == 'created'):
-                    changetype='CREATED'
-                elif (type == 'updated'):
-                    changetype='UPDATED'
+        # and hopefully a lastmod datetime
+        lastmod = etree.findtext('{'+SITEMAP_NS+"}lastmod")
+        ###FIXME - test for multple <lastmod> -> error
+        if (lastmod is not None):
+            resource.lastmod=lastmod
+        # then proceed to look for other resource attributes in an rs:md element
+        print "looking for rs;md..."
+        print tostring(etree)
+        md_elements = etree.findall('{'+RS_NS+"}md")
+        if (len(md_elements)>1):
+            raise SitemapError("Found multiple (%d) <rs:md> elements for %s", (len(md_elements),loc))
+        elif (len(md_elements)==1):
+            # have on element, look at attributes
+            md_element = md_elements[0]
+            print "found rs;md..."
+            # change type
+            change = md_element.attrib.get("change",None)
+            if (change is not None):
+                if (change in ['created','updated','deleted'] ):
+                    resource.changetype = change
                 else:
-                    self.logger.warning("Bad rs:type for <lastmod> for %s" % (loc))
-        expires = etree.findtext('{'+SITEMAP_NS+"}expires")
-        if (expires is not None):
-            resource.lastmod=expires
-            changetype='DELETED'
-            if (lastmod_element is not None):
-                self.logger.warning("Got <lastmod> and <expires> for %s" % (loc))
-        # If we have a changetype, see whether we can set it
-        if (changetype is not None):
-            try:
-                resource.changetype = changetype
-            except AttributeError as e:
-                self.logger.warning("Cannot record changetype %s for %s" % (changetype,loc))
-        # size in bytes
-        size = etree.findtext('{'+RS_NS+"}size")
-        if (size is not None):
-            try:
-                resource.size=int(size)
-            except ValueError as e:
-                raise Exception("Invalid <rs:size> for %s" % (loc))
-        # The ResourceSync v0.1 spec lists md5, sha-1 and sha-256 fixity
-        # digest types. Currently support only md5, warn if anything else
-        # ignored
-        fixity_element = etree.find('{'+RS_NS+'}fixity')
-        if (fixity_element is not None):
-             #type = fixity_element.get('{'+RS_NS+'}type',None)
-             type = fixity_element.get('type',None)
-             if (type is not None):
-                 if (type == 'md5'):
-                     resource.md5=fixity_element.text #FIXME - should check valid
-                 elif (type == 'sha-1' or type == 'sha-256'):
-                     self.logger.warning("Unsupported type (%s) in <rs:fixity for %s" % (type,loc))
-                 else:
-                     self.logger.warning("Unknown type (%s) in <rs:fixity> for %s" % (type,loc))
+                    self.logger.warning("Bad change attribute in <rs:md> for %s" % (loc))
+            type = md_element.attrib.get("type",None)
+            # size in bytes
+            size = md_element.attrib.get("size",None)
+            if (size is not None):
+                try:
+                    resource.size=int(size)
+                except ValueError as e:
+                    raise Exception("Invalid size element in <rs:md> for %s" % (loc))
+            # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
+            # digest types. Currently support only md5, warn if anything else
+            # ignored
+            hash = md_element.attrib.get("hash",None)
+            if (hash is not None):
+                #space separated set
+                hash_seen = set()
+                for entry in hash.split(' '):
+                    ( type, value ) = entry.split(':',1)
+                    if (type in hash_seen):
+                        self.logger.warning("Ignored duplicate hash type %s in <rs:md> for %s" % (type,loc))
+                    if (type in ('md5','sha-1','sha-256')):
+                        hash_seen.add(type)
+                        if (type == 'md5'):
+                            resource.md5=value #FIXME - should check valid
+                        elif (type == 'sha-1' or type == 'sha-256'):
+                            self.logger.warning("Unsupported type (%s) in <rs:fixity for %s" % (type,loc))
+                    else:
+                        self.logger.warning("Ignored bad hash type in <rs:md> for %s" % (loc))
+        # look for rs:ln elements (optional)
+        ln_elements = etree.findall('{'+SITEMAP_NS+"}ln")
+        if (len(ln_elements)>0):
+            self.logger.warning("Ignored <rs:ln> element(s) for %s, FIXME" % (loc))
         return(resource)
 
     ##### ResourceContainer (Inventory or Changelist) methods #####
@@ -387,7 +391,7 @@ class Sitemap(object):
         # will include capabilities if allowed and if there are some
         namespaces = { 'xmlns': SITEMAP_NS, 'xmlns:rs': RS_NS }
         if ( capabilities is not None and len(capabilities)>0 ):
-            namespaces['xmlns:xhtml'] = XHTML_NS
+            namespaces['xmlns:xhtml'] = RS_NS
         root = Element('urlset', namespaces)
         if (changelist):
             root.set('rs:type','changelist')
@@ -503,7 +507,7 @@ class Sitemap(object):
         include_capabilities = capabilities and (len(capabilities)>0)
         namespaces = { 'xmlns': SITEMAP_NS }
         if (include_capabilities):
-            namespaces['xmlns:xhtml'] = XHTML_NS
+            namespaces['xmlns:xhtml'] = RS_NS
         root = Element('sitemapindex', namespaces)
         if (changelist):
             root.set('rs:type','changelist')
@@ -592,7 +596,7 @@ class Sitemap(object):
         """Read capabilities from sitemap or sitemapindex etree
         """
         capabilities = {}
-        for link in etree.findall('{'+XHTML_NS+"}link"):
+        for link in etree.findall('{'+RS_NS+"}link"):
             c = link.get('href')
             if (c is None):
                 raise Exception("xhtml:link without href")
@@ -618,7 +622,7 @@ class Sitemap(object):
                     types = types[0]
                 capabilities[c]['type']=types
         #    print capabilities[c]
-        #for meta in etree.findall('{'+XHTML_NS+"}meta"):
+        #for meta in etree.findall('{'+RS_NS+"}meta"):
         #    print meta
         return(capabilities)
 
