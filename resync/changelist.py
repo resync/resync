@@ -6,11 +6,11 @@ time, and also metadata about a change that may have occurred
 to bring the resource to that states. These descriptions
 are Resource objects.
 
-Different from an inventory, a changelist may include multiple
+Different from an resourcelist, a changelist may include multiple
 descriptions for the same resource. The changelist is ordered
 from first entry to last entry. 
 
-Different from an inventory, dereference by a URI yields a 
+Different from an resourcelist, dereference by a URI yields a 
 ChangeList containing descriptions pertaining to that 
 particular resource.
 """

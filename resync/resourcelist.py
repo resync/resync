@@ -1,12 +1,12 @@
-"""ResourceSync inventory object
+"""ResourceSync resourcelist object
 
-An inventory is a set of resources with some metadata for each 
+An resourcelist is a set of resources with some metadata for each 
 resource. Comparison of inventories from a source and a 
 destination allows understanding of whether the two are in
 sync or whether some resources need to be updated at the
 destination.
 
-The inventory object may also contain metadata regarding 
+The resourcelist object may also contain metadata regarding 
 capabilities and discovery information.
 """
 
@@ -19,8 +19,8 @@ import StringIO
 
 from resource_container import ResourceContainer
 
-class InventoryDict(dict):
-    """Default implementation of class to store resources in Inventory
+class ResourceListDict(dict):
+    """Default implementation of class to store resources in ResourceList
 
     Key properties of this class are:
     - has add(resource) method
@@ -28,7 +28,7 @@ class InventoryDict(dict):
     """
 
     def __iter__(self):
-        """Iterator over all the resources in this inventory"""
+        """Iterator over all the resources in this resourcelist"""
         self._iter_next_list = sorted(self.keys())
         self._iter_next_list.reverse()
         return(iter(self._iter_next, None))
@@ -43,43 +43,43 @@ class InventoryDict(dict):
         """Add just a single resource"""
         uri = resource.uri
         if (uri in self and not replace):
-            raise InventoryDupeError("Attempt to add resource already in inventory") 
+            raise ResourceListDupeError("Attempt to add resource already in resourcelist") 
         self[uri]=resource
 
-class InventoryDupeError(Exception):
+class ResourceListDupeError(Exception):
     pass
 
-class Inventory(ResourceContainer):
-    """Class representing an inventory of resources
+class ResourceList(ResourceContainer):
+    """Class representing an resourcelist of resources
 
     This same class is used for both the source and the destination
     and is the central point of comparison the decide whether they
     are in sync or what needs to be copied to bring the destinaton
     into sync.
 
-    An inventory will admit only one resource with any given URI.
+    An resourcelist will admit only one resource with any given URI.
 
     Storage is unordered but the iterator imposes a canonical order
     which is currently alphabetical by URI.
     """
 
     def __init__(self, resources=None, capabilities=None):
-        self.resources=(resources if (resources is not None) else InventoryDict())
+        self.resources=(resources if (resources is not None) else ResourceListDict())
         self.capabilities=(capabilities if (capabilities is not None) else {})
 
     def __iter__(self):
-        """Iterator over all the resources in this inventory"""
+        """Iterator over all the resources in this resourcelist"""
         return(iter(self.resources))
 
     def __len__(self):
-        """Return number of resources in this inventory"""
+        """Return number of resources in this resourcelist"""
         return(len(self.resources))
 
     def add(self, resource, replace=False):
         """Add a resource or an iterable collection of resources
 
         Will throw a ValueError if the resource (ie. same uri) already
-        exists in the inventory, unless replace=True.
+        exists in the resourcelist, unless replace=True.
         """
         if isinstance(resource, collections.Iterable):
             for r in resource:
@@ -88,9 +88,9 @@ class Inventory(ResourceContainer):
             self.resources.add(resource,replace)
 
     def compare(self,src):
-        """Compare the current inventory object with the specified inventory
+        """Compare the current resourcelist object with the specified resourcelist
 
-        The parameter src must also be an inventory object, it is assumed
+        The parameter src must also be an resourcelist object, it is assumed
         to be the source, and the current object is the destination. This 
         written to work for any objects in self and sc, provided that the
         == operator can be used to compare them.
@@ -100,10 +100,10 @@ class Inventory(ResourceContainer):
         """
         dst_iter = iter(self.resources)
         src_iter = iter(src.resources)
-        same=Inventory()
-        updated=Inventory()
-        deleted=Inventory()
-        created=Inventory()
+        same=ResourceList()
+        updated=ResourceList()
+        deleted=ResourceList()
+        created=ResourceList()
         dst_cur=next(dst_iter,None)
         src_cur=next(src_iter,None)
         while ((dst_cur is not None) and (src_cur is not None)):

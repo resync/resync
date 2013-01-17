@@ -1,8 +1,8 @@
-"""InventoryBuilder to create Inventory objects from various sources
+"""ResourceListBuilder to create ResourceList objects from various sources
 
 Attributes:
 - do_md5 set true to calculate MD5 sums for all files
-- do_size set true to include file size in inventory
+- do_size set true to include file size in resourcelist
 - exclude_dirs is a list of directory names to exclude
   (defaults to ['CVS','.git'))
 """
@@ -16,14 +16,14 @@ from urllib import URLopener
 from xml.etree.ElementTree import parse
 
 from resource import Resource
-from inventory import Inventory
+from resourcelist import ResourceList
 from sitemap import Sitemap
 from utils import compute_md5_for_file
 
-class InventoryBuilder():
+class ResourceListBuilder():
 
     def __init__(self, do_md5=False, do_size=True, mapper=None):
-        """Create InventoryBuilder object, optionally set options
+        """Create ResourceListBuilder object, optionally set options
 
         Optionaly sets the following attributes:
         - do_md5 - True to add md5 digests for each resource
@@ -36,11 +36,11 @@ class InventoryBuilder():
         self.exclude_dirs = ['CVS','.git']
         self.include_symlinks = False
         # Used internally only:
-        self.logger = logging.getLogger('inventory_builder')
+        self.logger = logging.getLogger('resourcelist_builder')
         self.compiled_exclude_files = []
 
     def add_exclude_files(self, exclude_patterns):
-        """Add more patterns of files to exclude while building inventory"""
+        """Add more patterns of files to exclude while building resourcelist"""
         for pattern in exclude_patterns:
             self.exclude_files.append(pattern)
 
@@ -56,36 +56,36 @@ class InventoryBuilder():
                 return(True)
         return(False)
 
-    def from_disk(self,inventory=None):
-        """Create or extend inventory with resources from disk scan
+    def from_disk(self,resourcelist=None):
+        """Create or extend resourcelist with resources from disk scan
 
         Assumes very simple disk path to URL mapping: chop path and
-        replace with url_path. Returns the new or extended Inventory
+        replace with url_path. Returns the new or extended ResourceList
         object.
 
-        If a inventory is specified then items are added to that rather
+        If a resourcelist is specified then items are added to that rather
         than creating a new one.
 
         mapper=Mapper('http://example.org/path','/path/to/files')
-        mb = InventoryBuilder(mapper=mapper)
-        m = inventory_from_disk()
+        mb = ResourceListBuilder(mapper=mapper)
+        m = resourcelist_from_disk()
         """
         num=0
-        # Either use inventory passed in or make a new one
-        if (inventory is None):
-            inventory = Inventory()
+        # Either use resourcelist passed in or make a new one
+        if (resourcelist is None):
+            resourcelist = ResourceList()
         # Compile exclude pattern matches
         self.compile_excludes()
         # Run for each map in the mappings
         for map in self.mapper.mappings:
             self.logger.info("Scanning disk for %s" % (str(map)))
-            self.from_disk_add_map(inventory=inventory, map=map)
-        return(inventory)
+            self.from_disk_add_map(resourcelist=resourcelist, map=map)
+        return(resourcelist)
 
-    def from_disk_add_map(self, inventory=None, map=None):
+    def from_disk_add_map(self, resourcelist=None, map=None):
         # sanity
-        if (inventory is None or map is None):
-            raise ValueError("Must specify inventory and map")
+        if (resourcelist is None or map is None):
+            raise ValueError("Must specify resourcelist and map")
         path=map.dst_path
         #print "walking: %s" % (path)
         # for each file: create Resource object, add, increment counter
@@ -94,7 +94,7 @@ class InventoryBuilder():
             for file_in_dirpath in files:
 		num_files+=1
 		if (num_files%50000 == 0):
-		    self.logger.info("InventoryBuilder.from_disk_add_map: %d files..." % (num_files))
+		    self.logger.info("ResourceListBuilder.from_disk_add_map: %d files..." % (num_files))
                 try:
                     if self.exclude_file(file_in_dirpath):
                         self.logger.debug("Excluding file %s" % (file_in_dirpath))
@@ -118,10 +118,10 @@ class InventoryBuilder():
                 if (self.do_size):
                     # add size
                     r.size=file_stat.st_size
-                inventory.add(r)
+                resourcelist.add(r)
             # prune list of dirs based on self.exclude_dirs
             for exclude in self.exclude_dirs:
                 if exclude in dirs:
                     self.logger.debug("Excluding dir %s" % (exclude))
                     dirs.remove(exclude)
-        return(inventory)
+        return(resourcelist)

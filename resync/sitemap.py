@@ -10,7 +10,7 @@ from datetime import datetime
 import StringIO
 
 from resource import Resource
-from inventory import Inventory, InventoryDupeError
+from resourcelist import ResourceList, ResourceListDupeError
 from changelist import ChangeList
 from mapper import Mapper, MapperError
 from url_authority import UrlAuthority
@@ -28,8 +28,8 @@ class SitemapIndexError(Exception):
     def __repr__(self):
         return(self.message)
 
-class SitemapIndex(Inventory):
-    """Reuse an inventory to hold the set of sitemaps"""
+class SitemapIndex(ResourceList):
+    """Reuse an resourcelist to hold the set of sitemaps"""
     pass
 
 class SitemapError(Exception):
@@ -38,7 +38,7 @@ class SitemapError(Exception):
 class Sitemap(object):
     """Read and write sitemaps
 
-    Implemented as a separate class that uses ResourceContainer (Inventory or
+    Implemented as a separate class that uses ResourceContainer (ResourceList or
     ChangeList) and Resource classes as data objects. Reads and write sitemaps, 
     including multiple file sitemaps.
     """
@@ -50,7 +50,7 @@ class Sitemap(object):
         self.mapper=mapper
         self.max_sitemap_entries=50000
         # Classes used when parsing
-        self.inventory_class=Inventory
+        self.resourcelist_class=ResourceList
         self.resource_class=Resource
         self.changelist_class=ChangeList
         self.resourcechange_class=Resource
@@ -67,7 +67,7 @@ class Sitemap(object):
     def write(self, resources=None, basename='/tmp/sitemap.xml', changelist=False):
         """Write one or a set of sitemap files to disk
 
-        resources is a ResourceContainer that may be an Inventory or
+        resources is a ResourceContainer that may be an ResourceList or
         a ChangeList. This may be a generator so data is read as needed
         and length is determined at the end.
 
@@ -75,9 +75,9 @@ class Sitemap(object):
         sitemapindex for a set of sitemap files.
 
         if changelist is set true then type information is added to indicate
-        that this sitemap file is a changelist and not an inventory.
+        that this sitemap file is a changelist and not an resourcelist.
 
-        Uses self.max_sitemap_entries to determine whether the inventory can 
+        Uses self.max_sitemap_entries to determine whether the resourcelist can 
         be written as one sitemap. If there are more entries and 
         self.allow_multifile is set true then a set of sitemap files, 
         with an sitemapindex, will be written.
@@ -111,7 +111,7 @@ class Sitemap(object):
             self.logger.info("Wrote %d sitemaps" % (len(sitemaps)))
             f = open(basename, 'w')
             self.logger.info("Writing sitemapindex %s..." % (basename))
-            f.write(self.sitemapindex_as_xml(sitemaps=sitemaps,inventory=resources,capabilities=resources.capabilities,changelist=changelist))
+            f.write(self.sitemapindex_as_xml(sitemaps=sitemaps,resourcelist=resources,capabilities=resources.capabilities,changelist=changelist))
             f.close()
             self.logger.info("Wrote sitemapindex %s" % (basename))
         else:
@@ -147,12 +147,12 @@ class Sitemap(object):
     def read(self, uri=None, resources=None, changelist=None, index_only=False):
         """Read sitemap from a URI including handling sitemapindexes
 
-        Returns the inventory or changelist. If changelist is not specified (None)
-        then it is assumed that an Inventory is to be read, unless the XML
+        Returns the resourcelist or changelist. If changelist is not specified (None)
+        then it is assumed that an ResourceList is to be read, unless the XML
         indicates a Changelist.
 
         If changelist is True then a Changelist if expected; if changelist if False
-        then an Inventory is expected.
+        then an ResourceList is expected.
 
         If index_only is True then individual sitemaps references in a sitemapindex
         will not be read. This will result in no resources being returned and is
@@ -183,10 +183,10 @@ class Sitemap(object):
         # check root element: urlset (for sitemap), sitemapindex or bad
         self.sitemaps_created=0
         root = etree.getroot()
-        # assume inventory but look to see whether this is a changelist 
+        # assume resourcelist but look to see whether this is a changelist 
         # as indicated with rs:type="changelist" on the root
-        resources_class = self.inventory_class
-        sitemap_xml_parser = self.inventory_parse_xml
+        resources_class = self.resourcelist_class
+        sitemap_xml_parser = self.resourcelist_parse_xml
         self.changelist_read = False
         self.read_type = 'sitemap'
         root_type = root.attrib.get('{'+RS_NS+'}type',None)
@@ -378,7 +378,7 @@ class Sitemap(object):
             self.logger.warning("Ignored <rs:ln> element(s) for %s, FIXME" % (loc))
         return(resource)
 
-    ##### ResourceContainer (Inventory or Changelist) methods #####
+    ##### ResourceContainer (ResourceList or Changelist) methods #####
 
     def resources_as_xml(self, resources, num_resources=None, capabilities=None, changelist=False):
         """Return XML for a set of resources in sitemap format
@@ -416,10 +416,10 @@ class Sitemap(object):
             tree.write(xml_buf,encoding='UTF-8',xml_declaration=True,method='xml')
         return(xml_buf.getvalue())
 
-    def inventory_parse_xml(self, fh=None, etree=None, resources=None):
-        """Parse XML Sitemap from fh or etree and add resources to an Inventory object
+    def resourcelist_parse_xml(self, fh=None, etree=None, resources=None):
+        """Parse XML Sitemap from fh or etree and add resources to an ResourceList object
 
-        Returns the inventory.
+        Returns the resourcelist.
 
         Also sets self.resources_created to be the number of resources created. 
         We adopt a very lax approach here. The parsing is properly namespace 
@@ -430,9 +430,9 @@ class Sitemap(object):
         indicates a sitemapindex then an SitemapIndexError() is thrown 
         and the etree passed along with it.
         """
-        inventory = resources #use inventory locally but want common argument name
-        if (inventory is None):
-            inventory=self.inventory_class()
+        resourcelist = resources #use resourcelist locally but want common argument name
+        if (resourcelist is None):
+            resourcelist=self.resourcelist_class()
         if (fh is not None):
             etree=parse(fh)
         elif (etree is None):
@@ -443,13 +443,13 @@ class Sitemap(object):
             for url_element in etree.findall('{'+SITEMAP_NS+"}url"):
                 r = self.resource_from_etree(url_element, self.resource_class)
                 try:
-                    inventory.add( r )
-                except InventoryDupeError:
+                    resourcelist.add( r )
+                except ResourceListDupeError:
                     self.logger.warning("dupe: %s (%s =? %s)" % 
-                        (r.uri,r.lastmod,inventory.resources[r.uri].lastmod))
+                        (r.uri,r.lastmod,resourcelist.resources[r.uri].lastmod))
                 self.resources_created+=1
-            inventory.capabilities = self.capabilities_from_etree(etree)
-            return(inventory)
+            resourcelist.capabilities = self.capabilities_from_etree(etree)
+            return(resourcelist)
         elif (etree.getroot().tag == '{'+SITEMAP_NS+"}sitemapindex"):
             raise SitemapIndexError("Got sitemapindex when expecting sitemap",etree)
         else:
@@ -469,7 +469,7 @@ class Sitemap(object):
         indicates a sitemapindex then an SitemapIndexError() is thrown 
         and the etree passed along with it.
         """
-        changelist = resources #use inventory locally but want common argument name
+        changelist = resources #use resourcelist locally but want common argument name
         if (changelist is None):
             changelist=self.changelist_class()
         if (fh is not None):
@@ -492,7 +492,7 @@ class Sitemap(object):
 
     ##### Sitemap Index #####
 
-    def sitemapindex_as_xml(self, file=None, sitemaps={}, inventory=None, capabilities=None, changelist=False ):
+    def sitemapindex_as_xml(self, file=None, sitemaps={}, resourcelist=None, capabilities=None, changelist=False ):
         """Return a sitemapindex as an XML string
 
         Format:

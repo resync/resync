@@ -1,10 +1,10 @@
 """ResourceSync Resource Container object
 
-Both Inventory and Change Set objects are collections of Resource
+Both ResourceList and Change Set objects are collections of Resource
 objects with additional metadata regarding capabilities and 
 discovery information.
 
-This is a superclass for the Inventory and ChangeSet classes which 
+This is a superclass for the ResourceList and ChangeSet classes which 
 contains common functionality.
 """
 
@@ -27,7 +27,7 @@ class ResourceContainer(object):
         self.capabilities=(capabilities if (capabilities is not None) else {})
 
     def __iter__(self):
-        """Iterator over all the resources in this inventory
+        """Iterator over all the resources in this resourcelist
 
         Baseline implementation use iterator given by resources property
         """

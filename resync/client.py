@@ -10,8 +10,8 @@ import time
 import logging
 import ConfigParser
 
-from resync.inventory_builder import InventoryBuilder
-from resync.inventory import Inventory
+from resync.resourcelist_builder import ResourceListBuilder
+from resync.resourcelist import ResourceList
 from resync.changelist import ChangeList
 from resync.mapper import Mapper
 from resync.sitemap import Sitemap
@@ -78,16 +78,16 @@ class Client(object):
         return(self.sitemap_changelist_uri(self.sitemap_name))
 
     @property
-    def inventory(self):
-        """Return inventory on disk based on current mappings
+    def resourcelist(self):
+        """Return resourcelist on disk based on current mappings
 
-        Return inventory. Uses existing self.mapper settings.
+        Return resourcelist. Uses existing self.mapper settings.
         """
         ### 0. Sanity checks
         if (len(self.mappings)<1):
             raise ClientFatalError("No source to destination mapping specified")
         ### 1. Build from disk
-        ib = InventoryBuilder(do_md5=self.checksum,mapper=self.mapper)
+        ib = ResourceListBuilder(do_md5=self.checksum,mapper=self.mapper)
         ib.add_exclude_files(self.exclude_patterns)
         return( ib.from_disk() )
 
@@ -107,26 +107,26 @@ class Client(object):
         if (len(self.mappings)<1):
             raise ClientFatalError("No source to destination mapping specified")
         ### 1. Get inventories from both src and dst 
-        # 1.a source inventory
-        ib = InventoryBuilder(mapper=self.mapper)
+        # 1.a source resourcelist
+        ib = ResourceListBuilder(mapper=self.mapper)
         try:
             self.logger.info("Reading sitemap %s" % (self.sitemap))
             src_sitemap = Sitemap(allow_multifile=self.allow_multifile, mapper=self.mapper)
-            src_inventory = src_sitemap.read(uri=self.sitemap)
+            src_resourcelist = src_sitemap.read(uri=self.sitemap)
             self.logger.debug("Finished reading sitemap")
         except Exception as e:
-            raise ClientFatalError("Can't read source inventory from %s (%s)" % (self.sitemap,str(e)))
-        self.logger.info("Read source inventory, %d resources listed" % (len(src_inventory)))
-        if (len(src_inventory)==0):
+            raise ClientFatalError("Can't read source resourcelist from %s (%s)" % (self.sitemap,str(e)))
+        self.logger.info("Read source resourcelist, %d resources listed" % (len(src_resourcelist)))
+        if (len(src_resourcelist)==0):
             raise ClientFatalError("Aborting as there are no resources to sync")
-        if (self.checksum and not src_inventory.has_md5()):
+        if (self.checksum and not src_resourcelist.has_md5()):
             self.checksum=False
-            self.logger.info("Not calculating checksums on destination as not present in source inventory")
-        # 1.b destination inventory mapped back to source URIs
+            self.logger.info("Not calculating checksums on destination as not present in source resourcelist")
+        # 1.b destination resourcelist mapped back to source URIs
         ib.do_md5=self.checksum
-        dst_inventory = ib.from_disk()
-        ### 2. Compare these inventorys respecting any comparison options
-        (same,updated,deleted,created)=dst_inventory.compare(src_inventory)   
+        dst_resourcelist = ib.from_disk()
+        ### 2. Compare these resourcelists respecting any comparison options
+        (same,updated,deleted,created)=dst_resourcelist.compare(src_resourcelist)   
         ### 3. Report status and planned actions
         status = "  IN SYNC  "
         if (len(updated)>0 or len(deleted)>0 or len(created)>0):
@@ -138,7 +138,7 @@ class Client(object):
             return
         ### 4. Check that sitemap has authority over URIs listed
         uauth = UrlAuthority(self.sitemap)
-        for resource in src_inventory:
+        for resource in src_resourcelist:
             if (not uauth.has_authority_over(resource.uri)):
                 if (self.noauth):
                     #self.logger.info("Sitemap (%s) mentions resource at a location it does not have authority over (%s)" % (self.sitemap,resource.uri))
@@ -162,7 +162,7 @@ class Client(object):
             self.delete_resource(resource,file,allow_deletion)
         ### 6. For sync reset any incremental status for site
         if (not audit_only):
-            links = self.extract_links(src_inventory)
+            links = self.extract_links(src_resourcelist)
             if ('next' in links):
                 self.write_incremental_status(self.sitemap,links['next'])
                 self.logger.info("Written config with next incremental at %s" % (links['next']))
@@ -191,18 +191,18 @@ class Client(object):
             try:
                 self.logger.info("Reading sitemap %s" % (self.sitemap))
                 src_sitemap = Sitemap(allow_multifile=self.allow_multifile, mapper=self.mapper)
-                src_inventory = src_sitemap.read(uri=self.sitemap, index_only=True)
+                src_resourcelist = src_sitemap.read(uri=self.sitemap, index_only=True)
                 self.logger.debug("Finished reading sitemap/sitemapindex")
             except Exception as e:
                 raise ClientFatalError("Can't read source sitemap from %s (%s)" % (self.sitemap,str(e)))
             # Extract changelist location
             # FIXME - need to completely rework the way we handle/store capabilities
-            links = self.extract_links(src_inventory)
+            links = self.extract_links(src_resourcelist)
             if ('current' not in links):
                 raise ClientFatalError("Failed to extract changelist location from sitemap %s" % (self.sitemap))
             changelist = links['current']
         ### 2. Read changelist from source
-        ib = InventoryBuilder(mapper=self.mapper)
+        ib = ResourceListBuilder(mapper=self.mapper)
         try:
             self.logger.info("Reading changelist %s" % (changelist))
             src_sitemap = Sitemap(allow_multifile=self.allow_multifile, mapper=self.mapper)
@@ -215,7 +215,7 @@ class Client(object):
         #    raise ClientFatalError("Aborting as there are no resources to sync")
         if (self.checksum and not src_changelist.has_md5()):
             self.checksum=False
-            self.logger.info("Not calculating checksums on destination as not present in source inventory")
+            self.logger.info("Not calculating checksums on destination as not present in source resourcelist")
         ### 3. Check that sitemap has authority over URIs listed
         # FIXME - What does authority mean for changelist? Here use both the
         # changelist URI and, if we used it, the sitemap URI
@@ -275,7 +275,7 @@ class Client(object):
         2. set mtime in local time to be equal to timestamp in UTC (should perhaps
         or at least warn if different from LastModified from the GET response instead 
         but maybe warn if different (or just earlier than) the lastmod we expected 
-        from the inventory
+        from the resourcelist
         """
         path = os.path.dirname(file)
         distutils.dir_util.mkpath(path)
@@ -386,8 +386,8 @@ class Client(object):
         return(s.changelist_read,links)
 
     def write_sitemap(self,outfile=None,capabilities=None,dump=None):
-        # Set up base_path->base_uri mappings, get inventory from disk
-        i = self.inventory
+        # Set up base_path->base_uri mappings, get resourcelist from disk
+        i = self.resourcelist
         i.capabilities = capabilities
         s=Sitemap(pretty_xml=True, allow_multifile=self.allow_multifile, mapper=self.mapper)
         if (self.max_sitemap_entries is not None):
@@ -406,10 +406,10 @@ class Client(object):
             # 1. Get and parse reference sitemap
             old_inv = self.read_reference_sitemap(ref_sitemap)
             # 2. Depending on whether a newref_sitemap was specified, either read that 
-            # or build inventory from files on disk
+            # or build resourcelist from files on disk
             if (newref_sitemap is None):
-                # Get inventory from disk
-                new_inv = self.inventory
+                # Get resourcelist from disk
+                new_inv = self.resourcelist
             else:
                 new_inv = self.read_reference_sitemap(newref_sitemap,name='new reference')
             # 3. Calculate changelist
@@ -427,15 +427,15 @@ class Client(object):
             s.write(changelist,basename=outfile,changelist=True)
         self.write_dump_if_requested(changelist,dump)
 
-    def write_dump_if_requested(self,inventory,dump):
+    def write_dump_if_requested(self,resourcelist,dump):
         if (dump is None):
             return
         self.logger.info("Writing dump to %s..." % (dump))
         d = Dump(format=self.dump_format)
-        d.write(inventory=inventory,dumpfile=dump)
+        d.write(resourcelist=resourcelist,dumpfile=dump)
 
     def read_reference_sitemap(self,ref_sitemap,name='reference'):
-        """Read reference sitemap and return the inventory
+        """Read reference sitemap and return the resourcelist
 
         name parameter just uses in output messages to say what type
         of sitemap is being read.
@@ -462,7 +462,7 @@ class Client(object):
         return(i)
 
     def extract_links(self, rc, verbose=False):
-        """Extract links from capabilities inventory or changelist
+        """Extract links from capabilities resourcelist or changelist
 
         FIXME - when we finalize the form of links this should probably
         go along with other capabilities functions somewhere general.

@@ -1,7 +1,7 @@
 import unittest
 from resync.resource import Resource
 from resync.changelist import ChangeList
-from resync.inventory import Inventory
+from resync.resourcelist import ResourceList
 
 class TestChangeList(unittest.TestCase):
 
@@ -49,10 +49,10 @@ class TestChangeList(unittest.TestCase):
         self.assertEqual( resources[3].uri, 'd')
 
     def test5_add_changed_resources(self):
-        added = Inventory()
+        added = ResourceList()
         added.add( Resource('a',timestamp=1) )
         added.add( Resource('d',timestamp=4))
-        self.assertEqual(len(added), 2, "2 things in added inventory")
+        self.assertEqual(len(added), 2, "2 things in added resourcelist")
         changes = ChangeList()
         changes.add_changed_resources( added, change='created' )
         self.assertEqual(len(changes), 2, "2 things added")
@@ -65,14 +65,14 @@ class TestChangeList(unittest.TestCase):
         self.assertEqual(second.timestamp, 4, "changes[1].timestamp=4")
         self.assertEqual(second.change, 'created', "changes[1].change=created")
         # Now add some with updated (one same, one diff)
-        updated = Inventory()
+        updated = ResourceList()
         updated.add( Resource('a',timestamp=5) )
         updated.add( Resource('b',timestamp=6))
-        self.assertEqual(len(updated), 2, "2 things in updated inventory")
+        self.assertEqual(len(updated), 2, "2 things in updated resourcelist")
         changes.add_changed_resources( updated, change='updated' )
         self.assertEqual(len(changes), 4, "4 = 2 old + 2 things updated")
-        # Make new inventory from the changes which should not have dupes
-        dst = Inventory()
+        # Make new resourcelist from the changes which should not have dupes
+        dst = ResourceList()
         dst.add( changes, replace=True )
         self.assertEqual(len(dst), 3, "3 unique resources")
         self.assertEqual(dst.resources['a'].timestamp, 5 ) # 5 was later in last the 1

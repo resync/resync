@@ -1,14 +1,14 @@
 import unittest
 from resync.resource import Resource
-from resync.inventory import Inventory, InventoryDupeError
+from resync.resourcelist import ResourceList, ResourceListDupeError
 
-class TestInventory(unittest.TestCase):
+class TestResourceList(unittest.TestCase):
 
     def test1_same(self):
-        src = Inventory()
+        src = ResourceList()
         src.add( Resource('a',timestamp=1) )
         src.add( Resource('b',timestamp=2) )
-        dst = Inventory()
+        dst = ResourceList()
         dst.add( Resource('a',timestamp=1) )
         dst.add( Resource('b',timestamp=2) )
         ( same, changed, deleted, added ) = dst.compare(src)
@@ -21,10 +21,10 @@ class TestInventory(unittest.TestCase):
         self.assertEqual( len(added), 0, "nothing added" )
 
     def test2_changed(self):
-        src = Inventory()
+        src = ResourceList()
         src.add( Resource('a',timestamp=1) )
         src.add( Resource('b',timestamp=2) )
-        dst = Inventory()
+        dst = ResourceList()
         dst.add( Resource('a',timestamp=3) )
         dst.add( Resource('b',timestamp=4) )
         ( same, changed, deleted, added ) = dst.compare(src)
@@ -37,10 +37,10 @@ class TestInventory(unittest.TestCase):
         self.assertEqual( len(added), 0, "nothing added" )
 
     def test3_deleted(self):
-        src = Inventory()
+        src = ResourceList()
         src.add( Resource('a',timestamp=1) )
         src.add( Resource('b',timestamp=2) )
-        dst = Inventory()
+        dst = ResourceList()
         dst.add( Resource('a',timestamp=1) )
         dst.add( Resource('b',timestamp=2) )
         dst.add( Resource('c',timestamp=3) )
@@ -55,12 +55,12 @@ class TestInventory(unittest.TestCase):
         self.assertEqual( len(added), 0, "nothing added" )
 
     def test4_added(self):
-        src = Inventory()
+        src = ResourceList()
         src.add( Resource('a',timestamp=1) )
         src.add( Resource('b',timestamp=2) )
         src.add( Resource('c',timestamp=3) )
         src.add( Resource('d',timestamp=4) )
-        dst = Inventory()
+        dst = ResourceList()
         dst.add( Resource('a',timestamp=1) )
         dst.add( Resource('c',timestamp=3) )
         ( same, changed, deleted, added ) = dst.compare(src)
@@ -75,11 +75,11 @@ class TestInventory(unittest.TestCase):
     def test5_add(self):
         r1 = Resource(uri='a',size=1)
         r2 = Resource(uri='b',size=2)
-        i = Inventory()
+        i = ResourceList()
         i.add(r1)
-        self.assertRaises( InventoryDupeError, i.add, r1)
+        self.assertRaises( ResourceListDupeError, i.add, r1)
         i.add(r2)
-        self.assertRaises( InventoryDupeError, i.add, r2)
+        self.assertRaises( ResourceListDupeError, i.add, r2)
         # allow dupes
         r1d = Resource(uri='a',size=10)
         i.add(r1d,replace=True)
@@ -89,10 +89,10 @@ class TestInventory(unittest.TestCase):
     def test5_add_iterable(self):
         r1 = Resource(uri='a',size=1)
         r2 = Resource(uri='b',size=2)
-        i = Inventory()
+        i = ResourceList()
         i.add( [r1,r2] )
-        self.assertRaises( InventoryDupeError, i.add, r1)
-        self.assertRaises( InventoryDupeError, i.add, r2)
+        self.assertRaises( ResourceListDupeError, i.add, r1)
+        self.assertRaises( ResourceListDupeError, i.add, r2)
         # allow dupes
         r1d = Resource(uri='a',size=10)
         i.add( [r1d] ,replace=True)
@@ -102,7 +102,7 @@ class TestInventory(unittest.TestCase):
     def test6_has_md5(self):
         r1 = Resource(uri='a')
         r2 = Resource(uri='b')
-        i = Inventory()
+        i = ResourceList()
         self.assertFalse( i.has_md5() )
         i.add(r1)
         i.add(r2)
@@ -111,7 +111,7 @@ class TestInventory(unittest.TestCase):
         self.assertTrue( i.has_md5() )
 
     def test7_iter(self):
-        i = Inventory()
+        i = ResourceList()
         i.add( Resource('a',timestamp=1) )
         i.add( Resource('b',timestamp=2) )
         i.add( Resource('c',timestamp=3) )
@@ -124,6 +124,6 @@ class TestInventory(unittest.TestCase):
         self.assertEqual( resources[3].uri, 'd')
 
 if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestInventory)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestResourceList)
 #    unittest.TextTestRunner(verbosity=1).run(suite)
     unittest.TextTestRunner().run(suite)

@@ -2,7 +2,7 @@ import sys
 import unittest
 import StringIO
 from resync.resource import Resource
-from resync.inventory import Inventory
+from resync.resourcelist import ResourceList
 from resync.sitemap import Sitemap
 
 class TestSitemap(unittest.TestCase):
@@ -11,7 +11,7 @@ class TestSitemap(unittest.TestCase):
         """ex2_1 is a simple resourcelist with 2 resources, no metadata"""
         s=Sitemap()
         fh=open('resync/test/testdata/examples_from_spec/ex2_1.xml')
-        si = s.inventory_parse_xml( fh=fh )
+        si = s.resourcelist_parse_xml( fh=fh )
         self.assertEqual( len(si.resources), 2, '2 resources')
         sms = sorted(si.resources.keys())
         self.assertEqual( sms, ['http://example.com/res1','http://example.com/res2'] )
@@ -21,7 +21,7 @@ class TestSitemap(unittest.TestCase):
         """ex2_2 is a simple resourcelist with 2 resources, some metadata"""
         s=Sitemap()
         fh=open('resync/test/testdata/examples_from_spec/ex2_2.xml')
-        si = s.inventory_parse_xml( fh=fh )
+        si = s.resourcelist_parse_xml( fh=fh )
         self.assertEqual( len(si.resources), 2, '2 resources')
         sms = sorted(si.resources.keys())
         self.assertEqual( sms, ['http://example.com/res1','http://example.com/res2'] )
@@ -34,7 +34,7 @@ class TestSitemap(unittest.TestCase):
         """ex2_3 is a simple changelist with 2 resources"""
         s=Sitemap()
         fh=open('resync/test/testdata/examples_from_spec/ex2_3.xml')
-        si = s.inventory_parse_xml( fh=fh )
+        si = s.resourcelist_parse_xml( fh=fh )
         self.assertEqual( len(si.resources), 2, '2 resources')
         sms = sorted(si.resources.keys())
         self.assertEqual( sms, ['http://example.com/res2.pdf','http://example.com/res3.tiff'] )
