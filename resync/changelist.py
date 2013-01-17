@@ -44,12 +44,12 @@ class ChangeList(ResourceContainer):
         else:
             self.resources.append(resource)
 
-    def add_changed_resources(self, resources, changeid=None, changetype=None):
+    def add_changed_resources(self, resources, changeid=None, change=None):
         """Add items from a ResourceContainer resources to this ChangeList
 
-        If changeid or changetype is specified then these attributes
+        If changeid or change is specified then these attributes
         are set in the Resource objects created.
         """
         for resource in resources:
-            rc = Resource( resource=resource, changeid=changeid, changetype=changetype )
+            rc = Resource( resource=resource, changeid=changeid, change=change )
             self.add(rc)

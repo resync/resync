@@ -265,18 +265,18 @@ class Sitemap(object):
         if (resource.timestamp is not None):
             lastmod_name = 'lastmod'
             lastmod_attrib = {}
-            if (hasattr(resource,'changetype') and 
-                resource.changetype is not None):
+            if (hasattr(resource,'change') and 
+                resource.change is not None):
                 # Not a plain old <lastmod>, use <lastmod> with 
                 # rs:type attribute or <expires>
-                if (resource.changetype == 'created'):
+                if (resource.change == 'created'):
                     lastmod_attrib = {'rs:type': 'created'}
-                elif (resource.changetype == 'updated'):
+                elif (resource.change == 'updated'):
                     lastmod_attrib = {'rs:type': 'updated'}
-                elif (resource.changetype == 'deleted'):
+                elif (resource.change == 'deleted'):
                     lastmod_name = 'expires'
                 else:
-                    raise Exception("Unknown change type '%s' for resource %s" % (resource.changetype,resource.uri))
+                    raise Exception("Unknown change type '%s' for resource %s" % (resource.change,resource.uri))
             # Create appriate element for timestamp
             sub = Element(lastmod_name,lastmod_attrib)
             sub.text = str(resource.lastmod) #W3C Datetime in UTC
@@ -342,7 +342,7 @@ class Sitemap(object):
             change = md_element.attrib.get("change",None)
             if (change is not None):
                 if (change in ['created','updated','deleted'] ):
-                    resource.changetype = change
+                    resource.change = change
                 else:
                     self.logger.warning("Bad change attribute in <rs:md> for %s" % (loc))
             type = md_element.attrib.get("type",None)

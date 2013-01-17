@@ -40,8 +40,8 @@ class TestSitemap(unittest.TestCase):
         self.assertEqual( sms, ['http://example.com/res2.pdf','http://example.com/res3.tiff'] )
         self.assertEqual( si.resources['http://example.com/res2.pdf'].lastmod, '2013-01-02T18:00:00Z' )
         self.assertEqual( si.resources['http://example.com/res3.tiff'].lastmod, '2013-01-02T13:00:00Z' )
-        self.assertEqual( si.resources['http://example.com/res2.pdf'].changetype, 'updated' )
-        self.assertEqual( si.resources['http://example.com/res3.tiff'].changetype, 'deleted' )
+        self.assertEqual( si.resources['http://example.com/res2.pdf'].change, 'updated' )
+        self.assertEqual( si.resources['http://example.com/res3.tiff'].change, 'deleted' )
 
 if  __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestSitemap)

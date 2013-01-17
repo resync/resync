@@ -154,10 +154,10 @@ class TestSitemap(unittest.TestCase):
         i = iter(c)
         r1 = i.next()
         self.assertEqual( r1.uri, '/tmp/rs_test/src/file_a' )
-        self.assertEqual( r1.changetype, 'updated' )
+        self.assertEqual( r1.change, 'updated' )
         r2 = i.next()
         self.assertEqual( r2.uri, '/tmp/rs_test/src/file_b' )
-        self.assertEqual( r2.changetype, None )
+        self.assertEqual( r2.change, None )
 
 if  __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestSitemap)

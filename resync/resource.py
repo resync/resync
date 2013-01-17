@@ -14,11 +14,11 @@ from w3c_datetime import str_to_datetime, datetime_to_str
 
 class Resource(object):
     __slots__=('uri', 'timestamp', 'size', 'md5', 'sha1',
-               'changetype', 'changeid', 'path')
+               'change', 'changeid', 'path')
     
     def __init__(self, uri = None, timestamp = None, size = None, 
                  md5 = None, sha1 = None, lastmod = None, 
-                 changetype = None, changeid = None, path = None,
+                 change = None, changeid = None, path = None,
                  resource = None ):
         """ Initialize object either from parameters specified or
         from an existing Resource object. If explicit parameters
@@ -31,7 +31,7 @@ class Resource(object):
         self.size = None
         self.md5 = None
         self.sha1 = None
-        self.changetype = None
+        self.change = None
         self.changeid = None
         self.path = None
         if (resource is not None):
@@ -40,7 +40,7 @@ class Resource(object):
             self.size = resource.size
             self.md5 = resource.md5
             self.sha1 = resource.sha1
-            self.changetype = resource.changetype
+            self.change = resource.change
             self.changeid = resource.changeid
             self.path = resource.path
         if (uri is not None):
@@ -53,8 +53,8 @@ class Resource(object):
             self.md5 = md5
         if (sha1 is not None):
             self.sha1 = sha1
-        if (changetype is not None):
-            self.changetype = changetype
+        if (change is not None):
+            self.change = change
         if (changeid is not None):
             self.changeid = changeid
         if (path is not None):
@@ -123,8 +123,8 @@ class Resource(object):
         """Return a human readable string for this resource"""
         s = [ str(self.uri), str(self.lastmod), str(self.size),
               str(self.md5 if self.md5 else self.sha1) ]
-        if (self.changetype is not None):
-            s.add(str(self.changetype))
+        if (self.change is not None):
+            s.add(str(self.change))
             #s.add(str(self.changeid))
         if (self.path is not None):
             s.add(str(self.path))

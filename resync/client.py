@@ -237,19 +237,19 @@ class Client(object):
         for resource in src_changelist:
             uri = resource.uri
             file = self.mapper.src_to_dst(uri)
-            if (resource.changetype == 'updated'):
+            if (resource.change == 'updated'):
                 self.logger.info("updated: %s -> %s" % (uri,file))
                 self.update_resource(resource,file,'updated')
                 num_updated+=1
-            elif (resource.changetype == 'created'):
+            elif (resource.change == 'created'):
                 self.logger.info("created: %s -> %s" % (uri,file))
                 self.update_resource(resource,file,'created')
                 num_created+=1
-            elif (resource.changetype == 'deleted'):
+            elif (resource.change == 'deleted'):
                 self.delete_resource(resource,file,allow_deletion)
                 num_deleted+=1
             else:
-                raise ClientError("Unknown change type %s" % (resource.changetype) )
+                raise ClientError("Unknown change type %s" % (resource.change) )
         # 4. Report status and planned actions
         status = "NO CHANGES"
         if ((num_updated+num_deleted+num_created)>0):
@@ -267,7 +267,7 @@ class Client(object):
         # 6. Done
         self.logger.debug("Completed incremental sync")
 
-    def update_resource(self, resource, file, changetype=None):
+    def update_resource(self, resource, file, change=None):
         """Update resource from uri to file on local system
 
         Update means two things:
@@ -299,7 +299,7 @@ class Client(object):
             if (resource.timestamp is not None):
                 unixtime = int(resource.timestamp) #no fractional
                 os.utime(file,(unixtime,unixtime))
-            self.log_event(Resource(resource=resource, changetype=changetype))
+            self.log_event(Resource(resource=resource, change=change))
 
     def delete_resource(self, resource, file, allow_deletion=False):
         """Delete copy of resource in file on local system
@@ -319,7 +319,7 @@ class Client(object):
                     else:
                         raise ClientFatalError(msg)
                 self.logger.info("deleted: %s -> %s" % (uri,file))
-                self.log_event(Resource(resource=resource, changetype="deleted"))
+                self.log_event(Resource(resource=resource, change="deleted"))
         else:
             self.logger.info("nodelete: would delete %s (--delete to enable)" % uri)
 
@@ -414,9 +414,9 @@ class Client(object):
                 new_inv = self.read_reference_sitemap(newref_sitemap,name='new reference')
             # 3. Calculate changelist
             (same,updated,deleted,created)=old_inv.compare(new_inv)   
-            changelist.add_changed_resources( updated, changetype='updated' )
-            changelist.add_changed_resources( deleted, changetype='deleted' )
-            changelist.add_changed_resources( created, changetype='created' )
+            changelist.add_changed_resources( updated, change='updated' )
+            changelist.add_changed_resources( deleted, change='deleted' )
+            changelist.add_changed_resources( created, change='created' )
         # 4. Write out changelist
         s = Sitemap(pretty_xml=True, allow_multifile=self.allow_multifile, mapper=self.mapper)
         if (self.max_sitemap_entries is not None):
