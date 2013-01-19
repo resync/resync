@@ -263,33 +263,20 @@ class Sitemap(object):
         sub.text=resource.uri
         e.append(sub)
         if (resource.timestamp is not None):
-            lastmod_name = 'lastmod'
-            lastmod_attrib = {}
-            if (hasattr(resource,'change') and 
-                resource.change is not None):
-                # Not a plain old <lastmod>, use <lastmod> with 
-                # rs:type attribute or <expires>
-                if (resource.change == 'created'):
-                    lastmod_attrib = {'rs:type': 'created'}
-                elif (resource.change == 'updated'):
-                    lastmod_attrib = {'rs:type': 'updated'}
-                elif (resource.change == 'deleted'):
-                    lastmod_name = 'expires'
-                else:
-                    raise Exception("Unknown change type '%s' for resource %s" % (resource.change,resource.uri))
             # Create appriate element for timestamp
-            sub = Element(lastmod_name,lastmod_attrib)
+            sub = Element('lastmod')
             sub.text = str(resource.lastmod) #W3C Datetime in UTC
             e.append(sub)
+        md_atts = {}
+        if (resource.change is not None):
+            md_atts['change'] = resource.change
         if (resource.size is not None):
-            sub = Element('rs:size')
-            sub.text = str(resource.size)
-            e.append(sub)
+            md_atts['size'] = str(resource.size)
         if (resource.md5 is not None):
-            sub = Element('rs:fixity')
-            sub.attrib = {'type':'md5'}
-            sub.text = str(resource.md5)
-            e.append(sub)
+            md_atts['hash'] = 'md5:'+resource.md5
+        if (len(md_atts)>0):
+            md = Element('rs:md',md_atts)
+            e.append(md)
         if (self.pretty_xml):
             e.tail="\n"
         return(e)
@@ -386,12 +373,10 @@ class Sitemap(object):
         resources is either an iterable or iterator of Resource objects.
 
         If num_resources is not None then only that number will be written
-        before exiting.
+        before returning.
         """
         # will include capabilities if allowed and if there are some
         namespaces = { 'xmlns': SITEMAP_NS, 'xmlns:rs': RS_NS }
-        if ( capabilities is not None and len(capabilities)>0 ):
-            namespaces['xmlns:xhtml'] = RS_NS
         root = Element('urlset', namespaces)
         if (changelist):
             root.set('rs:type','changelist')
