@@ -40,7 +40,7 @@ class Client(object):
         self.dryrun = dryrun
         self.logger = logging.getLogger('client')
         self.mapper = None
-        self.sitemap_name = 'sitemap.xml'
+        self.resourcelist_name = 'resourcelist.xml'
         self.dump_format = None
         self.exclude_patterns = []
         self.allow_multifile = True
@@ -75,7 +75,7 @@ class Client(object):
     @property
     def sitemap(self):
         """Return the sitemap URI based on maps or explicit settings"""
-        return(self.sitemap_changelist_uri(self.sitemap_name))
+        return(self.sitemap_changelist_uri(self.resourcelist_name))
 
     @property
     def resourcelist(self):
