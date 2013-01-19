@@ -1,3 +1,4 @@
 build
 *.pyc
 *~
+.resync-client-status.cfg
