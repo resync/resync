@@ -316,15 +316,12 @@ class Sitemap(object):
         if (lastmod is not None):
             resource.lastmod=lastmod
         # then proceed to look for other resource attributes in an rs:md element
-        print "looking for rs;md..."
-        print tostring(etree)
         md_elements = etree.findall('{'+RS_NS+"}md")
         if (len(md_elements)>1):
             raise SitemapError("Found multiple (%d) <rs:md> elements for %s", (len(md_elements),loc))
         elif (len(md_elements)==1):
             # have on element, look at attributes
             md_element = md_elements[0]
-            print "found rs;md..."
             # change type
             change = md_element.attrib.get("change",None)
             if (change is not None):
@@ -491,8 +488,6 @@ class Sitemap(object):
         """
         include_capabilities = capabilities and (len(capabilities)>0)
         namespaces = { 'xmlns': SITEMAP_NS }
-        if (include_capabilities):
-            namespaces['xmlns:xhtml'] = RS_NS
         root = Element('sitemapindex', namespaces)
         if (changelist):
             root.set('rs:type','changelist')
@@ -557,7 +552,7 @@ class Sitemap(object):
     def add_capabilities_to_etree(self, etree, capabilities):
         """ Add capabilities to the etree supplied
 
-        Each capability is written out as on xhtml:link element where the
+        Each capability is written out as on rs:ln element where the
         attributes are represented as a dictionary.
         """
         for c in sorted(capabilities.keys()):
@@ -572,7 +567,7 @@ class Sitemap(object):
                     atts[a]=value
                 else:
                     atts[a]=' '.join(value)
-            e = Element('xhtml:link', atts)
+            e = Element('rs:ln', atts)
             if (self.pretty_xml):
                 e.tail="\n"
             etree.append(e)
@@ -581,14 +576,14 @@ class Sitemap(object):
         """Read capabilities from sitemap or sitemapindex etree
         """
         capabilities = {}
-        for link in etree.findall('{'+RS_NS+"}link"):
+        for link in etree.findall('{'+RS_NS+"}ln"):
             c = link.get('href')
             if (c is None):
-                raise Exception("xhtml:link without href")
+                raise Exception("rs:ln without href")
             capabilities[c]={}
             rel = link.get('rel')
             #if (rel is None):
-            #    raise Exception('xhtml:link href="%s" without rel attribute' % (c))
+            #    raise Exception('rs:ln href="%s" without rel attribute' % (c))
             if (rel is not None):
                 attributes = []
                 for r in rel.split(' '):
@@ -598,7 +593,7 @@ class Sitemap(object):
                 capabilities[c]['attributes']=attributes
             type = link.get('type') #fudge, take either
             #if (type is None):
-            #    raise Exception('xhtml:link href="%s" without type attribute' % (c))
+            #    raise Exception('rs:ln href="%s" without type attribute' % (c))
             if (type is not None):
                 types = []
                 for t in type.split(' '):
