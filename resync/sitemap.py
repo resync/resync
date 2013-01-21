@@ -1,4 +1,4 @@
-"""Read and write ResourceSync inventories and changelist as sitemaps"""
+"""Read and write ResourceSync documents as sitemaps"""
 
 import re
 import os
@@ -38,9 +38,9 @@ class SitemapError(Exception):
 class Sitemap(object):
     """Read and write sitemaps
 
-    Implemented as a separate class that uses ResourceContainer (ResourceList or
-    ChangeList) and Resource classes as data objects. Reads and write sitemaps, 
-    including multiple file sitemaps.
+    Implemented as a separate class that uses ResourceContainer 
+    (ResourceList or ChangeList) and Resource classes as data objects. 
+    Reads and write sitemaps, including multiple file sitemaps.
     """
 
     def __init__(self, pretty_xml=False, allow_multifile=True, mapper=None):
