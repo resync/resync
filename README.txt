@@ -2,8 +2,20 @@
 resync
 ======
 
-resync is ResourceSync client and library.
+resync is ResourceSync client and library in python.
 
-Typical usage often looks like this:
+Typical client usage:
+
+> resync http://source.example.com/ /tmp/my_source_example_com
+
+Typical library usage in a source:
+
+
+
+
+See also:
+
+http://github.com/resync/simulator
+
 
 
