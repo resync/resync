@@ -1,16 +1,3 @@
-======
-resync
-======
-
-resync is ResourceSync client and library in python.
-
-Typical client usage:
-
-> resync http://source.example.com/ /tmp/my_source_example_com
-
-Typical library usage in a source:
-
-```python
 from resync.resourcelist import ResourceList
 from resync.resource import Resource
 from resync.sitemap import Sitemap
@@ -20,12 +7,3 @@ rl.add( Resource('http://example.com/res1', lastmod='2013-01-01') )
 rl.add( Resource('http://example.com/res2', lastmod='2013-01-02') )
 sm = Sitemap(pretty_xml=True)
 print sm.resources_as_xml(rl)
-```
-
-See also
---------
-
-http://github.com/resync/simulator
-
-
-
