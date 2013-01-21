@@ -2,7 +2,7 @@ import sys
 import unittest
 import StringIO
 from resync.resource import Resource
-from resync.resourcelist import ResourceList
+from resync.resource_list import ResourceList
 from resync.sitemap import Sitemap, SitemapIndexError
 
 # etree gives ParseError in 2.7, ExpatError in 2.6
@@ -67,7 +67,7 @@ class TestSitemap(unittest.TestCase):
 <url><loc>http://e.com/a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md hash="md5:Q2hlY2sgSW50ZWdyaXR5IQ==" size=\"12\" /></url>\
 </urlset>'
         s=Sitemap()
-        i=s.resourcelist_parse_xml(fh=StringIO.StringIO(xml))
+        i=s.resource_list_parse_xml(fh=StringIO.StringIO(xml))
         self.assertEqual( s.resources_created, 1, 'got 1 resources')
         r=i.resources['http://e.com/a']
         self.assertTrue( r is not None, 'got the uri expected')
@@ -83,23 +83,23 @@ class TestSitemap(unittest.TestCase):
 <url><loc>/tmp/rs_test/src/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md size=\"32\" /></url>\
 </urlset>'
         s=Sitemap()
-        i=s.resourcelist_parse_xml(fh=StringIO.StringIO(xml))
+        i=s.resource_list_parse_xml(fh=StringIO.StringIO(xml))
         self.assertEqual( s.resources_created, 2, 'got 2 resources')
 
     def test_13_parse_illformed(self):
         s=Sitemap()
         # ExpatError in python2.6, ParserError in 2.7
-        self.assertRaises( etree_error_class, s.resourcelist_parse_xml, StringIO.StringIO('not xml') )
-        self.assertRaises( etree_error_class, s.resourcelist_parse_xml, StringIO.StringIO('<urlset><url>something</urlset>') )
+        self.assertRaises( etree_error_class, s.resource_list_parse_xml, StringIO.StringIO('not xml') )
+        self.assertRaises( etree_error_class, s.resource_list_parse_xml, StringIO.StringIO('<urlset><url>something</urlset>') )
 
     def test_13_parse_valid_xml_but_other(self):
         s=Sitemap()
-        self.assertRaises( ValueError, s.resourcelist_parse_xml, StringIO.StringIO('<urlset xmlns="http://example.org/other_namespace"> </urlset>') )
-        self.assertRaises( ValueError, s.resourcelist_parse_xml, StringIO.StringIO('<other xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> </other>') )
+        self.assertRaises( ValueError, s.resource_list_parse_xml, StringIO.StringIO('<urlset xmlns="http://example.org/other_namespace"> </urlset>') )
+        self.assertRaises( ValueError, s.resource_list_parse_xml, StringIO.StringIO('<other xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> </other>') )
 
     def test_14_parse_sitemapindex_as_sitemap(self):
         s=Sitemap()
-        self.assertRaises( SitemapIndexError, s.resourcelist_parse_xml, StringIO.StringIO('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> </sitemapindex>') )
+        self.assertRaises( SitemapIndexError, s.resource_list_parse_xml, StringIO.StringIO('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> </sitemapindex>') )
 
     def test_20_parse_sitemapindex_empty(self):
         s=Sitemap()
@@ -141,7 +141,7 @@ class TestSitemap(unittest.TestCase):
         self.assertEqual( sr[3], 'http://localhost:8888/resources/1000' )
         self.assertEqual( sr[16], 'http://localhost:8888/resources/826' )
 
-    def test_30_parse_changelist(self):
+    def test_30_parse_change_list(self):
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
 <url><loc>/tmp/rs_test/src/file_a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md change="updated" size="12" /></url>\
@@ -149,7 +149,7 @@ class TestSitemap(unittest.TestCase):
 </urlset>'
         s=Sitemap()
         s.resource_class=Resource
-        c=s.changelist_parse_xml(fh=StringIO.StringIO(xml))
+        c=s.change_list_parse_xml(fh=StringIO.StringIO(xml))
         self.assertEqual( s.resources_created, 2, 'got 2 resources')
         i = iter(c)
         r1 = i.next()

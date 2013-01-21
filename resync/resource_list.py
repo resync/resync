@@ -1,12 +1,12 @@
-"""ResourceSync resourcelist object
+"""ResourceSync resource_list object
 
-An resourcelist is a set of resources with some metadata for each 
+An resource_list is a set of resources with some metadata for each 
 resource. Comparison of inventories from a source and a 
 destination allows understanding of whether the two are in
 sync or whether some resources need to be updated at the
 destination.
 
-The resourcelist object may also contain metadata regarding 
+The resource_list object may also contain metadata regarding 
 capabilities and discovery information.
 """
 
@@ -28,7 +28,7 @@ class ResourceListDict(dict):
     """
 
     def __iter__(self):
-        """Iterator over all the resources in this resourcelist"""
+        """Iterator over all the resources in this resource_list"""
         self._iter_next_list = sorted(self.keys())
         self._iter_next_list.reverse()
         return(iter(self._iter_next, None))
@@ -43,21 +43,21 @@ class ResourceListDict(dict):
         """Add just a single resource"""
         uri = resource.uri
         if (uri in self and not replace):
-            raise ResourceListDupeError("Attempt to add resource already in resourcelist") 
+            raise ResourceListDupeError("Attempt to add resource already in resource_list") 
         self[uri]=resource
 
 class ResourceListDupeError(Exception):
     pass
 
 class ResourceList(ResourceContainer):
-    """Class representing an resourcelist of resources
+    """Class representing an resource_list of resources
 
     This same class is used for both the source and the destination
     and is the central point of comparison the decide whether they
     are in sync or what needs to be copied to bring the destinaton
     into sync.
 
-    An resourcelist will admit only one resource with any given URI.
+    An resource_list will admit only one resource with any given URI.
 
     Storage is unordered but the iterator imposes a canonical order
     which is currently alphabetical by URI.
@@ -68,18 +68,18 @@ class ResourceList(ResourceContainer):
         self.capabilities=(capabilities if (capabilities is not None) else {})
 
     def __iter__(self):
-        """Iterator over all the resources in this resourcelist"""
+        """Iterator over all the resources in this resource_list"""
         return(iter(self.resources))
 
     def __len__(self):
-        """Return number of resources in this resourcelist"""
+        """Return number of resources in this resource_list"""
         return(len(self.resources))
 
     def add(self, resource, replace=False):
         """Add a resource or an iterable collection of resources
 
         Will throw a ValueError if the resource (ie. same uri) already
-        exists in the resourcelist, unless replace=True.
+        exists in the resource_list, unless replace=True.
         """
         if isinstance(resource, collections.Iterable):
             for r in resource:
@@ -88,9 +88,9 @@ class ResourceList(ResourceContainer):
             self.resources.add(resource,replace)
 
     def compare(self,src):
-        """Compare the current resourcelist object with the specified resourcelist
+        """Compare the current resource_list object with the specified resource_list
 
-        The parameter src must also be an resourcelist object, it is assumed
+        The parameter src must also be an resource_list object, it is assumed
         to be the source, and the current object is the destination. This 
         written to work for any objects in self and sc, provided that the
         == operator can be used to compare them.

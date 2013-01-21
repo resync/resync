@@ -10,9 +10,9 @@ import time
 import logging
 import ConfigParser
 
-from resync.resourcelist_builder import ResourceListBuilder
-from resync.resourcelist import ResourceList
-from resync.changelist import ChangeList
+from resync.resource_list_builder import ResourceListBuilder
+from resync.resource_list import ResourceList
+from resync.change_list import ChangeList
 from resync.mapper import Mapper
 from resync.sitemap import Sitemap
 from resync.dump import Dump
@@ -40,7 +40,7 @@ class Client(object):
         self.dryrun = dryrun
         self.logger = logging.getLogger('client')
         self.mapper = None
-        self.resourcelist_name = 'resourcelist.xml'
+        self.resource_list_name = 'resource_list.xml'
         self.dump_format = None
         self.exclude_patterns = []
         self.allow_multifile = True
@@ -60,8 +60,8 @@ class Client(object):
         """Build and set Mapper object based on input mappings"""
         self.mapper = Mapper(mappings)
 
-    def sitemap_changelist_uri(self,basename):
-        """Get full URI (filepath) for sitemap/changelist based on basename"""
+    def sitemap_change_list_uri(self,basename):
+        """Get full URI (filepath) for sitemap/change_list based on basename"""
         if (re.match(r"\w+:",basename)):
             # looks like URI
             return(basename)
@@ -75,13 +75,13 @@ class Client(object):
     @property
     def sitemap(self):
         """Return the sitemap URI based on maps or explicit settings"""
-        return(self.sitemap_changelist_uri(self.resourcelist_name))
+        return(self.sitemap_change_list_uri(self.resource_list_name))
 
     @property
-    def resourcelist(self):
-        """Return resourcelist on disk based on current mappings
+    def resource_list(self):
+        """Return resource_list on disk based on current mappings
 
-        Return resourcelist. Uses existing self.mapper settings.
+        Return resource_list. Uses existing self.mapper settings.
         """
         ### 0. Sanity checks
         if (len(self.mappings)<1):
@@ -107,26 +107,26 @@ class Client(object):
         if (len(self.mappings)<1):
             raise ClientFatalError("No source to destination mapping specified")
         ### 1. Get inventories from both src and dst 
-        # 1.a source resourcelist
+        # 1.a source resource_list
         ib = ResourceListBuilder(mapper=self.mapper)
         try:
             self.logger.info("Reading sitemap %s" % (self.sitemap))
             src_sitemap = Sitemap(allow_multifile=self.allow_multifile, mapper=self.mapper)
-            src_resourcelist = src_sitemap.read(uri=self.sitemap)
+            src_resource_list = src_sitemap.read(uri=self.sitemap)
             self.logger.debug("Finished reading sitemap")
         except Exception as e:
-            raise ClientFatalError("Can't read source resourcelist from %s (%s)" % (self.sitemap,str(e)))
-        self.logger.info("Read source resourcelist, %d resources listed" % (len(src_resourcelist)))
-        if (len(src_resourcelist)==0):
+            raise ClientFatalError("Can't read source resource_list from %s (%s)" % (self.sitemap,str(e)))
+        self.logger.info("Read source resource_list, %d resources listed" % (len(src_resource_list)))
+        if (len(src_resource_list)==0):
             raise ClientFatalError("Aborting as there are no resources to sync")
-        if (self.checksum and not src_resourcelist.has_md5()):
+        if (self.checksum and not src_resource_list.has_md5()):
             self.checksum=False
-            self.logger.info("Not calculating checksums on destination as not present in source resourcelist")
-        # 1.b destination resourcelist mapped back to source URIs
+            self.logger.info("Not calculating checksums on destination as not present in source resource_list")
+        # 1.b destination resource_list mapped back to source URIs
         ib.do_md5=self.checksum
-        dst_resourcelist = ib.from_disk()
-        ### 2. Compare these resourcelists respecting any comparison options
-        (same,updated,deleted,created)=dst_resourcelist.compare(src_resourcelist)   
+        dst_resource_list = ib.from_disk()
+        ### 2. Compare these resource_lists respecting any comparison options
+        (same,updated,deleted,created)=dst_resource_list.compare(src_resource_list)   
         ### 3. Report status and planned actions
         status = "  IN SYNC  "
         if (len(updated)>0 or len(deleted)>0 or len(created)>0):
@@ -138,7 +138,7 @@ class Client(object):
             return
         ### 4. Check that sitemap has authority over URIs listed
         uauth = UrlAuthority(self.sitemap)
-        for resource in src_resourcelist:
+        for resource in src_resource_list:
             if (not uauth.has_authority_over(resource.uri)):
                 if (self.noauth):
                     #self.logger.info("Sitemap (%s) mentions resource at a location it does not have authority over (%s)" % (self.sitemap,resource.uri))
@@ -162,7 +162,7 @@ class Client(object):
             self.delete_resource(resource,file,allow_deletion)
         ### 6. For sync reset any incremental status for site
         if (not audit_only):
-            links = self.extract_links(src_resourcelist)
+            links = self.extract_links(src_resource_list)
             if ('next' in links):
                 self.write_incremental_status(self.sitemap,links['next'])
                 self.logger.info("Written config with next incremental at %s" % (links['next']))
@@ -170,7 +170,7 @@ class Client(object):
                 self.write_incremental_status(self.sitemap)
         self.logger.debug("Completed "+action)
 
-    def incremental(self, allow_deletion=False, changelist_uri=None):
+    def incremental(self, allow_deletion=False, change_list_uri=None):
 	"""Incremental synchronization"""
         self.logger.debug("Starting incremental sync")
         ### 0. Sanity checks
@@ -178,63 +178,63 @@ class Client(object):
             raise ClientFatalError("No source to destination mapping specified")
         # Get current config
         inc_config_next=self.read_incremental_status(self.sitemap)
-        ### 1. Get URI of changelist, from sitemap or explicit
+        ### 1. Get URI of change_list, from sitemap or explicit
         if (inc_config_next is not None):
             # We have config from last run for this site
-            changelist = inc_config_next
-            self.logger.info("ChangeList location from last incremental run %s" % (changelist))
-        elif (changelist_uri):
+            change_list = inc_config_next
+            self.logger.info("ChangeList location from last incremental run %s" % (change_list))
+        elif (change_list_uri):
             # Translate as necessary using maps
-            changelist = self.sitemap_changelist_uri(changelist_uri)
+            change_list = self.sitemap_change_list_uri(change_list_uri)
         else:
             # Get sitemap
             try:
                 self.logger.info("Reading sitemap %s" % (self.sitemap))
                 src_sitemap = Sitemap(allow_multifile=self.allow_multifile, mapper=self.mapper)
-                src_resourcelist = src_sitemap.read(uri=self.sitemap, index_only=True)
+                src_resource_list = src_sitemap.read(uri=self.sitemap, index_only=True)
                 self.logger.debug("Finished reading sitemap/sitemapindex")
             except Exception as e:
                 raise ClientFatalError("Can't read source sitemap from %s (%s)" % (self.sitemap,str(e)))
-            # Extract changelist location
+            # Extract change_list location
             # FIXME - need to completely rework the way we handle/store capabilities
-            links = self.extract_links(src_resourcelist)
+            links = self.extract_links(src_resource_list)
             if ('current' not in links):
-                raise ClientFatalError("Failed to extract changelist location from sitemap %s" % (self.sitemap))
-            changelist = links['current']
-        ### 2. Read changelist from source
+                raise ClientFatalError("Failed to extract change_list location from sitemap %s" % (self.sitemap))
+            change_list = links['current']
+        ### 2. Read change_list from source
         ib = ResourceListBuilder(mapper=self.mapper)
         try:
-            self.logger.info("Reading changelist %s" % (changelist))
+            self.logger.info("Reading change_list %s" % (change_list))
             src_sitemap = Sitemap(allow_multifile=self.allow_multifile, mapper=self.mapper)
-            src_changelist = src_sitemap.read(uri=changelist, changelist=True)
-            self.logger.debug("Finished reading changelist")
+            src_change_list = src_sitemap.read(uri=change_list, change_list=True)
+            self.logger.debug("Finished reading change_list")
         except Exception as e:
-            raise ClientFatalError("Can't read source changelist from %s (%s)" % (changelist,str(e)))
-        self.logger.info("Read source changelist, %d resources listed" % (len(src_changelist)))
-        #if (len(src_changelist)==0):
+            raise ClientFatalError("Can't read source change_list from %s (%s)" % (change_list,str(e)))
+        self.logger.info("Read source change_list, %d resources listed" % (len(src_change_list)))
+        #if (len(src_change_list)==0):
         #    raise ClientFatalError("Aborting as there are no resources to sync")
-        if (self.checksum and not src_changelist.has_md5()):
+        if (self.checksum and not src_change_list.has_md5()):
             self.checksum=False
-            self.logger.info("Not calculating checksums on destination as not present in source resourcelist")
+            self.logger.info("Not calculating checksums on destination as not present in source resource_list")
         ### 3. Check that sitemap has authority over URIs listed
-        # FIXME - What does authority mean for changelist? Here use both the
-        # changelist URI and, if we used it, the sitemap URI
-        uauth_cs = UrlAuthority(changelist)
-        if (not changelist_uri):
+        # FIXME - What does authority mean for change_list? Here use both the
+        # change_list URI and, if we used it, the sitemap URI
+        uauth_cs = UrlAuthority(change_list)
+        if (not change_list_uri):
             uauth_sm = UrlAuthority(self.sitemap)
-        for resource in src_changelist:
+        for resource in src_change_list:
             if (not uauth_cs.has_authority_over(resource.uri) and 
-                (changelist_uri or not uauth_sm.has_authority_over(resource.uri))):
+                (change_list_uri or not uauth_sm.has_authority_over(resource.uri))):
                 if (self.noauth):
-                    #self.logger.info("ChangeList (%s) mentions resource at a location it does not have authority over (%s)" % (changelist,resource.uri))
+                    #self.logger.info("ChangeList (%s) mentions resource at a location it does not have authority over (%s)" % (change_list,resource.uri))
                     pass
                 else:
-                    raise ClientFatalError("Aborting as changelist (%s) mentions resource at a location it does not have authority over (%s), override with --noauth" % (changelist,resource.uri))
+                    raise ClientFatalError("Aborting as change_list (%s) mentions resource at a location it does not have authority over (%s), override with --noauth" % (change_list,resource.uri))
         ### 3. Apply changes
         num_updated = 0
         num_deleted = 0
         num_created = 0
-        for resource in src_changelist:
+        for resource in src_change_list:
             uri = resource.uri
             file = self.mapper.src_to_dst(uri)
             if (resource.change == 'updated'):
@@ -258,12 +258,12 @@ class Client(object):
               (status,num_updated,num_deleted,num_created))
         # 5. Store next link if available
         if ((num_updated+num_deleted+num_created)>0):
-            links = self.extract_links(src_changelist)
+            links = self.extract_links(src_change_list)
             if ('next' in links):
                 self.write_incremental_status(self.sitemap,links['next'])
                 self.logger.info("Written config with next incremental at %s" % (links['next']))
             else:
-                self.logger.warning("Failed to extract next changelist location from changelist %s" % (changelist))
+                self.logger.warning("Failed to extract next change_list location from change_list %s" % (change_list))
         # 6. Done
         self.logger.debug("Completed incremental sync")
 
@@ -275,7 +275,7 @@ class Client(object):
         2. set mtime in local time to be equal to timestamp in UTC (should perhaps
         or at least warn if different from LastModified from the GET response instead 
         but maybe warn if different (or just earlier than) the lastmod we expected 
-        from the resourcelist
+        from the resource_list
         """
         path = os.path.dirname(file)
         distutils.dir_util.mkpath(path)
@@ -345,29 +345,29 @@ class Client(object):
                     break
 
     def explore_links(self):
-        """Explore links from sitemap and between changelists"""
+        """Explore links from sitemap and between change_lists"""
         seen = dict()
-        is_changelist,links = self.explore_links_get(self.sitemap, seen=seen)
-        starting_changelist = self.sitemap
-        if (not is_changelist):
+        is_change_list,links = self.explore_links_get(self.sitemap, seen=seen)
+        starting_change_list = self.sitemap
+        if (not is_change_list):
             if ('current' in links):
-                starting_changelist = links['current']
-                is_changelist,links = self.explore_links_get(links['current'], seen=seen)
+                starting_change_list = links['current']
+                is_change_list,links = self.explore_links_get(links['current'], seen=seen)
         # Can we go backward?
         if ('prev' in links and not links['prev'] in seen):
             self.logger.warning("Will follow links backwards...")
             while ('prev' in links and not links['prev'] in seen):
                 self.logger.warning("Following \"prev\" link")
-                is_changelist,links = self.explore_links_get(links['prev'], seen=seen)
+                is_change_list,links = self.explore_links_get(links['prev'], seen=seen)
         else:
             self.logger.warning("No links backwards")
         # Can we go forward?
-        links = seen[starting_changelist]
+        links = seen[starting_change_list]
         if ('next' in links and not links['next'] in seen):
             self.logger.warning("Will follow links forwards...")
             while ('next' in links and not links['next'] in seen):
                 self.logger.warning("Following \"next\" link")
-                is_changelist,links = self.explore_links_get(links['next'], seen=seen)
+                is_change_list,links = self.explore_links_get(links['next'], seen=seen)
         else:
             self.logger.warning("No links forwards")
 
@@ -383,11 +383,11 @@ class Client(object):
         if ('next' in links and links['next']==uri):
             self.logger.warning("- self reference \"next\" link")
         seen[uri]=links
-        return(s.changelist_read,links)
+        return(s.change_list_read,links)
 
     def write_sitemap(self,outfile=None,capabilities=None,dump=None):
-        # Set up base_path->base_uri mappings, get resourcelist from disk
-        i = self.resourcelist
+        # Set up base_path->base_uri mappings, get resource_list from disk
+        i = self.resource_list
         i.capabilities = capabilities
         s=Sitemap(pretty_xml=True, allow_multifile=self.allow_multifile, mapper=self.mapper)
         if (self.max_sitemap_entries is not None):
@@ -398,44 +398,44 @@ class Client(object):
             s.write(i,basename=outfile)
         self.write_dump_if_requested(i,dump)
 
-    def changelist_sitemap(self,outfile=None,ref_sitemap=None,newref_sitemap=None,
+    def change_list_sitemap(self,outfile=None,ref_sitemap=None,newref_sitemap=None,
                           empty=None,capabilities=None,dump=None):
-        changelist = ChangeList()
-        changelist.capabilities = capabilities
+        change_list = ChangeList()
+        change_list.capabilities = capabilities
         if (not empty):
             # 1. Get and parse reference sitemap
             old_inv = self.read_reference_sitemap(ref_sitemap)
             # 2. Depending on whether a newref_sitemap was specified, either read that 
-            # or build resourcelist from files on disk
+            # or build resource_list from files on disk
             if (newref_sitemap is None):
-                # Get resourcelist from disk
-                new_inv = self.resourcelist
+                # Get resource_list from disk
+                new_inv = self.resource_list
             else:
                 new_inv = self.read_reference_sitemap(newref_sitemap,name='new reference')
-            # 3. Calculate changelist
+            # 3. Calculate change_list
             (same,updated,deleted,created)=old_inv.compare(new_inv)   
-            changelist.add_changed_resources( updated, change='updated' )
-            changelist.add_changed_resources( deleted, change='deleted' )
-            changelist.add_changed_resources( created, change='created' )
-        # 4. Write out changelist
+            change_list.add_changed_resources( updated, change='updated' )
+            change_list.add_changed_resources( deleted, change='deleted' )
+            change_list.add_changed_resources( created, change='created' )
+        # 4. Write out change_list
         s = Sitemap(pretty_xml=True, allow_multifile=self.allow_multifile, mapper=self.mapper)
         if (self.max_sitemap_entries is not None):
             s.max_sitemap_entries = self.max_sitemap_entries
         if (outfile is None):
-            print s.resources_as_xml(changelist,changelist=True)
+            print s.resources_as_xml(change_list,change_list=True)
         else:
-            s.write(changelist,basename=outfile,changelist=True)
-        self.write_dump_if_requested(changelist,dump)
+            s.write(change_list,basename=outfile,change_list=True)
+        self.write_dump_if_requested(change_list,dump)
 
-    def write_dump_if_requested(self,resourcelist,dump):
+    def write_dump_if_requested(self,resource_list,dump):
         if (dump is None):
             return
         self.logger.info("Writing dump to %s..." % (dump))
         d = Dump(format=self.dump_format)
-        d.write(resourcelist=resourcelist,dumpfile=dump)
+        d.write(resource_list=resource_list,dumpfile=dump)
 
     def read_reference_sitemap(self,ref_sitemap,name='reference'):
-        """Read reference sitemap and return the resourcelist
+        """Read reference sitemap and return the resource_list
 
         name parameter just uses in output messages to say what type
         of sitemap is being read.
@@ -462,7 +462,7 @@ class Client(object):
         return(i)
 
     def extract_links(self, rc, verbose=False):
-        """Extract links from capabilities resourcelist or changelist
+        """Extract links from capabilities resource_list or change_list
 
         FIXME - when we finalize the form of links this should probably
         go along with other capabilities functions somewhere general.
@@ -472,8 +472,8 @@ class Client(object):
             atts = rc.capabilities[href].get('attributes')
             self.logger.debug("Capability: %s" % (str(rc.capabilities[href])))
             if (atts is not None):
-                # split on spaces, check is changelist rel and diraction
-                if ('http://www.openarchives.org/rs/changelist' in atts):
+                # split on spaces, check is change_list rel and diraction
+                if ('http://www.openarchives.org/rs/change_list' in atts):
                     for linktype in ['next','prev','current']:
                         if (linktype in atts):
                             if (linktype in links):

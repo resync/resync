@@ -6,11 +6,11 @@ time, and also metadata about a change that may have occurred
 to bring the resource to that states. These descriptions
 are Resource objects.
 
-Different from an resourcelist, a changelist may include multiple
-descriptions for the same resource. The changelist is ordered
+Different from an resource_list, a change_list may include multiple
+descriptions for the same resource. The change_list is ordered
 from first entry to last entry. 
 
-Different from an resourcelist, dereference by a URI yields a 
+Different from an resource_list, dereference by a URI yields a 
 ChangeList containing descriptions pertaining to that 
 particular resource.
 """
@@ -29,7 +29,7 @@ class ChangeList(ResourceContainer):
         super(ChangeList, self).__init__(resources, capabilities)
 
     def __len__(self):
-        """Number of entries in this changelist"""
+        """Number of entries in this change_list"""
         return(len(self.resources))
 
     def add(self, resource):

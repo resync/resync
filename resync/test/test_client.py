@@ -4,14 +4,14 @@ from resync.client import Client, ClientFatalError
 
 class TestResource(unittest.TestCase):
 
-    def test1_make_resourcelist_empty(self):
+    def test1_make_resource_list_empty(self):
         c = Client()
         # No mapping is error
         # 
-        def wrap_resourcelist_property_call(c):
-            # do this because assertRaises( ClientFatalError, c.resourcelist ) doesn't work
-            return(c.resourcelist)
-        self.assertRaises( ClientFatalError, wrap_resourcelist_property_call, c )
+        def wrap_resource_list_property_call(c):
+            # do this because assertRaises( ClientFatalError, c.resource_list ) doesn't work
+            return(c.resource_list)
+        self.assertRaises( ClientFatalError, wrap_resource_list_property_call, c )
 
     def test2_bad_source_uri(self):
         c = Client()

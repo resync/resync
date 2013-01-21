@@ -2,7 +2,7 @@ import unittest
 import re
 import os
 import time
-from resync.resourcelist_builder import ResourceListBuilder
+from resync.resource_list_builder import ResourceListBuilder
 from resync.sitemap import Sitemap
 from resync.mapper import Mapper
 

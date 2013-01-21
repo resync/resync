@@ -1,7 +1,7 @@
 import unittest
 from resync.resource import Resource
-from resync.changelist import ChangeList
-from resync.resourcelist import ResourceList
+from resync.change_list import ChangeList
+from resync.resource_list import ResourceList
 
 class TestChangeList(unittest.TestCase):
 
@@ -12,7 +12,7 @@ class TestChangeList(unittest.TestCase):
         src.add( Resource('c',timestamp=1) )
         src.add( Resource('a',timestamp=2) )
         src.add( Resource('b',timestamp=2) )
-        self.assertEqual(len(src), 5, "5 changes in changelist")
+        self.assertEqual(len(src), 5, "5 changes in change_list")
 
     def test2_with_repeats_again(self):
         r1 = Resource(uri='a',size=1)
@@ -26,7 +26,7 @@ class TestChangeList(unittest.TestCase):
         i.add(r1d)
         self.assertEqual( len(i), 3 )
 
-    def test3_changelist(self):
+    def test3_change_list(self):
         src = ChangeList()
         src.add( Resource('a',timestamp=1) )
         src.add( Resource('b',timestamp=2) )
@@ -52,7 +52,7 @@ class TestChangeList(unittest.TestCase):
         added = ResourceList()
         added.add( Resource('a',timestamp=1) )
         added.add( Resource('d',timestamp=4))
-        self.assertEqual(len(added), 2, "2 things in added resourcelist")
+        self.assertEqual(len(added), 2, "2 things in added resource_list")
         changes = ChangeList()
         changes.add_changed_resources( added, change='created' )
         self.assertEqual(len(changes), 2, "2 things added")
@@ -68,10 +68,10 @@ class TestChangeList(unittest.TestCase):
         updated = ResourceList()
         updated.add( Resource('a',timestamp=5) )
         updated.add( Resource('b',timestamp=6))
-        self.assertEqual(len(updated), 2, "2 things in updated resourcelist")
+        self.assertEqual(len(updated), 2, "2 things in updated resource_list")
         changes.add_changed_resources( updated, change='updated' )
         self.assertEqual(len(changes), 4, "4 = 2 old + 2 things updated")
-        # Make new resourcelist from the changes which should not have dupes
+        # Make new resource_list from the changes which should not have dupes
         dst = ResourceList()
         dst.add( changes, replace=True )
         self.assertEqual(len(dst), 3, "3 unique resources")

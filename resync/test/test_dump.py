@@ -1,6 +1,6 @@
 import unittest
 from resync.dump import Dump, DumpError
-from resync.resourcelist import ResourceList
+from resync.resource_list import ResourceList
 from resync.resource import Resource
 
 class TestDump(unittest.TestCase):
@@ -10,7 +10,7 @@ class TestDump(unittest.TestCase):
         i.add( Resource('http://ex.org/a', size=1, path='resync/test/testdata/a') )
         i.add( Resource('http://ex.org/b', size=2, path='resync/test/testdata/b') )
         d=Dump()
-        d.check_files(resourcelist=i)
+        d.check_files(resource_list=i)
         self.assertEqual(d.total_size, 28)
         
     #FIXME -- need some code to actually write and read dump

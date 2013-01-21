@@ -11,7 +11,7 @@ Typical client usage:
 Typical library usage in a source:
 
 ```python
-from resync.resourcelist import ResourceList
+from resync.resource_list import ResourceList
 from resync.resource import Resource
 from resync.sitemap import Sitemap
 

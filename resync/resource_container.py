@@ -27,7 +27,7 @@ class ResourceContainer(object):
         self.capabilities=(capabilities if (capabilities is not None) else {})
 
     def __iter__(self):
-        """Iterator over all the resources in this resourcelist
+        """Iterator over all the resources in this resource_list
 
         Baseline implementation use iterator given by resources property
         """

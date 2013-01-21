@@ -1,6 +1,6 @@
 import unittest
 from resync.resource import Resource
-from resync.resourcelist import ResourceList, ResourceListDupeError
+from resync.resource_list import ResourceList, ResourceListDupeError
 
 class TestResourceList(unittest.TestCase):
 

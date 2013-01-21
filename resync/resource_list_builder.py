@@ -2,7 +2,7 @@
 
 Attributes:
 - do_md5 set true to calculate MD5 sums for all files
-- do_size set true to include file size in resourcelist
+- do_size set true to include file size in resource_list
 - exclude_dirs is a list of directory names to exclude
   (defaults to ['CVS','.git'))
 """
@@ -16,7 +16,7 @@ from urllib import URLopener
 from xml.etree.ElementTree import parse
 
 from resource import Resource
-from resourcelist import ResourceList
+from resource_list import ResourceList
 from sitemap import Sitemap
 from utils import compute_md5_for_file
 
@@ -36,11 +36,11 @@ class ResourceListBuilder():
         self.exclude_dirs = ['CVS','.git']
         self.include_symlinks = False
         # Used internally only:
-        self.logger = logging.getLogger('resourcelist_builder')
+        self.logger = logging.getLogger('resource_list_builder')
         self.compiled_exclude_files = []
 
     def add_exclude_files(self, exclude_patterns):
-        """Add more patterns of files to exclude while building resourcelist"""
+        """Add more patterns of files to exclude while building resource_list"""
         for pattern in exclude_patterns:
             self.exclude_files.append(pattern)
 
@@ -56,36 +56,36 @@ class ResourceListBuilder():
                 return(True)
         return(False)
 
-    def from_disk(self,resourcelist=None):
-        """Create or extend resourcelist with resources from disk scan
+    def from_disk(self,resource_list=None):
+        """Create or extend resource_list with resources from disk scan
 
         Assumes very simple disk path to URL mapping: chop path and
         replace with url_path. Returns the new or extended ResourceList
         object.
 
-        If a resourcelist is specified then items are added to that rather
+        If a resource_list is specified then items are added to that rather
         than creating a new one.
 
         mapper=Mapper('http://example.org/path','/path/to/files')
         mb = ResourceListBuilder(mapper=mapper)
-        m = resourcelist_from_disk()
+        m = resource_list_from_disk()
         """
         num=0
-        # Either use resourcelist passed in or make a new one
-        if (resourcelist is None):
-            resourcelist = ResourceList()
+        # Either use resource_list passed in or make a new one
+        if (resource_list is None):
+            resource_list = ResourceList()
         # Compile exclude pattern matches
         self.compile_excludes()
         # Run for each map in the mappings
         for map in self.mapper.mappings:
             self.logger.info("Scanning disk for %s" % (str(map)))
-            self.from_disk_add_map(resourcelist=resourcelist, map=map)
-        return(resourcelist)
+            self.from_disk_add_map(resource_list=resource_list, map=map)
+        return(resource_list)
 
-    def from_disk_add_map(self, resourcelist=None, map=None):
+    def from_disk_add_map(self, resource_list=None, map=None):
         # sanity
-        if (resourcelist is None or map is None):
-            raise ValueError("Must specify resourcelist and map")
+        if (resource_list is None or map is None):
+            raise ValueError("Must specify resource_list and map")
         path=map.dst_path
         #print "walking: %s" % (path)
         # for each file: create Resource object, add, increment counter
@@ -118,10 +118,10 @@ class ResourceListBuilder():
                 if (self.do_size):
                     # add size
                     r.size=file_stat.st_size
-                resourcelist.add(r)
+                resource_list.add(r)
             # prune list of dirs based on self.exclude_dirs
             for exclude in self.exclude_dirs:
                 if exclude in dirs:
                     self.logger.debug("Excluding dir %s" % (exclude))
                     dirs.remove(exclude)
-        return(resourcelist)
+        return(resource_list)
