@@ -1,10 +1,10 @@
 """ResourceSync Resource Container object
 
-Both ResourceList and Change Set objects are collections of Resource
+Both ResourceList and ChangeList objects are collections of Resource
 objects with additional metadata regarding capabilities and 
 discovery information.
 
-This is a superclass for the ResourceList and ChangeSet classes which 
+This is a superclass for the ResourceList and ChangeList classes which 
 contains common functionality.
 """
 
