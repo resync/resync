@@ -10,8 +10,7 @@ from datetime import datetime
 import StringIO
 
 from resource import Resource
-from resource_list import ResourceList, ResourceListDupeError
-from change_list import ChangeList
+from resource_container import ResourceContainer
 from mapper import Mapper, MapperError
 from url_authority import UrlAuthority
 
@@ -28,11 +27,14 @@ class SitemapIndexError(Exception):
     def __repr__(self):
         return(self.message)
 
-class SitemapIndex(ResourceList):
-    """Reuse an resource_list to hold the set of sitemaps"""
+class SitemapIndex(ResourceContainer):
+    """Reuse a ResourceContainer to hold the set of sitemaps"""
     pass
 
 class SitemapError(Exception):
+    pass
+
+class SitemapDupeError(Exception):
     pass
 
 class Sitemap(object):
@@ -51,10 +53,7 @@ class Sitemap(object):
         self.max_sitemap_entries=50000
         self.check_url_authority=False
         # Classes used when parsing
-        self.resource_list_class=ResourceList
         self.resource_class=Resource
-        self.change_list_class=ChangeList
-        self.resourcechange_class=Resource
         # Information recorded for logging
         self.resources_created=None # Set during parsing sitemap
         self.sitemaps_created=None  # Set during parsing sitemapindex
@@ -186,8 +185,6 @@ class Sitemap(object):
         root = etree.getroot()
         # assume resource_list but look to see whether this is a change_list 
         # as indicated with rs:type="change_list" on the root
-        resources_class = self.resource_list_class
-        sitemap_xml_parser = self.resource_list_parse_xml
         self.change_list_read = False
         self.read_type = 'sitemap'
         root_type = root.attrib.get('{'+RS_NS+'}type',None)
@@ -200,15 +197,13 @@ class Sitemap(object):
             self.change_list_read = True
         if (self.change_list_read):
             self.read_type = 'change_list'
-            resources_class = self.change_list_class
-            sitemap_xml_parser = self.change_list_parse_xml
         # now have make sure we have a place to put the data we read
         if (resources is None):
-            resources=resources_class()
+            resources=ResourceContainer()
         # sitemap or sitemapindex?
         if (root.tag == '{'+SITEMAP_NS+"}urlset"):
             self.logger.info( "Parsing as sitemap" )
-            sitemap_xml_parser(etree=etree, resources=resources)
+            self.sitemap_parse_xml(etree=etree, resources=resources)
             self.sitemaps_created+=1
         elif (root.tag == '{'+SITEMAP_NS+"}sitemapindex"):
             self.read_type += 'index'
@@ -220,8 +215,8 @@ class Sitemap(object):
             if (index_only):
                 return(resources)
             # now loop over all entries to read each sitemap and add to resources
-            self.logger.info( "Now reading %d sitemaps" % len(sitemaps) )
-            for sitemap_uri in sorted(sitemaps.resources.keys()):
+            self.logger.info( "Now reading %d sitemaps" % len(sitemaps.uris()) )
+            for sitemap_uri in sorted(sitemaps.uris()):
                 if (sitemapindex_is_file):
                     if (not self.is_file_uri(sitemap_uri)):
                         # Attempt to map URI to local file
@@ -245,7 +240,7 @@ class Sitemap(object):
                     # If we don't get a length then c'est la vie
                     pass
                 self.logger.info( "Read sitemap from %s (%d)" % (sitemap_uri,self.content_length) )
-                sitemap_xml_parser( fh=fh, resources=resources )
+                self.sitemap_parse_xml( fh=fh, resources=resources )
                 self.sitemaps_created+=1
         else:
             raise ValueError("XML read from %s is not a sitemap or sitemapindex" % (uri))
@@ -323,46 +318,86 @@ class Sitemap(object):
             raise SitemapError("Found multiple (%d) <rs:md> elements for %s", (len(md_elements),loc))
         elif (len(md_elements)==1):
             # have on element, look at attributes
-            md_element = md_elements[0]
+            md = self.md_from_etree(md_elements[0],context=loc)
             # change type
-            change = md_element.attrib.get("change",None)
-            if (change is not None):
-                if (change in ['created','updated','deleted'] ):
-                    resource.change = change
-                else:
-                    self.logger.warning("Bad change attribute in <rs:md> for %s" % (loc))
-            type = md_element.attrib.get("type",None)
-            # size in bytes
-            size = md_element.attrib.get("size",None)
-            if (size is not None):
-                try:
-                    resource.size=int(size)
-                except ValueError as e:
-                    raise Exception("Invalid size element in <rs:md> for %s" % (loc))
+            if ('change' in md):
+                resource.change = md['change']
+            if ('size' in md):
+                resource.size = md['size']
             # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
             # digest types. Currently support only md5, warn if anything else
             # ignored
-            hash = md_element.attrib.get("hash",None)
-            if (hash is not None):
-                #space separated set
-                hash_seen = set()
-                for entry in hash.split():
-                    ( type, value ) = entry.split(':',1)
-                    if (type in hash_seen):
-                        self.logger.warning("Ignored duplicate hash type %s in <rs:md> for %s" % (type,loc))
-                    if (type in ('md5','sha-1','sha-256')):
-                        hash_seen.add(type)
-                        if (type == 'md5'):
-                            resource.md5=value #FIXME - should check valid
-                        elif (type == 'sha-1' or type == 'sha-256'):
-                            self.logger.warning("Unsupported type (%s) in <rs:fixity for %s" % (type,loc))
-                    else:
-                        self.logger.warning("Ignored bad hash type in <rs:md> for %s" % (loc))
+            if ('md5' in md):
+                resource.md5=md['md5']
+            if ('sha1' in md):
+                resource.sha1=md['sha1']
+            if ('sha256' in md):
+                resource.sha256=md['sha256']
         # look for rs:ln elements (optional)
         ln_elements = etree.findall('{'+SITEMAP_NS+"}ln")
         if (len(ln_elements)>0):
             self.logger.warning("Ignored <rs:ln> element(s) for %s, FIXME" % (loc))
         return(resource)
+
+    def md_from_etree(self, md_element, context=''):
+        """Parse rs:md attributesConstruct a Resource from an etree
+
+        Parameters:
+         md_element     - etree element <rs:md>
+        """
+        md = {}
+        # capability
+        capability = md_element.attrib.get("capability",None)
+        if (capability is not None):
+            if (capability in ('resourcelist','changelist',
+                               'resourcedump','changedump',
+                               'resourcedump-manifest','changedump-manifest',
+                               'capabilitylist')):
+                md['capability'] = capability
+            else:
+                raise ValueError("Bad capability name '%s' in %s" % (capability,context))
+        # modified
+        modified = md_element.attrib.get("modified",None)
+        if (modified is not None):
+            md['modified'] = modified
+        # change type
+        change = md_element.attrib.get("change",None)
+        if (change is not None):
+            if (change not in ['created','updated','deleted'] ):
+                self.logger.warning("Bad change attribute in <rs:md> for %s" % (context))
+            md['change'] = change
+        # content type
+        type = md_element.attrib.get("type",None)
+        # size in bytes
+        size = md_element.attrib.get("size",None)
+        if (size is not None):
+            try:
+                md['size']=int(size)
+            except ValueError as e:
+                raise Exception("Invalid size element in <rs:md> for %s" % (context))
+        # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
+        # digest types. Currently support only md5, warn if anything else
+        # ignored
+        hash = md_element.attrib.get("hash",None)
+        if (hash is not None):
+            #space separated set
+            hash_seen = set()
+            for entry in hash.split():
+                ( type, value ) = entry.split(':',1)
+                if (type in hash_seen):
+                    self.logger.warning("Ignored duplicate hash type %s in <rs:md> for %s" % (type,context))
+                if (type in ('md5','sha-1','sha-256')):
+                    hash_seen.add(type)
+                    if (type == 'md5'):
+                        md['md5']=value #FIXME - should check valid
+                    elif (type == 'sha-1' or type == 'sha-256'):
+                        self.logger.warning("Unsupported type (%s) in <rs:fixity for %s" % (type,context))
+                else:
+                    self.logger.warning("Ignored bad hash type in <rs:md> for %s" % (context))
+        return(md)
+
+    def ln_from_etree(self,ln_element):
+        pass
 
     ##### ResourceContainer (ResourceList or Changelist) methods #####
 
@@ -400,10 +435,10 @@ class Sitemap(object):
             tree.write(xml_buf,encoding='UTF-8',xml_declaration=True,method='xml')
         return(xml_buf.getvalue())
 
-    def resource_list_parse_xml(self, fh=None, etree=None, resources=None):
-        """Parse XML Sitemap from fh or etree and add resources to an ResourceList object
-
-        Returns the resource_list.
+    def sitemap_parse_xml(self, fh=None, etree=None, resources=None, capability=None):
+        """Parse XML Sitemap from fh or etree and add resources to a
+        resorces object (which must support the add method). Returns 
+        the resources object.
 
         Also sets self.resources_created to be the number of resources created. 
         We adopt a very lax approach here. The parsing is properly namespace 
@@ -414,65 +449,55 @@ class Sitemap(object):
         indicates a sitemapindex then an SitemapIndexError() is thrown 
         and the etree passed along with it.
         """
-        resource_list = resources #use resource_list locally but want common argument name
-        if (resource_list is None):
-            resource_list=self.resource_list_class()
+        if (resources is None):
+            resources=ResourceContainer()
         if (fh is not None):
             etree=parse(fh)
         elif (etree is None):
             raise ValueError("Neither fh or etree set")
         # check root element: urlset (for sitemap), sitemapindex or bad
-        if (etree.getroot().tag == '{'+SITEMAP_NS+"}urlset"):
-            self.resources_created=0
-            for url_element in etree.findall('{'+SITEMAP_NS+"}url"):
-                r = self.resource_from_etree(url_element, self.resource_class)
+        if (etree.getroot().tag == '{'+SITEMAP_NS+"}sitemapindex"):
+            raise SitemapIndexError("Got sitemapindex when expecting sitemap",etree)
+        elif (etree.getroot().tag != '{'+SITEMAP_NS+"}urlset"):
+            raise ValueError("XML is not sitemap or sitemapindex")
+        # have what we expect, read it
+        in_preamble = True
+        self.resources_created=0
+        for e in etree.getroot().getchildren():
+            # look for <rs:md> and <rs:ln>, first <url> ends
+            # then look for resources in <url> blocks
+            if (e.tag == "{"+SITEMAP_NS+"}url"):
+                in_preamble = False #any later rs:md or rs:ln is error
+                r = self.resource_from_etree(e, self.resource_class)
                 try:
-                    resource_list.add( r )
-                except ResourceListDupeError:
-                    self.logger.warning("dupe: %s (%s =? %s)" % 
-                        (r.uri,r.lastmod,resource_list.resources[r.uri].lastmod))
+                    resources.add( r )
+                except SitemapDupeError:
+                    self.logger.warning("dupe of: %s (lastmod=%s)" % (r.uri,r.lastmod))
                 self.resources_created+=1
-            resource_list.capabilities = self.capabilities_from_etree(etree)
-            return(resource_list)
-        elif (etree.getroot().tag == '{'+SITEMAP_NS+"}sitemapindex"):
-            raise SitemapIndexError("Got sitemapindex when expecting sitemap",etree)
-        else:
-            raise ValueError("XML is not sitemap or sitemapindex")
-
-    def change_list_parse_xml(self, fh=None, etree=None, resources=None):
-        """Parse XML Sitemap from fh or etree and add resources to an Changelist object
-
-        Returns the Changelist.
-
-        Also sets self.resources_created to be the number of resources created. 
-        We adopt a very lax approach here. The parsing is properly namespace 
-        aware but we search just for the elements wanted and leave everything 
-        else alone.
-
-        The one exception is detection of Sitemap indexes. If the root element
-        indicates a sitemapindex then an SitemapIndexError() is thrown 
-        and the etree passed along with it.
-        """
-        change_list = resources #use resource_list locally but want common argument name
-        if (change_list is None):
-            change_list=self.change_list_class()
-        if (fh is not None):
-            etree=parse(fh)
-        elif (etree is None):
-            raise ValueError("Neither fh or etree set")
-        # check root element: urlset (for sitemap), sitemapindex or bad
-        if (etree.getroot().tag == '{'+SITEMAP_NS+"}urlset"):
-            self.resources_created=0
-            for url_element in etree.findall('{'+SITEMAP_NS+"}url"):
-                r = self.resource_from_etree(url_element, self.resourcechange_class)
-                change_list.add( r )
-                self.resources_created+=1
-            change_list.capabilities = self.capabilities_from_etree(etree)
-            return(change_list)
-        elif (etree.getroot().tag == '{'+SITEMAP_NS+"}sitemapindex"):
-            raise SitemapIndexError("Got sitemapindex when expecting sitemap",etree)
-        else:
-            raise ValueError("XML is not sitemap or sitemapindex")
+            elif (e.tag == "{"+RS_NS+"}md"):
+                if (in_preamble):
+                    resources.md = self.md_from_etree(e)
+                else:
+                    raise Exception("Found <rs:md> after first <url> in sitemap")
+            elif (e.tag == "{"+RS_NS+"}ln"):
+                if (in_preamble):
+                    resources.ln.append(self.ln_from_etree(e))
+                else:
+                    raise Exception("Found <rs:md> after first <url> in sitemap")
+            else:
+                # element we don't recognize, ignore
+                # FIXME - might add check for debug?
+                pass
+        # check that we read to right capability document
+        if (capability is not None):
+            if ('capability' not in resources.md):
+                self.logger.warning('No capabiliy specified, assuming resourcelist')
+                resources.md['capability'] = 'resourcelist'
+            elif (resources.md['capability'] != capability):
+                raise ValueError("Expected to read a %s document, got %s" %
+                                 (capability,resources.md['capability']))
+        # return the resource container object
+        return(resources)
 
     ##### Sitemap Index #####
 

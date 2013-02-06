@@ -16,8 +16,10 @@ from datetime import datetime
 import re
 import sys
 import StringIO
+from urllib import URLopener
 
 from resource_container import ResourceContainer
+from sitemap import Sitemap
 
 class ResourceListDict(dict):
     """Default implementation of class to store resources in ResourceList
@@ -86,6 +88,17 @@ class ResourceList(ResourceContainer):
                 self.resources.add(r,replace)
         else:
             self.resources.add(resource,replace)
+
+    def parse(self,uri=None,fh=None):
+        if (uri is not None):
+            try:
+                fh = URLopener().open(uri)
+            except IOError as e:
+                raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,str(e)))
+        if (fh is None):
+            raise Exception("Nothing to parse")
+        s = Sitemap()
+        s.sitemap_parse_xml(fh=fh,resources=self,capability='resourcelist')
 
     def compare(self,src):
         """Compare the current resource_list object with the specified resource_list

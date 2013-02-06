@@ -3,6 +3,7 @@ import unittest
 import StringIO
 from resync.resource import Resource
 from resync.resource_list import ResourceList
+from resync.change_list import ChangeList
 from resync.sitemap import Sitemap
 
 class TestSitemap(unittest.TestCase):
@@ -26,39 +27,37 @@ class TestSitemap(unittest.TestCase):
 
     def test_ex_2_1(self):
         """ex2_1 is a simple resource_list with 2 resources, no metadata"""
-        s=Sitemap()
-        fh=open('resync/test/testdata/examples_from_spec/ex_2_1.xml')
-        si = s.resource_list_parse_xml( fh=fh )
-        self.assertEqual( len(si.resources), 2, '2 resources')
-        sms = sorted(si.resources.keys())
+        rl=ResourceList()
+        rl.parse(uri='resync/test/testdata/examples_from_spec/ex_2_1.xml')
+        self.assertEqual( rl.capability, 'resourcelist' )
+        self.assertEqual( len(rl.resources), 2, '2 resources')
+        sms = sorted(rl.uris())
         self.assertEqual( sms, ['http://example.com/res1','http://example.com/res2'] )
-        self.assertEqual( si.resources['http://example.com/res1'].lastmod, None )
+        self.assertEqual( rl.resources['http://example.com/res1'].lastmod, None )
 
     def test_ex_2_2(self):
         """ex_2_2 is a simple resource_list with 2 resources, some metadata"""
-        s=Sitemap()
-        fh=open('resync/test/testdata/examples_from_spec/ex_2_2.xml')
-        si = s.resource_list_parse_xml( fh=fh )
-        self.assertEqual( len(si.resources), 2, '2 resources')
-        sms = sorted(si.resources.keys())
+        rl=ResourceList()
+        rl.parse(uri='resync/test/testdata/examples_from_spec/ex_2_2.xml')
+        self.assertEqual( len(rl.resources), 2, '2 resources')
+        sms = sorted(rl.uris())
         self.assertEqual( sms, ['http://example.com/res1','http://example.com/res2'] )
-        self.assertEqual( si.resources['http://example.com/res1'].lastmod, '2013-01-02T13:00:00Z' )
-        self.assertEqual( si.resources['http://example.com/res2'].lastmod, '2013-01-02T14:00:00Z' )
-        self.assertEqual( si.resources['http://example.com/res1'].md5, '1584abdf8ebdc9802ac0c6a7402c03b6' )
-        self.assertEqual( si.resources['http://example.com/res2'].md5, '1e0d5cb8ef6ba40c99b14c0237be735e' )
+        self.assertEqual( rl.resources['http://example.com/res1'].lastmod, '2013-01-02T13:00:00Z' )
+        self.assertEqual( rl.resources['http://example.com/res2'].lastmod, '2013-01-02T14:00:00Z' )
+        self.assertEqual( rl.resources['http://example.com/res1'].md5, '1584abdf8ebdc9802ac0c6a7402c03b6' )
+        self.assertEqual( rl.resources['http://example.com/res2'].md5, '1e0d5cb8ef6ba40c99b14c0237be735e' )
 
     def test_ex_2_3(self):
         """ex_2_3 is a simple change_list with 2 resources"""
-        s=Sitemap()
-        fh=open('resync/test/testdata/examples_from_spec/ex_2_3.xml')
-        si = s.resource_list_parse_xml( fh=fh )
-        self.assertEqual( len(si.resources), 2, '2 resources')
-        sms = sorted(si.resources.keys())
+        cl=ChangeList()
+        cl.parse('resync/test/testdata/examples_from_spec/ex_2_3.xml')
+        self.assertEqual( len(cl.resources), 2, '2 resources')
+        sms = sorted(cl.uris())
         self.assertEqual( sms, ['http://example.com/res2.pdf','http://example.com/res3.tiff'] )
-        self.assertEqual( si.resources['http://example.com/res2.pdf'].lastmod, '2013-01-02T13:00:00Z' )
-        self.assertEqual( si.resources['http://example.com/res3.tiff'].lastmod, '2013-01-02T18:00:00Z' )
-        self.assertEqual( si.resources['http://example.com/res2.pdf'].change, 'updated' )
-        self.assertEqual( si.resources['http://example.com/res3.tiff'].change, 'deleted' )
+        self.assertEqual( cl.resources[0].lastmod, '2013-01-02T13:00:00Z' )
+        self.assertEqual( cl.resources[1].lastmod, '2013-01-02T18:00:00Z' )
+        self.assertEqual( cl.resources[0].change, 'updated' )
+        self.assertEqual( cl.resources[1].change, 'deleted' )
 
 if  __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestSitemap)
