@@ -23,48 +23,48 @@ class TestSitemap(unittest.TestCase):
 
     def test_02_resource_str(self):
         r1 = Resource('3b',1234.1,9999,'ab54de')
-        self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>3b</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:ab54de\" size=\"9999\" /></url>" )
+        self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>3b</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:ab54de\" length=\"9999\" /></url>" )
 
     def test_08_print(self):
-        r1 = Resource(uri='a',lastmod='2001-01-01',size=1234)
-        r2 = Resource(uri='b',lastmod='2002-02-02',size=56789)
-        r3 = Resource(uri='c',lastmod='2003-03-03',size=0)
+        r1 = Resource(uri='a',lastmod='2001-01-01',length=1234)
+        r2 = Resource(uri='b',lastmod='2002-02-02',length=56789)
+        r3 = Resource(uri='c',lastmod='2003-03-03',length=0)
         m = ResourceList()
         m.add(r1)
         m.add(r2)
         m.add(r3)
         #print m
-        self.assertEqual( Sitemap().resources_as_xml(m), "<?xml version='1.0' encoding='UTF-8'?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:rs=\"http://www.openarchives.org/rs/terms/\"><url><loc>a</loc><lastmod>2001-01-01T00:00:00Z</lastmod><rs:md size=\"1234\" /></url><url><loc>b</loc><lastmod>2002-02-02T00:00:00Z</lastmod><rs:md size=\"56789\" /></url><url><loc>c</loc><lastmod>2003-03-03T00:00:00Z</lastmod><rs:md size=\"0\" /></url></urlset>")
+        self.assertEqual( Sitemap().resources_as_xml(m), "<?xml version='1.0' encoding='UTF-8'?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:rs=\"http://www.openarchives.org/rs/terms/\"><url><loc>a</loc><lastmod>2001-01-01T00:00:00Z</lastmod><rs:md length=\"1234\" /></url><url><loc>b</loc><lastmod>2002-02-02T00:00:00Z</lastmod><rs:md length=\"56789\" /></url><url><loc>c</loc><lastmod>2003-03-03T00:00:00Z</lastmod><rs:md length=\"0\" /></url></urlset>")
 
     def test_09_print_subset(self): 
-        r1 = Resource(uri='a',lastmod='2001-01-01',size=1234)
-        r2 = Resource(uri='b',lastmod='2002-02-02',size=56789)
-        r3 = Resource(uri='d',lastmod='2003-03-04',size=444)
+        r1 = Resource(uri='a',lastmod='2001-01-01',length=1234)
+        r2 = Resource(uri='b',lastmod='2002-02-02',length=56789)
+        r3 = Resource(uri='d',lastmod='2003-03-04',length=444)
         m = ResourceList()
         m.add(r1)
         m.add(r2)
         m.add(r3)
-        self.assertEqual( Sitemap().resources_as_xml(m, num_resources=2), "<?xml version='1.0' encoding='UTF-8'?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:rs=\"http://www.openarchives.org/rs/terms/\"><url><loc>a</loc><lastmod>2001-01-01T00:00:00Z</lastmod><rs:md size=\"1234\" /></url><url><loc>b</loc><lastmod>2002-02-02T00:00:00Z</lastmod><rs:md size=\"56789\" /></url></urlset>")
+        self.assertEqual( Sitemap().resources_as_xml(m, num_resources=2), "<?xml version='1.0' encoding='UTF-8'?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:rs=\"http://www.openarchives.org/rs/terms/\"><url><loc>a</loc><lastmod>2001-01-01T00:00:00Z</lastmod><rs:md length=\"1234\" /></url><url><loc>b</loc><lastmod>2002-02-02T00:00:00Z</lastmod><rs:md length=\"56789\" /></url></urlset>")
 
     def test_09s_print_from_iter(self): 
-        r1 = Resource(uri='a',lastmod='2001-01-01',size=1234)
-        r2 = Resource(uri='b',lastmod='2002-02-02',size=56789)
-        r3 = Resource(uri='c',lastmod='2003-03-03',size=0)
-        r4 = Resource(uri='d',lastmod='2004-04-04',size=444)
+        r1 = Resource(uri='a',lastmod='2001-01-01',length=1234)
+        r2 = Resource(uri='b',lastmod='2002-02-02',length=56789)
+        r3 = Resource(uri='c',lastmod='2003-03-03',length=0)
+        r4 = Resource(uri='d',lastmod='2004-04-04',length=444)
         m = ResourceList()
         m.add(r1)
         m.add(r2)
         m.add(r3)
         m.add(r4)
         i = iter(m)
-        self.assertEqual( Sitemap().resources_as_xml(i, num_resources=2), "<?xml version='1.0' encoding='UTF-8'?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:rs=\"http://www.openarchives.org/rs/terms/\"><url><loc>a</loc><lastmod>2001-01-01T00:00:00Z</lastmod><rs:md size=\"1234\" /></url><url><loc>b</loc><lastmod>2002-02-02T00:00:00Z</lastmod><rs:md size=\"56789\" /></url></urlset>")
-        self.assertEqual( Sitemap().resources_as_xml(i, num_resources=1), "<?xml version='1.0' encoding='UTF-8'?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:rs=\"http://www.openarchives.org/rs/terms/\"><url><loc>c</loc><lastmod>2003-03-03T00:00:00Z</lastmod><rs:md size=\"0\" /></url></urlset>")
-        self.assertEqual( Sitemap().resources_as_xml(i), "<?xml version='1.0' encoding='UTF-8'?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:rs=\"http://www.openarchives.org/rs/terms/\"><url><loc>d</loc><lastmod>2004-04-04T00:00:00Z</lastmod><rs:md size=\"444\" /></url></urlset>")
+        self.assertEqual( Sitemap().resources_as_xml(i, num_resources=2), "<?xml version='1.0' encoding='UTF-8'?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:rs=\"http://www.openarchives.org/rs/terms/\"><url><loc>a</loc><lastmod>2001-01-01T00:00:00Z</lastmod><rs:md length=\"1234\" /></url><url><loc>b</loc><lastmod>2002-02-02T00:00:00Z</lastmod><rs:md length=\"56789\" /></url></urlset>")
+        self.assertEqual( Sitemap().resources_as_xml(i, num_resources=1), "<?xml version='1.0' encoding='UTF-8'?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:rs=\"http://www.openarchives.org/rs/terms/\"><url><loc>c</loc><lastmod>2003-03-03T00:00:00Z</lastmod><rs:md length=\"0\" /></url></urlset>")
+        self.assertEqual( Sitemap().resources_as_xml(i), "<?xml version='1.0' encoding='UTF-8'?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:rs=\"http://www.openarchives.org/rs/terms/\"><url><loc>d</loc><lastmod>2004-04-04T00:00:00Z</lastmod><rs:md length=\"444\" /></url></urlset>")
 
     def test_10_sitemap(self):
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
-<url><loc>http://e.com/a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md hash="md5:Q2hlY2sgSW50ZWdyaXR5IQ==" size=\"12\" /></url>\
+<url><loc>http://e.com/a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md hash="md5:Q2hlY2sgSW50ZWdyaXR5IQ==" length=\"12\" /></url>\
 </urlset>'
         s=Sitemap()
         i=s.sitemap_parse_xml(fh=StringIO.StringIO(xml))
@@ -73,14 +73,14 @@ class TestSitemap(unittest.TestCase):
             self.assertTrue( r is not None, 'got the uri expected')
             self.assertEqual( r.uri, 'http://e.com/a' )
             self.assertEqual( r.lastmod, '2012-03-14T18:37:36Z' )
-            self.assertEqual( r.size, 12 )
+            self.assertEqual( r.length, 12 )
             self.assertEqual( r.md5, 'Q2hlY2sgSW50ZWdyaXR5IQ==' )
 
     def test_11_parse_2(self):
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
-<url><loc>/tmp/rs_test/src/file_a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md size=\"12\" /></url>\
-<url><loc>/tmp/rs_test/src/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md size=\"32\" /></url>\
+<url><loc>/tmp/rs_test/src/file_a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length=\"12\" /></url>\
+<url><loc>/tmp/rs_test/src/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length=\"32\" /></url>\
 </urlset>'
         s=Sitemap()
         i=s.sitemap_parse_xml(fh=StringIO.StringIO(xml))
@@ -144,8 +144,8 @@ class TestSitemap(unittest.TestCase):
     def test_30_parse_change_list(self):
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
-<url><loc>/tmp/rs_test/src/file_a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md change="updated" size="12" /></url>\
-<url><loc>/tmp/rs_test/src/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md size="32" /></url>\
+<url><loc>/tmp/rs_test/src/file_a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md change="updated" length="12" /></url>\
+<url><loc>/tmp/rs_test/src/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length="32" /></url>\
 </urlset>'
         s=Sitemap()
         s.resource_class=Resource

@@ -15,14 +15,14 @@ class TestChangeList(unittest.TestCase):
         self.assertEqual(len(src), 5, "5 changes in change_list")
 
     def test2_with_repeats_again(self):
-        r1 = Resource(uri='a',size=1)
-        r2 = Resource(uri='b',size=2)
+        r1 = Resource(uri='a',length=1)
+        r2 = Resource(uri='b',length=2)
         i = ChangeList()
         i.add(r1)
         i.add(r2)
         self.assertEqual( len(i), 2 )
         # Can add another Resource with same URI
-        r1d = Resource(uri='a',size=10)
+        r1d = Resource(uri='a',length=10)
         i.add(r1d)
         self.assertEqual( len(i), 3 )
 

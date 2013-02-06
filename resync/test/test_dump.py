@@ -7,8 +7,8 @@ class TestDump(unittest.TestCase):
 
     def test00_dump_creation(self):
         i=ResourceList()
-        i.add( Resource('http://ex.org/a', size=1, path='resync/test/testdata/a') )
-        i.add( Resource('http://ex.org/b', size=2, path='resync/test/testdata/b') )
+        i.add( Resource('http://ex.org/a', length=1, path='resync/test/testdata/a') )
+        i.add( Resource('http://ex.org/b', length=2, path='resync/test/testdata/b') )
         d=Dump()
         d.check_files(resource_list=i)
         self.assertEqual(d.total_size, 28)

@@ -2,7 +2,7 @@
 
 Attributes:
 - do_md5 set true to calculate MD5 sums for all files
-- do_size set true to include file size in resource_list
+- do_length set true to include file length in resource_list
 - exclude_dirs is a list of directory names to exclude
   (defaults to ['CVS','.git'))
 """
@@ -22,15 +22,15 @@ from utils import compute_md5_for_file
 
 class ResourceListBuilder():
 
-    def __init__(self, do_md5=False, do_size=True, mapper=None):
+    def __init__(self, do_md5=False, do_length=True, mapper=None):
         """Create ResourceListBuilder object, optionally set options
 
         Optionaly sets the following attributes:
         - do_md5 - True to add md5 digests for each resource
-        - do_size - False to not add size for each resources
+        - do_length - False to not add length for each resources
         """
         self.do_md5 = do_md5
-        self.do_size = do_size
+        self.do_length = do_length
         self.mapper = mapper
         self.exclude_files = ['sitemap\d{0,5}.xml']
         self.exclude_dirs = ['CVS','.git']
@@ -115,9 +115,9 @@ class ResourceListBuilder():
                 if (self.do_md5):
                     # add md5
                     r.md5=compute_md5_for_file(file)
-                if (self.do_size):
-                    # add size
-                    r.size=file_stat.st_size
+                if (self.do_length):
+                    # add length
+                    r.length=file_stat.st_size
                 resource_list.add(r)
             # prune list of dirs based on self.exclude_dirs
             for exclude in self.exclude_dirs:

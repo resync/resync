@@ -73,31 +73,31 @@ class TestResourceList(unittest.TestCase):
         self.assertEqual( i.next().uri, 'd', "second was d" )
 
     def test5_add(self):
-        r1 = Resource(uri='a',size=1)
-        r2 = Resource(uri='b',size=2)
+        r1 = Resource(uri='a',length=1)
+        r2 = Resource(uri='b',length=2)
         i = ResourceList()
         i.add(r1)
         self.assertRaises( ResourceListDupeError, i.add, r1)
         i.add(r2)
         self.assertRaises( ResourceListDupeError, i.add, r2)
         # allow dupes
-        r1d = Resource(uri='a',size=10)
+        r1d = Resource(uri='a',length=10)
         i.add(r1d,replace=True)
         self.assertEqual( len(i), 2 )
-        self.assertEqual( i.resources['a'].size, 10 ) 
+        self.assertEqual( i.resources['a'].length, 10 ) 
 
     def test5_add_iterable(self):
-        r1 = Resource(uri='a',size=1)
-        r2 = Resource(uri='b',size=2)
+        r1 = Resource(uri='a',length=1)
+        r2 = Resource(uri='b',length=2)
         i = ResourceList()
         i.add( [r1,r2] )
         self.assertRaises( ResourceListDupeError, i.add, r1)
         self.assertRaises( ResourceListDupeError, i.add, r2)
         # allow dupes
-        r1d = Resource(uri='a',size=10)
+        r1d = Resource(uri='a',length=10)
         i.add( [r1d] ,replace=True)
         self.assertEqual( len(i), 2 )
-        self.assertEqual( i.resources['a'].size, 10 ) 
+        self.assertEqual( i.resources['a'].length, 10 ) 
 
     def test6_has_md5(self):
         r1 = Resource(uri='a')

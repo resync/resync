@@ -1,7 +1,7 @@
 """Information about a web resource
 
 Each web resource is identified by a URI and may optionally have
-other metadata such as timestamp, size, md5. The lastmod property
+other metadata such as timestamp, length, md5. The lastmod property
 provides ISO8601 format string access to the timestamp.
 
 The timestamp is assumed to be stored in UTC.
@@ -13,10 +13,10 @@ from posixpath import basename
 from w3c_datetime import str_to_datetime, datetime_to_str
 
 class Resource(object):
-    __slots__=('uri', 'timestamp', 'size', 'md5', 'sha1',
+    __slots__=('uri', 'timestamp', 'length', 'md5', 'sha1',
                'change', 'path')
     
-    def __init__(self, uri = None, timestamp = None, size = None, 
+    def __init__(self, uri = None, timestamp = None, length = None, 
                  md5 = None, sha1 = None, lastmod = None, 
                  change = None, path = None,
                  resource = None ):
@@ -28,7 +28,7 @@ class Resource(object):
         # Create from a Resource?
         self.uri = None
         self.timestamp = None
-        self.size = None
+        self.length = None
         self.md5 = None
         self.sha1 = None
         self.change = None
@@ -36,7 +36,7 @@ class Resource(object):
         if (resource is not None):
             self.uri = resource.uri
             self.timestamp = resource.timestamp
-            self.size = resource.size
+            self.length = resource.length
             self.md5 = resource.md5
             self.sha1 = resource.sha1
             self.change = resource.change
@@ -45,8 +45,8 @@ class Resource(object):
             self.uri = uri
         if (timestamp is not None):
             self.timestamp = timestamp
-        if (size is not None):
-            self.size = size
+        if (length is not None):
+            self.length = length
         if (md5 is not None):
             self.md5 = md5
         if (sha1 is not None):
@@ -95,7 +95,7 @@ class Resource(object):
         1. same uri, AND
         2. same timestamp WITHIN delta if specified for either, AND
         3. same md5 if specified for both, AND
-        4. same size if specified for both
+        4. same length if specified for both
         """
         if (other is None): return False
         
@@ -110,14 +110,14 @@ class Resource(object):
         if ( ( self.md5 is not None and other.md5 is not None ) and
              self.md5 != other.md5 ):
             return(False)
-        if ( ( self.size is not None and other.size is not None ) and
-             self.size != other.size ):
+        if ( ( self.length is not None and other.length is not None ) and
+             self.length != other.length ):
             return(False)
         return(True)
     
     def __str__(self):
         """Return a human readable string for this resource"""
-        s = [ str(self.uri), str(self.lastmod), str(self.size),
+        s = [ str(self.uri), str(self.lastmod), str(self.length),
               str(self.md5 if self.md5 else self.sha1) ]
         if (self.change is not None):
             s.add(str(self.change))

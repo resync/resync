@@ -267,8 +267,8 @@ class Sitemap(object):
         md_atts = {}
         if (resource.change is not None):
             md_atts['change'] = resource.change
-        if (resource.size is not None):
-            md_atts['size'] = str(resource.size)
+        if (resource.length is not None):
+            md_atts['length'] = str(resource.length)
         if (resource.md5 is not None):
             md_atts['hash'] = 'md5:'+resource.md5
         if (len(md_atts)>0):
@@ -322,8 +322,8 @@ class Sitemap(object):
             # change type
             if ('change' in md):
                 resource.change = md['change']
-            if ('size' in md):
-                resource.size = md['size']
+            if ('length' in md):
+                resource.length = md['length']
             # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
             # digest types. Currently support only md5, warn if anything else
             # ignored
@@ -368,13 +368,13 @@ class Sitemap(object):
             md['change'] = change
         # content type
         type = md_element.attrib.get("type",None)
-        # size in bytes
-        size = md_element.attrib.get("size",None)
-        if (size is not None):
+        # length in bytes
+        length = md_element.attrib.get("length",None)
+        if (length is not None):
             try:
-                md['size']=int(size)
+                md['length']=int(length)
             except ValueError as e:
-                raise Exception("Invalid size element in <rs:md> for %s" % (context))
+                raise Exception("Invalid length element in <rs:md> for %s" % (context))
         # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
         # digest types. Currently support only md5, warn if anything else
         # ignored
@@ -397,7 +397,52 @@ class Sitemap(object):
         return(md)
 
     def ln_from_etree(self,ln_element):
-        pass
+        ln = {}
+        # href (MANDATORY)
+        href = ln_element.attrib.get("href",None)
+        if (href is not None):
+            ln['href'] = href
+        else:
+            raise ValueError("Missing href in <rs:ln> in %s" % (context))
+        # rel (MANDATORY)
+        rel = ln_element.attrib.get("rel",None)
+        if (rel is not None):
+            ln['rel'] = rel
+        else:
+            raise ValueError("Missing rel in <rs:ln> in %s" % (context))
+        # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
+        # digest types. Currently support only md5, warn if anything else
+        # ignored
+        hash = ln_element.attrib.get("hash",None)
+        if (hash is not None):
+            #space separated set
+            hash_seen = set()
+            for entry in hash.split():
+                ( type, value ) = entry.split(':',1)
+                if (type in hash_seen):
+                    self.logger.warning("Ignored duplicate hash type %s in <rs:md> for %s" % (type,context))
+                if (type in ('md5','sha-1','sha-256')):
+                    hash_seen.add(type)
+                    if (type == 'md5'):
+                        ln['md5']=value #FIXME - should check valid
+                    elif (type == 'sha-1' or type == 'sha-256'):
+                        self.logger.warning("Unsupported type (%s) in <rs:fixity for %s" % (type,context))
+                else:
+                    self.logger.warning("Ignored bad hash type in <rs:ln> for %s" % (context))
+        # modified
+        modified = ln_element.attrib.get("modified",None)
+        if (modified is not None):
+            ln['modified'] = modified
+        # content type
+        type = ln_element.attrib.get("type",None)
+        # length in bytes
+        length = ln_element.attrib.get("length",None)
+        if (length is not None):
+            try:
+                ln['length']=int(length)
+            except ValueError as e:
+                raise Exception("Invalid length element in <rs:ln> for %s" % (context))
+        return(ln)
 
     ##### ResourceContainer (ResourceList or Changelist) methods #####
 
