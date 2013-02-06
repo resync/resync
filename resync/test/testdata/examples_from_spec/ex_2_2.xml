@@ -5,12 +5,12 @@
          modified="2013-01-03T09:00:00Z"/>
   <url>
       <loc>http://example.com/res1</loc>
-      <lastmod>2013-01-02T14:00:00Z</lastmod>
+      <lastmod>2013-01-02T13:00:00Z</lastmod>
       <rs:md hash="md5:1584abdf8ebdc9802ac0c6a7402c03b6"/>
   </url>
   <url>
       <loc>http://example.com/res2</loc>
-      <lastmod>2013-01-02T13:00:00Z</lastmod>
+      <lastmod>2013-01-02T14:00:00Z</lastmod>
       <rs:md hash="md5:1e0d5cb8ef6ba40c99b14c0237be735e"/>
   </url>
 </urlset>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="resourcesync"
+         href="http://example.com/dataset1/capabilitylist.xml"/>
+  <rs:md capability="changelist"
+         modified="2013-01-03T11:00:00Z"/>
+  <url>
+      <loc>http://example.com/res1</loc>
+      <lastmod>2013-01-02T18:00:00Z</lastmod>
+      <rs:md change="updated"/>
+      <rs:ln rel="alternate"
+             href="http://example.com/res1.html"
+             modified="2013-01-02T18:00:00Z"
+             type="text/html"/>
+      <rs:ln rel="alternate"
+             href="http://example.com/res1.pdf"
+             modified="2013-01-02T18:00:00Z"
+             type="application/pdf"/>
+  </url>
+</urlset>

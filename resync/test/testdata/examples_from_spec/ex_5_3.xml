@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+              xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="resourcesync"
+         href="http://example.com/dataset1/capabilitylist.xml"/>
+  <rs:md capability="resourcedump-manifest"
+         modified="2013-01-03T09:00:00Z"/>
+  <sitemap>
+      <loc>/manifests/part3.xml</loc>
+      <lastmod>2013-01-03T09:00:00Z</lastmod>
+      <rs:md path="/manifests/part3.xml"/>
+  </sitemap>
+  <sitemap>
+      <loc>/manifests/part2.xml</loc>
+      <lastmod>2013-01-03T09:00:00Z</lastmod>
+      <rs:md path="/manifests/part2.xml"/>
+  </sitemap>
+  <sitemap>
+      <loc>/manifests/part1.xml</loc>
+      <lastmod>2013-01-03T09:00:00Z</lastmod>
+      <rs:md path="/manifests/part1.xml"/>
+  </sitemap>
+</sitemapindex>

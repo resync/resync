@@ -49,6 +49,7 @@ class Sitemap(object):
         self.allow_multifile=allow_multifile
         self.mapper=mapper
         self.max_sitemap_entries=50000
+        self.check_url_authority=False
         # Classes used when parsing
         self.resource_list_class=ResourceList
         self.resource_class=Resource
@@ -59,7 +60,7 @@ class Sitemap(object):
         self.sitemaps_created=None  # Set during parsing sitemapindex
         self.content_length=None    # Size of last sitemap read
         self.bytes_read=0           # Aggregate of content_length values
-        self.change_list_read=None   # Set true if change_list read
+        self.change_list_read=None  # Set true if change_list read
         self.read_type=None         # Either sitemap/sitemapindex/change_list/change_listindex
 
     ##### General sitemap methods that also handle sitemapindexes #####
@@ -229,7 +230,8 @@ class Sitemap(object):
                 else:
                     # The individual sitemaps should be at a URL (scheme/server/path)
                     # that the sitemapindex URL can speak authoritatively about
-                    if (not UrlAuthority(uri).has_authority_over(sitemap_uri)):
+                    if (self.check_url_authority and
+                        not UrlAuthority(uri).has_authority_over(sitemap_uri)):
                         raise Exception("The sitemapindex (%s) refers to sitemap at a location it does not have authority over (%s)" % (uri,sitemap_uri))
                 try:
                     fh = URLopener().open(sitemap_uri)
@@ -344,7 +346,7 @@ class Sitemap(object):
             if (hash is not None):
                 #space separated set
                 hash_seen = set()
-                for entry in hash.split(' '):
+                for entry in hash.split():
                     ( type, value ) = entry.split(':',1)
                     if (type in hash_seen):
                         self.logger.warning("Ignored duplicate hash type %s in <rs:md> for %s" % (type,loc))

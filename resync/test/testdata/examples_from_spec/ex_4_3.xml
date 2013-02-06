@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="resourcesync"
+         href="http://example.com/dataset1/capabilitylist.xml"/>
+  <rs:ln rel="up"
+         href="http://example.com/dataset1/resourcelist-index.xml"/>
+  <rs:md capability="resourcelist"
+         modified="2013-01-03T09:00:00Z"/>
+  <url>
+      <loc>http://example.com/res3</loc>
+      <lastmod>2013-01-03T09:00:00Z</lastmod>
+      <rs:md hash="md5:1584abdf8ebdc9802ac0c6a7402c8753"
+             length="4385"
+             type="application/pdf"/>
+  </url>
+  <url>
+      <loc>http://example.com/res4</loc>
+      <lastmod>2013-01-03T09:00:00Z</lastmod>
+      <rs:md hash="md5:4556abdf8ebdc9802ac0c6a7402c9881"
+             length="883"
+             type="image/png"/>
+  </url>
+</urlset>

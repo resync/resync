@@ -2,10 +2,9 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:rs="http://www.openarchives.org/rs/terms/">
   <rs:md capability="resourcedump"
-       modified="2013-01-03T09:00:00Z"/>
+         modified="2013-01-03T09:00:00Z"/>
   <url>
       <loc>http://example.com/resourcedump.zip</loc>
       <lastmod>2013-01-03T09:00:00Z</lastmod>
   </url>
 </urlset>
-

@@ -1,0 +1,8 @@
+<html>
+  <head>
+    <link rel="resourcesync"
+          href="http://www.example.com/datasets/capabilitylist.xml"/>
+    ...
+  </head>
+  <body>...</body>
+</html>

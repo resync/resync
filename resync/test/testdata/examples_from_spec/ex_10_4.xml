@@ -1,0 +1,6 @@
+HTTP/1.1 200 OK
+  Date: Thu, 21 Jan 2010 00:02:12 GMT
+  Server: Apache
+  Link: <http://www.example.com/datasets/capabilitylist.xml>; 
+         rel="resourcesync"
+  ...
