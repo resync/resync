@@ -13,16 +13,23 @@ from datetime import datetime
 from dateutil import parser as dateutil_parser
 import re
 
-def datetime_to_str(dt):
+def datetime_to_str(dt='now'):
     """The Last-Modified data in ISO8601 syntax, Z notation
 
     The lastmod is stored as unix timestamp which is already
     in UTC. At preesent this code will return 6 decimal digits
     if any fraction of a second is given. It would perhaps be 
     better to return only the number of decimal digits necessary,
-    up to a resultion of 1 microsecond."""
+    up to a resultion of 1 microsecond.
+    
+    Special cases:
+    - Returns datetime str for now if no parameter given.
+    - Returns None if None is supplied.
+    """
     if (dt is None):
         return None
+    elif (dt == 'now'):
+        dt = time.time()
     return datetime.utcfromtimestamp(dt).isoformat() + 'Z'
 
 def str_to_datetime(s):
