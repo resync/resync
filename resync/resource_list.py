@@ -6,8 +6,7 @@ destination allows understanding of whether the two are in
 sync or whether some resources need to be updated at the
 destination.
 
-The resource_list object may also contain metadata regarding 
-capabilities and discovery information.
+The resource_list object may also contain metadata and links.
 """
 
 import collections
@@ -65,9 +64,10 @@ class ResourceList(ResourceContainer):
     which is currently alphabetical by URI.
     """
 
-    def __init__(self, resources=None, capabilities=None):
-        self.resources=(resources if (resources is not None) else ResourceListDict())
-        self.capabilities=(capabilities if (capabilities is not None) else {})
+    def __init__(self, resources=None, md=None, ln=None):
+        if (resources is None):
+            resources = ResourceListDict()
+        super(ResourceList, self).__init__(resources=resources, md=md, ln=ln)
 
     def __iter__(self):
         """Iterator over all the resources in this resource_list"""
@@ -99,6 +99,12 @@ class ResourceList(ResourceContainer):
             raise Exception("Nothing to parse")
         s = Sitemap()
         s.sitemap_parse_xml(fh=fh,resources=self,capability='resourcelist')
+
+    def as_xml(self,**kwargs):
+        """Return XML serialization of this resource list"""
+        self.default_capability_and_modified(capability='resourcelist')
+        s = Sitemap(**kwargs)
+        return s.resources_as_xml(self)
 
     def compare(self,src):
         """Compare the current resource_list object with the specified resource_list

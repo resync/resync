@@ -25,10 +25,10 @@ from sitemap import Sitemap
 class ChangeList(ResourceContainer):
     """Class representing an Change List"""
 
-    def __init__(self, resources=None, capabilities=None):
+    def __init__(self, resources=None, md=None, ln=None):
         if (resources is None):
             resources = list()
-        super(ChangeList, self).__init__(resources, capabilities)
+        super(ChangeList, self).__init__(resources=resources, md=md, ln=ln)
 
     def __len__(self):
         """Number of entries in this change_list"""

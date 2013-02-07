@@ -9,6 +9,7 @@ This is a superclass for the ResourceList and ChangeList classes which
 contains common functionality.
 """
 import collections
+from w3c_datetime import datetime_to_str
 
 class ResourceContainer(object):
     """Class containing resource-like objects
@@ -46,6 +47,17 @@ class ResourceContainer(object):
     def capability(self,capability):
         """Get/set the capability attribute of rh"""
         self.md['capability']=capability
+
+    def default_capability_and_modified(self,capability=None):
+        """Set caability name and modified time
+
+        Every ResourceSync document should have these two top-level
+        metadata attributes.
+        """
+        if ('capability' not in self.md and capability is not None):
+            self.md['capability']=capability
+        if ('modified' not in self.md):
+            self.md['modified']=datetime_to_str()
 
     def add(self, resource):
         """Add a resource or an iterable collection of resources to this container

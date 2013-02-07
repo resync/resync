@@ -64,7 +64,7 @@ class Sitemap(object):
 
     ##### General sitemap methods that also handle sitemapindexes #####
 
-    def write(self, resources=None, basename='/tmp/sitemap.xml', change_list=False):
+    def write(self, resources=None, basename='/tmp/sitemap.xml'):
         """Write one or a set of sitemap files to disk
 
         resources is a ResourceContainer that may be an ResourceList or
@@ -73,9 +73,6 @@ class Sitemap(object):
 
         basename is used as the name of the single sitemap file or the 
         sitemapindex for a set of sitemap files.
-
-        if change_list is set true then type information is added to indicate
-        that this sitemap file is a change_list and not an resource_list.
 
         Uses self.max_sitemap_entries to determine whether the resource_list can 
         be written as one sitemap. If there are more entries and 
@@ -102,7 +99,7 @@ class Sitemap(object):
                 file = sitemap_prefix + ( "%05d" % (len(sitemaps)) ) + sitemap_suffix
                 self.logger.info("Writing sitemap %s..." % (file))
                 f = open(file, 'w')
-                f.write(self.resources_as_xml(chunk,change_list=change_list))
+                f.write(self.resources_as_xml(chunk))
                 f.close()
                 # Record timestamp
                 sitemaps[file] = os.stat(file).st_mtime
@@ -111,13 +108,13 @@ class Sitemap(object):
             self.logger.info("Wrote %d sitemaps" % (len(sitemaps)))
             f = open(basename, 'w')
             self.logger.info("Writing sitemapindex %s..." % (basename))
-            f.write(self.sitemapindex_as_xml(sitemaps=sitemaps,resource_list=resources,capabilities=resources.capabilities,change_list=change_list))
+            f.write(self.sitemapindex_as_xml(sitemaps=sitemaps,resource_list=resources))
             f.close()
             self.logger.info("Wrote sitemapindex %s" % (basename))
         else:
             f = open(basename, 'w')
             self.logger.info("Writing sitemap %s..." % (basename))
-            f.write(self.resources_as_xml(chunk,capabilities=resources.capabilities,change_list=change_list))
+            f.write(self.resources_as_xml(chunk))
             f.close()
             self.logger.info("Wrote sitemap %s" % (basename))
 
@@ -144,19 +141,14 @@ class Sitemap(object):
             next = chunk.pop()
         return(chunk,next)
 
-    def read(self, uri=None, resources=None, change_list=None, index_only=False):
+    def read(self, uri=None, resources=None, index_only=False):
         """Read sitemap from a URI including handling sitemapindexes
 
-        Returns the resource_list or change_list. If change_list is not specified (None)
-        then it is assumed that an ResourceList is to be read, unless the XML
-        indicates a Changelist.
-
-        If change_list is True then a Changelist if expected; if change_list if False
-        then an ResourceList is expected.
+        Returns the resource_list or change_list. 
 
         If index_only is True then individual sitemaps references in a sitemapindex
         will not be read. This will result in no resources being returned and is
-        useful only to read the capabilities and metadata listed in the sitemapindex.
+        useful only to read the metadata and links listed in the sitemapindex.
 
         Will set self.read_type to a string value sitemap/sitemapindex/change_list/change_listindex
         depleding on the type of the file expected/read.
@@ -193,8 +185,6 @@ class Sitemap(object):
                 self.change_list_read = True
             else:
                 self.logger.info("Bad value of rs:type on root element (%s), ignoring" % (root_type))
-        elif (change_list is True):
-            self.change_list_read = True
         if (self.change_list_read):
             self.read_type = 'change_list'
         # now have make sure we have a place to put the data we read
@@ -446,7 +436,7 @@ class Sitemap(object):
 
     ##### ResourceContainer (ResourceList or Changelist) methods #####
 
-    def resources_as_xml(self, resources, num_resources=None, capabilities=None, change_list=False):
+    def resources_as_xml(self, resources, num_resources=None):
         """Return XML for a set of resources in sitemap format
         
         resources is either an iterable or iterator of Resource objects.
@@ -454,16 +444,18 @@ class Sitemap(object):
         If num_resources is not None then only that number will be written
         before returning.
         """
-        # will include capabilities if allowed and if there are some
         namespaces = { 'xmlns': SITEMAP_NS, 'xmlns:rs': RS_NS }
         root = Element('urlset', namespaces)
-        if (change_list):
-            root.set('rs:type','change_list')
         if (self.pretty_xml):
             root.text="\n"
-        if ( capabilities is not None and len(capabilities)>0 ):
-            self.add_capabilities_to_etree(root,capabilities)
-        # now add the entries from either an iterable or an iterator
+        # <rs:md>
+        if (hasattr(resources,'md')):
+            self.add_md_to_etree(root,resources.md)
+        # <rs:ln>
+        if (hasattr(resources,'ln')):
+            for ln in resources.ln:
+                self.add_ln_to_etree(root,ln)
+        # <url> entries from either an iterable or an iterator
         for r in resources:
             e=self.resource_etree_element(r)
             root.append(e)
@@ -546,7 +538,7 @@ class Sitemap(object):
 
     ##### Sitemap Index #####
 
-    def sitemapindex_as_xml(self, file=None, sitemaps={}, resource_list=None, capabilities=None, change_list=False ):
+    def sitemapindex_as_xml(self, file=None, sitemaps={}, resource_list=None):
         """Return a sitemapindex as an XML string
 
         Format:
@@ -558,15 +550,10 @@ class Sitemap(object):
           ...more...
         </sitemapeindex>
         """
-        include_capabilities = capabilities and (len(capabilities)>0)
         namespaces = { 'xmlns': SITEMAP_NS }
         root = Element('sitemapindex', namespaces)
-        if (change_list):
-            root.set('rs:type','change_list')
         if (self.pretty_xml):
             root.text="\n"
-        if (include_capabilities):
-            self.add_capabilities_to_etree(root,capabilities)
         for file in sitemaps.keys():
             try:
                 uri = self.mapper.dst_to_src(file)
@@ -612,71 +599,57 @@ class Sitemap(object):
                 sitemapindex.add( self.resource_from_etree(sitemap_element,self.resource_class) )
                 self.sitemaps_created+=1
             return(sitemapindex)
-            sitemapindex.capabilities = self.capabilities_from_etree(etree)
         elif (etree.getroot().tag == '{'+SITEMAP_NS+"}urlset"):
             raise SitemapIndexError("Got sitemap when expecting sitemapindex",etree)
         else:
             raise ValueError("XML is not sitemap or sitemapindex")
 
 
-    ##### Capabilities #####
+    ##### Metadata and links #####
 
-    def add_capabilities_to_etree(self, etree, capabilities):
-        """ Add capabilities to the etree supplied
-
-        Each capability is written out as on rs:ln element where the
-        attributes are represented as a dictionary.
+    def add_md_to_etree(self, etree, md):
+        """ Add <rs:md> element to the etree supplied
         """
-        for c in sorted(capabilities.keys()):
+        atts = {}
+        for a in md.keys():
             # make attributes by space concatenating any capability dict values 
             # that are arrays
-            atts = { 'href': c }
-            for a in capabilities[c]:
-                value=capabilities[c][a]
-                if (a == 'attributes'):
-                    a='rel'
-                if (isinstance(value, str)):
-                    atts[a]=value
-                else:
-                    atts[a]=' '.join(value)
+            value = md[a]
+            if (value is None):
+                # skip None values
+                pass
+            elif (isinstance(value, str)):
+                atts[a]=value
+            else:
+                atts[a]=' '.join(value)
+        if (len(atts)>0):
+            e = Element('rs:md', atts)
+            if (self.pretty_xml):
+                e.tail="\n"
+            etree.append(e)
+
+
+    def add_ln_to_etree(self, etree, ln):
+        """ Add <rs:ln> element to the etree supplied
+        """
+        atts = {}
+        for a in ln.keys():
+            # make attributes by space concatenating any capability dict values 
+            # that are arrays
+            value = ln[a]
+            if (value is None):
+                # skip None values
+                pass
+            elif (isinstance(value, str)):
+                atts[a]=value
+            else:
+                atts[a]=' '.join(value)
+        if (len(atts)>0):
             e = Element('rs:ln', atts)
             if (self.pretty_xml):
                 e.tail="\n"
             etree.append(e)
 
-    def capabilities_from_etree(self, etree):
-        """Read capabilities from sitemap or sitemapindex etree
-        """
-        capabilities = {}
-        for link in etree.findall('{'+RS_NS+"}ln"):
-            c = link.get('href')
-            if (c is None):
-                raise Exception("rs:ln without href")
-            capabilities[c]={}
-            rel = link.get('rel')
-            #if (rel is None):
-            #    raise Exception('rs:ln href="%s" without rel attribute' % (c))
-            if (rel is not None):
-                attributes = []
-                for r in rel.split(' '):
-                    attributes.append(r)
-                if (len(attributes)==1):
-                    attributes = attributes[0]
-                capabilities[c]['attributes']=attributes
-            type = link.get('type') #fudge, take either
-            #if (type is None):
-            #    raise Exception('rs:ln href="%s" without type attribute' % (c))
-            if (type is not None):
-                types = []
-                for t in type.split(' '):
-                    types.append(t)
-                if (len(types)==1):
-                    types = types[0]
-                capabilities[c]['type']=types
-        #    print capabilities[c]
-        #for meta in etree.findall('{'+RS_NS+"}meta"):
-        #    print meta
-        return(capabilities)
 
     ##### Utility #####
 

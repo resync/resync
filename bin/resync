@@ -74,7 +74,7 @@ def parse_links(args_link):
     return(links)
 
 def parse_link(link_str):
-    """Parse --link option to add to capabilities
+    """Parse --link option to add to <rs:ln> links
 
     Input string of the form: href,att1=val1,att2=val2
     """
@@ -115,9 +115,6 @@ def main():
                    help="audit sync state of destination wrt source")
     rem.add_option('--parse', '-p', action='store_true',
                    help="just parse the remote sitemap (from mapping or explicit --sitemap)")
-    rem.add_option('--explore', action='store_true',
-                   help="just explore links between sitemap and changelists starting from "
-                        "mapping or explicit --sitemap)")
     # b. modes based solely on files on local disk
     loc = p.add_option_group('LOCAL MODES',
         'These modes act on files on the local disk')
@@ -164,12 +161,6 @@ def main():
                    help="add discovery links to the output sitemap, "
                         "format: href,att1=val1,att2=val2 "
                         "(repeat option for multiple links)")
-    opt.add_option('--prev', type=str, action='store',
-                   help="add prev discovery link to this URI to the output sitemap")
-    opt.add_option('--next', type=str, action='store',
-                   help="add next discovery link to this URI to the output sitemap")
-    opt.add_option('--current', type=str, action='store',
-                   help="add current discovery link to this URI to the output sitemap")
     opt.add_option('--multifile', '-m', action='store_true',
                    help="disable reading and output of sitemapindex for multifile sitemap")
     opt.add_option('--noauth', action='store_true',
@@ -204,12 +195,11 @@ def main():
     # Implement exclusive arguments and default --baseline (support for exclusive
     # groups in argparse is incomplete is python2.6)
     if (not args.baseline and not args.inc and not args.audit and 
-        not args.parse and not args.explore and not args.write and 
-        not args.changelist):
+        not args.parse and not args.write and not args.changelist):
         args.baseline=True
     elif (count_true_args(args.baseline,args.inc,args.audit,args.parse,
-                          args.explore,args.write,args.changelist)>1):
-        p.error("Only one of --baseline, --inc, --audit, --parse, --explore, --write, --changelist modes allowed")
+                          args.write,args.changelist)>1):
+        p.error("Only one of --baseline, --inc, --audit, --parse, --write, --changelist modes allowed")
 
     # Configure logging module and create logger instance
     init_logging( to_file=args.logger, logfile=args.logfile, 
@@ -240,12 +230,6 @@ def main():
 
         # Links apply to anything that writes sitemaps
         links = parse_links(args.link)
-        if (args.prev):
-            links[args.prev] = { 'rel': 'prev http://www.openarchives.org/rs/changelist' }
-        if (args.next):
-            links[args.next] = { 'rel': 'next http://www.openarchives.org/rs/changelist' }
-        if (args.current):
-            links[args.current] = { 'rel': 'current http://www.openarchives.org/rs/changelist' }
 
         # Finally, do something...
         if (args.baseline or args.audit):
@@ -256,11 +240,9 @@ def main():
                           changelist_uri=args.changelist_uri)
         elif (args.parse):
             c.parse_sitemap()
-        elif (args.explore):
-            c.explore_links()
         elif (args.write):
             c.write_sitemap(outfile=args.outfile,
-                            capabilities=links,
+                            links=links,
                             dump=args.dump)
         elif (args.changelist):
             if (not args.reference and not args.empty):
@@ -269,7 +251,7 @@ def main():
                             newref_sitemap=( args.newreference if (args.newreference) else None ),
                             empty=args.empty,
                             outfile=args.outfile,
-                            capabilities=links,
+                            links=links,
                             dump=args.dump)
         else:
             p.error("Unknown mode requested")
