@@ -68,6 +68,7 @@ class ResourceList(ResourceContainer):
         if (resources is None):
             resources = ResourceListDict()
         super(ResourceList, self).__init__(resources=resources, md=md, ln=ln)
+        self.capability = 'resourcelist'
 
     def __iter__(self):
         """Iterator over all the resources in this resource_list"""
@@ -98,11 +99,11 @@ class ResourceList(ResourceContainer):
         if (fh is None):
             raise Exception("Nothing to parse")
         s = Sitemap()
-        s.sitemap_parse_xml(fh=fh,resources=self,capability='resourcelist')
+        s.sitemap_parse_xml(fh=fh,resources=self,capability=self.capability)
 
     def as_xml(self,**kwargs):
         """Return XML serialization of this resource list"""
-        self.default_capability_and_modified(capability='resourcelist')
+        self.default_capability_and_modified()
         s = Sitemap(**kwargs)
         return s.resources_as_xml(self)
 

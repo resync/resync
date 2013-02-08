@@ -30,6 +30,7 @@ class ResourceContainer(object):
         self.resources=(resources if (resources is not None) else list())
         self.md=(md if (md is not None) else {})
         self.ln=(ln if (ln is not None) else [])
+        self.capability=None
 
     def __iter__(self):
         """Iterator over all the resources in this resource_list
@@ -48,14 +49,14 @@ class ResourceContainer(object):
         """Get/set the capability attribute of rh"""
         self.md['capability']=capability
 
-    def default_capability_and_modified(self,capability=None):
+    def default_capability_and_modified(self):
         """Set caability name and modified time
 
         Every ResourceSync document should have these two top-level
         metadata attributes.
         """
-        if ('capability' not in self.md and capability is not None):
-            self.md['capability']=capability
+        if ('capability' not in self.md and self.capability is not None):
+            self.md['capability']=self.capability
         if ('modified' not in self.md):
             self.md['modified']=datetime_to_str()
 

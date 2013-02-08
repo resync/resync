@@ -13,13 +13,16 @@ from posixpath import basename
 from w3c_datetime import str_to_datetime, datetime_to_str
 
 class Resource(object):
-    __slots__=('uri', 'timestamp', 'length', 'md5', 'sha1',
-               'change', 'path')
+    __slots__=('uri', 'timestamp', 'length',
+               'md5', 'sha1', 'sha256',
+               'change', 'path',
+               'capability', 'ln' )
     
     def __init__(self, uri = None, timestamp = None, length = None, 
-                 md5 = None, sha1 = None, lastmod = None, 
+                 md5 = None, sha1 = None, sha256 = None, 
                  change = None, path = None,
-                 resource = None ):
+                 lastmod = None, resource = None,
+                 capability = None, ln = None):
         """ Initialize object either from parameters specified or
         from an existing Resource object. If explicit parameters
         are specified then they will override values copied from
@@ -31,16 +34,22 @@ class Resource(object):
         self.length = None
         self.md5 = None
         self.sha1 = None
+        self.sha256 = None
         self.change = None
         self.path = None
+        self.capability = None
+        self.ln = None
         if (resource is not None):
             self.uri = resource.uri
             self.timestamp = resource.timestamp
             self.length = resource.length
             self.md5 = resource.md5
             self.sha1 = resource.sha1
+            self.sha256 = resource.sha256
             self.change = resource.change
             self.path = resource.path
+            self.capability = resource.capability
+            self.ln = resource.ln
         if (uri is not None):
             self.uri = uri
         if (timestamp is not None):
@@ -51,10 +60,16 @@ class Resource(object):
             self.md5 = md5
         if (sha1 is not None):
             self.sha1 = sha1
+        if (sha256 is not None):
+            self.sha256 = sha256
         if (change is not None):
             self.change = change
         if (path is not None):
             self.path = path
+        if (capability is not None):
+            self.capability = capability
+        if (ln is not None):
+            self.ln = ln
         if (lastmod is not None):
             self.lastmod=lastmod
         # Sanity check
@@ -116,7 +131,10 @@ class Resource(object):
         return(True)
     
     def __str__(self):
-        """Return a human readable string for this resource"""
+        """Return a human readable string for this resource
+
+        Includes only part necessary for synchronizaion
+        """
         s = [ str(self.uri), str(self.lastmod), str(self.length),
               str(self.md5 if self.md5 else self.sha1) ]
         if (self.change is not None):

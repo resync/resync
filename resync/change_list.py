@@ -29,6 +29,7 @@ class ChangeList(ResourceContainer):
         if (resources is None):
             resources = list()
         super(ChangeList, self).__init__(resources=resources, md=md, ln=ln)
+        self.capability='changelist'
 
     def __len__(self):
         """Number of entries in this change_list"""
@@ -65,4 +66,10 @@ class ChangeList(ResourceContainer):
         if (fh is None):
             raise Exception("Nothing to parse")
         s = Sitemap()
-        s.sitemap_parse_xml(fh=fh,resources=self,capability='changelist')
+        s.sitemap_parse_xml(fh=fh,resources=self,capability=self.capability)
+
+    def as_xml(self,**kwargs):
+        """Return XML serialization of this change list"""
+        self.default_capability_and_modified()
+        s = Sitemap(**kwargs)
+        return s.resources_as_xml(self)

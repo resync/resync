@@ -259,8 +259,17 @@ class Sitemap(object):
             md_atts['change'] = resource.change
         if (resource.length is not None):
             md_atts['length'] = str(resource.length)
+        hashvals = []
         if (resource.md5 is not None):
-            md_atts['hash'] = 'md5:'+resource.md5
+            hashvals.append('md5:'+resource.md5)
+        if (resource.sha1 is not None):
+            hashvals.append('sha1:'+resource.sha1)
+        if (resource.sha256 is not None):
+            hashvals.append('sha256:'+resource.sha256)
+        if (len(hashvals)>0):
+            md_atts['hash'] = ' '.join(hashvals)
+        if (resource.capability is not None):
+            md_atts['capability'] = resource.capability
         if (len(md_atts)>0):
             md = Element('rs:md',md_atts)
             e.append(md)
