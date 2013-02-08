@@ -94,6 +94,27 @@ class TestResource(unittest.TestCase):
         r1 = Resource('abc',lastmod='2012-01-01')
         self.assertTrue( re.match( r"\[ abc \| 2012-01-01T", str(r1) ) )
 
+    def test7_multiple_hashes(self):
+        r1 = Resource('abcd')
+        r1.md5 = "some_md5"
+        r1.sha1 = "some_sha1"
+        r1.sha256 = "some_sha256"
+        self.assertEqual( r1.md5, "some_md5" )
+        self.assertEqual( r1.sha1, "some_sha1" )
+        self.assertEqual( r1.sha256, "some_sha256" )
+        self.assertEqual( r1.hash, "md5:some_md5 sha1:some_sha1 sha256:some_sha256" )
+        r2 = Resource('def')
+        r2.hash = "md5:ddd"
+        self.assertEqual( r2.md5, 'ddd' )
+        self.assertEqual( r2.sha1, None )
+        r2.hash = "sha-1:eee"
+        self.assertEqual( r2.md5, None )
+        self.assertEqual( r2.sha1, 'eee' )
+        r2.hash = "md5:fff sha-1:eee sha-256:ggg"
+        self.assertEqual( r2.md5, 'fff' )
+        self.assertEqual( r2.sha1, 'eee' )
+        self.assertEqual( r2.sha256, 'ggg' )
+
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestResource)
     unittest.TextTestRunner(verbosity=2).run(suite)

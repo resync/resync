@@ -25,6 +25,16 @@ class TestSitemap(unittest.TestCase):
         r1 = Resource('3b',1234.1,9999,'ab54de')
         self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>3b</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:ab54de\" length=\"9999\" /></url>" )
 
+    def test_03_resource_str_hashes(self):
+        r1 = Resource('03hashes',1234.1)
+        r1.md5 = 'aaa'
+        r1.sha1 = 'bbb'
+        self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>03hashes</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:aaa sha1:bbb\" /></url>" )
+        r1.sha256 = 'ccc'
+        self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>03hashes</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:aaa sha1:bbb sha256:ccc\" /></url>" )
+        r1.sha1 = None
+        self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>03hashes</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:aaa sha256:ccc\" /></url>" )
+
     def test_08_print(self):
         r1 = Resource(uri='a',lastmod='2001-01-01',length=1234)
         r2 = Resource(uri='b',lastmod='2002-02-02',length=56789)

@@ -259,15 +259,8 @@ class Sitemap(object):
             md_atts['change'] = resource.change
         if (resource.length is not None):
             md_atts['length'] = str(resource.length)
-        hashvals = []
-        if (resource.md5 is not None):
-            hashvals.append('md5:'+resource.md5)
-        if (resource.sha1 is not None):
-            hashvals.append('sha1:'+resource.sha1)
-        if (resource.sha256 is not None):
-            hashvals.append('sha256:'+resource.sha256)
-        if (len(hashvals)>0):
-            md_atts['hash'] = ' '.join(hashvals)
+        if (resource.hash is not None):
+            md_atts['hash'] = resource.hash
         if (resource.capability is not None):
             md_atts['capability'] = resource.capability
         if (len(md_atts)>0):
@@ -324,14 +317,13 @@ class Sitemap(object):
             if ('length' in md):
                 resource.length = md['length']
             # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
-            # digest types. Currently support only md5, warn if anything else
-            # ignored
-            if ('md5' in md):
-                resource.md5=md['md5']
-            if ('sha1' in md):
-                resource.sha1=md['sha1']
-            if ('sha256' in md):
-                resource.sha256=md['sha256']
+            # digest types. Parse and warn of errors ignored.
+            if ('hash' in md):
+                print "## " + md['hash']
+                try:
+                    resource.hash = md['hash']
+                except ValueError as e:
+                    self.logger.warning("%s in <rs:md> for %s" % (str(e),loc))
         # look for rs:ln elements (optional)
         ln_elements = etree.findall('{'+SITEMAP_NS+"}ln")
         if (len(ln_elements)>0):
@@ -367,6 +359,8 @@ class Sitemap(object):
             md['change'] = change
         # content type
         type = md_element.attrib.get("type",None)
+        if (type is not None):
+            md['type'] = type
         # length in bytes
         length = md_element.attrib.get("length",None)
         if (length is not None):
@@ -374,25 +368,10 @@ class Sitemap(object):
                 md['length']=int(length)
             except ValueError as e:
                 raise Exception("Invalid length element in <rs:md> for %s" % (context))
-        # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
-        # digest types. Currently support only md5, warn if anything else
-        # ignored
+        # don't attempt to parse hash values here
         hash = md_element.attrib.get("hash",None)
         if (hash is not None):
-            #space separated set
-            hash_seen = set()
-            for entry in hash.split():
-                ( type, value ) = entry.split(':',1)
-                if (type in hash_seen):
-                    self.logger.warning("Ignored duplicate hash type %s in <rs:md> for %s" % (type,context))
-                if (type in ('md5','sha-1','sha-256')):
-                    hash_seen.add(type)
-                    if (type == 'md5'):
-                        md['md5']=value #FIXME - should check valid
-                    elif (type == 'sha-1' or type == 'sha-256'):
-                        self.logger.warning("Unsupported type (%s) in <rs:fixity for %s" % (type,context))
-                else:
-                    self.logger.warning("Ignored bad hash type in <rs:md> for %s" % (context))
+            md['hash'] = hash
         return(md)
 
     def ln_from_etree(self,ln_element):
@@ -409,25 +388,10 @@ class Sitemap(object):
             ln['rel'] = rel
         else:
             raise ValueError("Missing rel in <rs:ln> in %s" % (context))
-        # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
-        # digest types. Currently support only md5, warn if anything else
-        # ignored
+        # don't attempt to parse hash values here
         hash = ln_element.attrib.get("hash",None)
         if (hash is not None):
-            #space separated set
-            hash_seen = set()
-            for entry in hash.split():
-                ( type, value ) = entry.split(':',1)
-                if (type in hash_seen):
-                    self.logger.warning("Ignored duplicate hash type %s in <rs:md> for %s" % (type,context))
-                if (type in ('md5','sha-1','sha-256')):
-                    hash_seen.add(type)
-                    if (type == 'md5'):
-                        ln['md5']=value #FIXME - should check valid
-                    elif (type == 'sha-1' or type == 'sha-256'):
-                        self.logger.warning("Unsupported type (%s) in <rs:fixity for %s" % (type,context))
-                else:
-                    self.logger.warning("Ignored bad hash type in <rs:ln> for %s" % (context))
+            ln['hash'] = hash
         # modified
         modified = ln_element.attrib.get("modified",None)
         if (modified is not None):

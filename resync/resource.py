@@ -94,6 +94,51 @@ class Resource(object):
         self.timestamp = str_to_datetime(lastmod)
 
     @property
+    def hash(self):
+        """Provide access to the total hash string"""
+        hashvals = []
+        if (self.md5 is not None):
+            hashvals.append('md5:'+self.md5)
+        if (self.sha1 is not None):
+            hashvals.append('sha1:'+self.sha1)
+        if (self.sha256 is not None):
+            hashvals.append('sha256:'+self.sha256)
+        if (len(hashvals)>0):
+            return(' '.join(hashvals))
+        return(None)
+
+    @hash.setter
+    def hash(self, hash):
+        """Parse space separated set of values
+
+        http://tools.ietf.org/html/draft-snell-atompub-link-extensions-09
+        defines many types, we implement md5, sha-1, sha-256"""
+        self.md5 = None
+        self.sha1 = None
+        self.sha256 = None
+        if (hash is None):
+            return
+        hash_seen = set()
+        errors = []
+        for entry in hash.split():
+            ( hash_type, value ) = entry.split(':',1)
+            print "## %s %s" % ( hash_type, value )
+            if (hash_type in hash_seen):
+                errors.append("Ignored duplicate hash type %s" % (hash_type))
+            else:
+                hash_seen.add(hash_type)
+                if (hash_type == 'md5'):
+                    self.md5=value
+                elif (hash_type == 'sha-1'):
+                    self.sha1=value
+                elif (hash_type == 'sha-256'):
+                    self.sha256=value
+                else:
+                    errors.append("Ignored unsupported hash type (%s)" % (hash_type))
+        if (len(errors)>0):
+            raise ValueError(". ".join(errors))
+
+    @property
     def basename(self):
         """The resource basename (http://example.com/resource/1 -> 1)"""
         parse_object = urlparse(self.uri)
