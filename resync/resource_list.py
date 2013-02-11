@@ -102,10 +102,23 @@ class ResourceList(ResourceContainer):
         s.sitemap_parse_xml(fh=fh,resources=self,capability=self.capability)
 
     def as_xml(self,**kwargs):
-        """Return XML serialization of this resource list"""
+        """Return XML serialization of this resource list
+
+        FIXME - What can we do here to deal with the case where the
+        list is too big?"""
         self.default_capability_and_modified()
         s = Sitemap(**kwargs)
         return s.resources_as_xml(self)
+
+    def write(self,**kwargs):
+        self.default_capability_and_modified()
+        basename = "/tmp/resourceList.xml"
+        if ('basename' in kwargs):
+            basename = kwargs['basename']
+            del kwargs['basename']
+        s = Sitemap(**kwargs)
+        return s.write(resources=self,basename=basename)
+        
 
     def compare(self,src):
         """Compare the current resource_list object with the specified resource_list

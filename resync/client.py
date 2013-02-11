@@ -346,11 +346,10 @@ class Client(object):
                     break
 
 
-    def write_sitemap(self,outfile=None,links=None,dump=None):
+    def write_resource_list(self,outfile=None,links=None,dump=None):
         """Write a resource list sitemap for files on local disk
         based on the base_path->base_uri mappings.
         """
-        print "HELLO"
         rl = self.resource_list
         rl.links = links
         kwargs = { 'pretty_xml': True,
@@ -361,7 +360,7 @@ class Client(object):
         if (outfile is None):
             print rl.as_xml()
         else:
-            rl.write(basename=outfile)
+            rl.write(basename=outfile,**kwargs)
         self.write_dump_if_requested(rl,dump)
 
     def change_list_sitemap(self,outfile=None,ref_sitemap=None,newref_sitemap=None,

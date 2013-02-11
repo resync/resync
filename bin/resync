@@ -119,7 +119,7 @@ def main():
     loc = p.add_option_group('LOCAL MODES',
         'These modes act on files on the local disk')
     loc.add_option('--write', '-w', action='store_true',
-                   help="write a sitemap based on files on disk using uri=path mappings "
+                   help="write a resource list based on files on disk using uri=path mappings "
                         "in reverse to calculate URIs from the local paths. To STDOUT by "
                         "default, override with --outfile")
     loc.add_option('--changelist', '-c', action='store_true',
@@ -241,9 +241,9 @@ def main():
         elif (args.parse):
             c.parse_sitemap()
         elif (args.write):
-            c.write_sitemap(outfile=args.outfile,
-                            links=links,
-                            dump=args.dump)
+            c.write_resource_list(outfile=args.outfile,
+                                  links=links,
+                                  dump=args.dump)
         elif (args.changelist):
             if (not args.reference and not args.empty):
                 p.error("Must supply --reference sitemap for --changelist, or --empty")
