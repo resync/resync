@@ -328,7 +328,7 @@ class Client(object):
         s=Sitemap(allow_multifile=self.allow_multifile)
         self.logger.info("Reading sitemap(s) from %s ..." % (self.sitemap))
         i = s.read(self.sitemap)
-        num_entries = len(i)
+        num_entries = len(i.resources)
         self.logger.warning("Read sitemap with %d entries in %d sitemaps" % (num_entries,s.sitemaps_created))
         if (self.verbose):
             to_show = 100
@@ -363,34 +363,35 @@ class Client(object):
             rl.write(basename=outfile,**kwargs)
         self.write_dump_if_requested(rl,dump)
 
-    def change_list_sitemap(self,outfile=None,ref_sitemap=None,newref_sitemap=None,
+    def write_change_list(self,outfile=None,ref_sitemap=None,newref_sitemap=None,
                           empty=None,links=None,dump=None):
-        change_list = ChangeList()
-        change_list.links = links
+        cl = ChangeList()
+        cl.links = links
         if (not empty):
             # 1. Get and parse reference sitemap
-            old_inv = self.read_reference_sitemap(ref_sitemap)
+            old_inv = self.read_reference_resource_list(ref_sitemap)
             # 2. Depending on whether a newref_sitemap was specified, either read that 
             # or build resource_list from files on disk
             if (newref_sitemap is None):
-                # Get resource_list from disk
+                # Get resource list from disk
                 new_inv = self.resource_list
             else:
-                new_inv = self.read_reference_sitemap(newref_sitemap,name='new reference')
-            # 3. Calculate change_list
+                new_inv = self.read_reference_resource_list(newref_sitemap,name='new reference')
+            # 3. Calculate change list
             (same,updated,deleted,created)=old_inv.compare(new_inv)   
-            change_list.add_changed_resources( updated, change='updated' )
-            change_list.add_changed_resources( deleted, change='deleted' )
-            change_list.add_changed_resources( created, change='created' )
-        # 4. Write out change_list
-        s = Sitemap(pretty_xml=True, allow_multifile=self.allow_multifile, mapper=self.mapper)
+            cl.add_changed_resources( updated, change='updated' )
+            cl.add_changed_resources( deleted, change='deleted' )
+            cl.add_changed_resources( created, change='created' )
+        # 4. Write out change list
+        kwargs = { 'pretty_xml': True,
+                   'mapper' : self.mapper }
         if (self.max_sitemap_entries is not None):
-            s.max_sitemap_entries = self.max_sitemap_entries
+            kwargs['max_sitemap_entries'] = self.max_sitemap_entries
         if (outfile is None):
-            print s.resources_as_xml(change_list,change_list=True)
+            print cl.as_xml()
         else:
-            s.write(change_list,basename=outfile,change_list=True)
-        self.write_dump_if_requested(change_list,dump)
+            cl.write(basename=outfile,**kwargs)
+        self.write_dump_if_requested(cl,dump)
 
     def write_dump_if_requested(self,resource_list,dump):
         if (dump is None):
@@ -399,16 +400,17 @@ class Client(object):
         d = Dump(format=self.dump_format)
         d.write(resource_list=resource_list,dumpfile=dump)
 
-    def read_reference_sitemap(self,ref_sitemap,name='reference'):
-        """Read reference sitemap and return the resource_list
+    def read_reference_resource_list(self,ref_sitemap,name='reference'):
+        """Read reference resource list and return the ResourceList object
 
         name parameter just uses in output messages to say what type
-        of sitemap is being read.
+        of resource list is being read.
         """
+        rl = ResourceList()
         sitemap = Sitemap(allow_multifile=self.allow_multifile, mapper=self.mapper)
         self.logger.info("Reading %s sitemap(s) from %s ..." % (name,ref_sitemap))
         i = sitemap.read(ref_sitemap)
-        num_entries = len(i)
+        num_entries = len(i.resources)
         self.logger.warning("Read %s sitemap with %d entries in %d sitemaps" % (name,num_entries,sitemap.sitemaps_created))
         if (self.verbose):
             to_show = 100

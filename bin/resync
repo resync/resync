@@ -247,12 +247,12 @@ def main():
         elif (args.changelist):
             if (not args.reference and not args.empty):
                 p.error("Must supply --reference sitemap for --changelist, or --empty")
-            c.changelist_sitemap(ref_sitemap=args.reference,
-                            newref_sitemap=( args.newreference if (args.newreference) else None ),
-                            empty=args.empty,
-                            outfile=args.outfile,
-                            links=links,
-                            dump=args.dump)
+            c.write_change_list(ref_sitemap=args.reference,
+                                newref_sitemap=( args.newreference if (args.newreference) else None ),
+                                empty=args.empty,
+                                outfile=args.outfile,
+                                links=links,
+                                dump=args.dump)
         else:
             p.error("Unknown mode requested")
     # Any problem we expect will come as a ClientFatalError, anything else 
