@@ -91,6 +91,28 @@ def parse_link(link_str):
         raise ClientFatalError("Bad component of --link option '%s' (%s)"%(link_str,str(e)))
     return(href,atts)
 
+def parse_capabilities(caps_str):
+    """Parse list of capabilities in --capabilitylist option
+
+    Input string of the form: cap_name=uri,cap_name=uri
+    """
+    capabilities={}
+    try:
+        segs = caps_str.split(',')
+        for term in segs:
+            (k,v)=term.split('=')
+            capabilities[k]=v
+    except ValueError as e:
+        raise ClientFatalError("Bad component of --capabilitylist option '%s' (%s)"%(link_str,str(e)))
+    return(capabilities)
+
+def parse_capability_lists(cls_str):
+    """Parse list of capability lists in --capabilitylistindex option
+
+    Input string of the form: uri,uri
+    """
+    return(cls_str.split(','))
+
 def main():
 
     if (sys.version_info < (2,6)):
@@ -123,11 +145,20 @@ def main():
                         "in reverse to calculate URIs from the local paths. To STDOUT by "
                         "default, override with --outfile")
     loc.add_option('--changelist', '--change-list', '-c', action='store_true',
-                   help="write a changelist sitemap by comparison of a reference sitemap "
+                   help="write a change list based on comparison of a reference sitemap "
                         "(specify file with --reference) and either files on disk (using "
-                        "the map provided) or a second sitemap (specify file with "
+                        "the mapping provided) or a second sitemap (specify file with "
                         "--newreference). Otherwise follows --resourcelist options. Also accepts "
-                        "the --empty option (with no mapping) to write and empy changelist.")
+                        "the --empty option (with no mapping) to write and empty changelist.")
+    loc.add_option('--capabilitylist', '--capability-list', type=str, action='store',
+                   help="write a capability list based on the set of capabilities and "
+                        "URIs supplied in cap_name=URI,cap_name=URI format. Otherwise "
+                        "follows --resourcelist options.")
+    loc.add_option('--capabilitylistindex', '--capability-list-index', type=str, action='store',
+                   help="write a capability list index based on the set of capabilitie "
+                        "list URIs supplied as a comma separated list. Otherwise "
+                        "follows --resourcelist options.")
+
 
     # Specification of map between remote URI and local file paths, and remote sitemap
     nam = p.add_option_group('FILE/URI NAMING OPTIONS')
@@ -195,11 +226,13 @@ def main():
     # Implement exclusive arguments and default --baseline (support for exclusive
     # groups in argparse is incomplete is python2.6)
     if (not args.baseline and not args.inc and not args.audit and 
-        not args.parse and not args.resourcelist and not args.changelist):
+        not args.parse and not args.resourcelist and not args.changelist and
+        not args.capabilitylist and not args.capabilitylistindex):
         args.baseline=True
     elif (count_true_args(args.baseline,args.inc,args.audit,args.parse,
-                          args.resourcelist,args.changelist)>1):
-        p.error("Only one of --baseline, --inc, --audit, --parse, --resourcelist, --changelist modes allowed")
+                          args.resourcelist,args.changelist,args.capabilitylist,
+                          args.capabilitylistindex)>1):
+        p.error("Only one of --baseline, --inc, --audit, --parse, --resourcelist, --changelist, --capabilitylist, --capabilitylistindex modes allowed")
 
     # Configure logging module and create logger instance
     init_logging( to_file=args.logger, logfile=args.logfile, 
@@ -234,7 +267,7 @@ def main():
         # Finally, do something...
         if (args.baseline or args.audit):
             c.baseline_or_audit(allow_deletion=args.delete,
-                            audit_only=args.audit)
+                                audit_only=args.audit)
         elif (args.inc):
             c.incremental(allow_deletion=args.delete,
                           changelist_uri=args.changelist_uri)
@@ -253,6 +286,14 @@ def main():
                                 outfile=args.outfile,
                                 links=links,
                                 dump=args.dump)
+        elif (args.capabilitylist):
+            c.write_capability_list(capabilities=parse_capabilities(args.capabilitylist),
+                                    outfile=args.outfile,
+                                    links=links)
+        elif (args.capabilitylistindex):
+            c.write_capability_list_index(capability_lists=parse_capability_lists(args.capabilitylistindex),
+                                    outfile=args.outfile,
+                                    links=links)
         else:
             p.error("Unknown mode requested")
     # Any problem we expect will come as a ClientFatalError, anything else 

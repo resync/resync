@@ -406,7 +406,7 @@ class Sitemap(object):
 
     ##### ResourceContainer (ResourceList or Changelist) methods #####
 
-    def resources_as_xml(self, resources, num_resources=None):
+    def resources_as_xml(self, resources, num_resources=None, sitemapindex=False):
         """Return XML for a set of resources in sitemap format
         
         resources is either an iterable or iterator of Resource objects.
@@ -414,8 +414,12 @@ class Sitemap(object):
         If num_resources is not None then only that number will be written
         before returning.
         """
+        # element names depending on sitemapindex or not
+        root_element = ( 'sitemapindex' if (sitemapindex) else 'urlset' )
+        item_element = ( 'sitemap' if (sitemapindex) else 'url')
+        # namespaces and other settings
         namespaces = { 'xmlns': SITEMAP_NS, 'xmlns:rs': RS_NS }
-        root = Element('urlset', namespaces)
+        root = Element(root_element, namespaces)
         if (self.pretty_xml):
             root.text="\n"
         # <rs:md>
@@ -427,7 +431,7 @@ class Sitemap(object):
                 self.add_ln_to_etree(root,ln)
         # <url> entries from either an iterable or an iterator
         for r in resources:
-            e=self.resource_etree_element(r)
+            e=self.resource_etree_element(r, element_name=item_element)
             root.append(e)
             if (num_resources is not None):
                 num_resources-=1

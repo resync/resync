@@ -3,7 +3,7 @@ import re
 from resync.resource import Resource
 from resync.resource_list import ResourceList
 from resync.change_list import ChangeList
-from resync.capability_list import CapabilityList, CapabilityListDupeError
+from resync.capability_list import CapabilityList
 
 class TestCapabilityList(unittest.TestCase):
 

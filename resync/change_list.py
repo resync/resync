@@ -29,11 +29,8 @@ class ChangeList(ListBase):
         if (resources is None):
             resources = list()
         super(ChangeList, self).__init__(resources=resources, md=md, ln=ln)
-        self.capability='changelist'
-
-    def __len__(self):
-        """Number of entries in this change_list"""
-        return(len(self.resources))
+        self.capability_name='changelist'
+        self.capability_md='changelist'
 
     def add(self, resource):
         """Add a resource_change or an iterable collection to this ChangeList

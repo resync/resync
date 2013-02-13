@@ -22,13 +22,23 @@ class ListBase(ResourceContainer):
 
     def __init__(self, resources=None, md=None, ln=None):
         super(ListBase, self).__init__(resources=resources, md=md, ln=ln)
-        self.capability = 'unknown'
+        self.capability_name = 'unknown'
+        self.capability_md = 'unknown'
+        self.sitemapindex=False
+
+    def __iter__(self):
+        """Default to iterator provided by resources object"""
+        return(iter(self.resources))
+
+    def __len__(self):
+        """Number of entries in this list"""
+        return(len(self.resources))
 
     ##### INPUT #####
 
     def read(self,uri=None,**kwargs):
         s = Sitemap(**kwargs)
-        s.read(uri=uri,resources=self,capability=self.capability)
+        s.read(uri=uri,resources=self,capability=self.capability_md)
         self.num_files = s.sitemaps_created
 
     def parse(self,uri=None,fh=None,**kwargs):
@@ -44,7 +54,7 @@ class ListBase(ResourceContainer):
         if (fh is None):
             raise Exception("Nothing to parse")
         s = Sitemap(**kwargs)
-        s.sitemap_parse_xml(fh=fh,resources=self,capability=self.capability)
+        s.sitemap_parse_xml(fh=fh,resources=self,capability=self.capability_md)
         self.num_files = s.sitemaps_created
 
     ##### OUTPUT #####
@@ -56,7 +66,7 @@ class ListBase(ResourceContainer):
         list is too big. Applies only to ResourceList since v0.5"""
         self.default_capability_and_modified()
         s = Sitemap(**kwargs)
-        return s.resources_as_xml(self)
+        return s.resources_as_xml(self,sitemapindex=self.sitemapindex)
 
     def write(self,**kwargs):
         """Write one or perhaps multiple sitemap/sitemapindex XML documents
@@ -67,4 +77,5 @@ class ListBase(ResourceContainer):
             basename = kwargs['basename']
             del kwargs['basename']
         s = Sitemap(**kwargs)
+        # FIXME - add in sitemapindex option
         return s.write(resources=self,basename=basename)

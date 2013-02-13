@@ -7,46 +7,11 @@ The capability_list object may also contain metadata and links.
 """
 
 import collections
-import os
-from datetime import datetime
-import re
-import sys
-import StringIO
-from urllib import URLopener
 
 from resource import Resource
+from resource_set import ResourceSet
 from list_base import ListBase
 from sitemap import Sitemap
-
-class CapabilityListDict(dict):
-    """Default implementation of class to store capabilitys in CapabilityList
-
-    Key properties of this class are:
-    - has add(resource) method
-    - is iterable and results given in alphanumeric order by resource.uri
-    """
-
-    def __iter__(self):
-        """Iterator over all the resources in this capability_list"""
-        self._iter_next_list = sorted(self.keys())
-        self._iter_next_list.reverse()
-        return(iter(self._iter_next, None))
-
-    def _iter_next(self):
-        if (len(self._iter_next_list)>0):
-            return(self[self._iter_next_list.pop()])
-        else:
-            return(None)
-
-    def add(self, resource, replace=False):
-        """Add just a single resource"""
-        uri = resource.uri
-        if (uri in self and not replace):
-            raise ResourceListDupeError("Attempt to add resource already in capability_list") 
-        self[uri]=resource
-
-class CapabilityListDupeError(Exception):
-    pass
 
 class CapabilityList(ListBase):
     """Class representing an capability_list of resources
@@ -64,17 +29,10 @@ class CapabilityList(ListBase):
 
     def __init__(self, resources=None, md=None, ln=None):
         if (resources is None):
-            resources = CapabilityListDict()
+            resources = ResourceSet()
         super(CapabilityList, self).__init__(resources=resources, md=md, ln=ln)
-        self.capability='capabilitylist'
-
-    def __iter__(self):
-        """Iterator over all the resources in this capability_list"""
-        return(iter(self.resources))
-
-    def __len__(self):
-        """Return number of resources in this capability_list"""
-        return(len(self.resources))
+        self.capability_name='capabilitylist'
+        self.capability_md='capabilitylist'
 
     def add(self, resource, replace=False):
         """Add a resource or an iterable collection of resources
@@ -88,9 +46,16 @@ class CapabilityList(ListBase):
         else:
             self.resources.add(resource,replace)
 
-    def add_capability(self,rc,uri):
+    def add_capability(self,capability=None,uri=None,name=None):
         """Specific add function for capabilities
         
-        Takes ResourceContainer as the first argument from which the
-        capability name is extracted, and the URI as second argument"""
-        self.add( Resource(uri=uri,capability=rc.capability) )
+        Takes either:
+        - a capability object (derived from ListBase) as the first argument 
+          from which the capability name is extracted
+        - or a plain name string
+        and
+        - the URI of the capability
+        """
+        if (capability is not None):
+            name = capability.capability_md
+        self.add( Resource(uri=uri,capability=name) )

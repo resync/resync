@@ -68,15 +68,8 @@ class ResourceList(ListBase):
         if (resources is None):
             resources = ResourceListDict()
         super(ResourceList, self).__init__(resources=resources, md=md, ln=ln)
-        self.capability = 'resourcelist'
-
-    def __iter__(self):
-        """Iterator over all the resources in this resource_list"""
-        return(iter(self.resources))
-
-    def __len__(self):
-        """Return number of resources in this resource_list"""
-        return(len(self.resources))
+        self.capability_name = 'resourcelist'
+        self.capability_md = 'resourcelist'
 
     def add(self, resource, replace=False):
         """Add a resource or an iterable collection of resources

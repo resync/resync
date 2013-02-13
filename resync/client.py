@@ -13,6 +13,8 @@ import ConfigParser
 from resync.resource_list_builder import ResourceListBuilder
 from resync.resource_list import ResourceList
 from resync.change_list import ChangeList
+from resync.capability_list import CapabilityList
+from resync.capability_list_index import CapabilityListIndex
 from resync.mapper import Mapper
 from resync.sitemap import Sitemap
 from resync.dump import Dump
@@ -392,6 +394,35 @@ class Client(object):
         else:
             cl.write(basename=outfile,**kwargs)
         self.write_dump_if_requested(cl,dump)
+
+
+    def write_capability_list(self,capabilities=None,outfile=None,links=None):
+        """Write a Capability List to outfile or STDOUT"""
+        capl = CapabilityList()
+        if (capabilities is not None):
+            for name in capabilities.keys():
+                capl.add_capability(name=name, uri=capabilities[name])
+        capl.links = links
+        kwargs = { 'pretty_xml': True }
+        if (outfile is None):
+            print capl.as_xml(**kwargs)
+        else:
+            capl.write(basename=outfile,**kwargs)
+
+
+    def write_capability_list_index(self,capability_lists=None,outfile=None,links=None):
+        """Write a Capability List to outfile or STDOUT"""
+        capli = CapabilityListIndex()
+        if (capability_lists is not None):
+            for uri in capability_lists:
+                capli.add_capability_list(uri)
+        capli.links = links
+        kwargs = { 'pretty_xml': True }
+        if (outfile is None):
+            print capli.as_xml(**kwargs)
+        else:
+            capli.write(basename=outfile,**kwargs)
+
 
     def write_dump_if_requested(self,resource_list,dump):
         if (dump is None):
