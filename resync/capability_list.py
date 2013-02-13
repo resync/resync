@@ -15,7 +15,7 @@ import StringIO
 from urllib import URLopener
 
 from resource import Resource
-from resource_container import ResourceContainer
+from list_base import ListBase
 from sitemap import Sitemap
 
 class CapabilityListDict(dict):
@@ -48,7 +48,7 @@ class CapabilityListDict(dict):
 class CapabilityListDupeError(Exception):
     pass
 
-class CapabilityList(ResourceContainer):
+class CapabilityList(ListBase):
     """Class representing an capability_list of resources
 
     This same class is used for both the source and the destination
@@ -94,20 +94,3 @@ class CapabilityList(ResourceContainer):
         Takes ResourceContainer as the first argument from which the
         capability name is extracted, and the URI as second argument"""
         self.add( Resource(uri=uri,capability=rc.capability) )
-
-    def parse(self,uri=None,fh=None):
-        if (uri is not None):
-            try:
-                fh = URLopener().open(uri)
-            except IOError as e:
-                raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,str(e)))
-        if (fh is None):
-            raise Exception("Nothing to parse")
-        s = Sitemap()
-        s.sitemap_parse_xml(fh=fh,resources=self,capability=self.capability)
-
-    def as_xml(self,**kwargs):
-        """Return XML serialization of this capability list"""
-        self.default_capability_and_modified()
-        s = Sitemap(**kwargs)
-        return s.resources_as_xml(self)

@@ -358,7 +358,7 @@ class Client(object):
         if (self.max_sitemap_entries is not None):
             kwargs['max_sitemap_entries'] = self.max_sitemap_entries
         if (outfile is None):
-            print rl.as_xml()
+            print rl.as_xml(**kwargs)
         else:
             rl.write(basename=outfile,**kwargs)
         self.write_dump_if_requested(rl,dump)
@@ -369,16 +369,16 @@ class Client(object):
         cl.links = links
         if (not empty):
             # 1. Get and parse reference sitemap
-            old_inv = self.read_reference_resource_list(ref_sitemap)
+            old_rl = self.read_reference_resource_list(ref_sitemap)
             # 2. Depending on whether a newref_sitemap was specified, either read that 
             # or build resource_list from files on disk
             if (newref_sitemap is None):
                 # Get resource list from disk
-                new_inv = self.resource_list
+                new_rl = self.resource_list
             else:
-                new_inv = self.read_reference_resource_list(newref_sitemap,name='new reference')
+                new_rl = self.read_reference_resource_list(newref_sitemap,name='new reference')
             # 3. Calculate change list
-            (same,updated,deleted,created)=old_inv.compare(new_inv)   
+            (same,updated,deleted,created)=old_rl.compare(new_rl)   
             cl.add_changed_resources( updated, change='updated' )
             cl.add_changed_resources( deleted, change='deleted' )
             cl.add_changed_resources( created, change='created' )
@@ -388,7 +388,7 @@ class Client(object):
         if (self.max_sitemap_entries is not None):
             kwargs['max_sitemap_entries'] = self.max_sitemap_entries
         if (outfile is None):
-            print cl.as_xml()
+            print cl.as_xml(**kwargs)
         else:
             cl.write(basename=outfile,**kwargs)
         self.write_dump_if_requested(cl,dump)
@@ -407,11 +407,10 @@ class Client(object):
         of resource list is being read.
         """
         rl = ResourceList()
-        sitemap = Sitemap(allow_multifile=self.allow_multifile, mapper=self.mapper)
         self.logger.info("Reading %s sitemap(s) from %s ..." % (name,ref_sitemap))
-        i = sitemap.read(ref_sitemap)
-        num_entries = len(i.resources)
-        self.logger.warning("Read %s sitemap with %d entries in %d sitemaps" % (name,num_entries,sitemap.sitemaps_created))
+        rl.read(uri=ref_sitemap,allow_multifile=self.allow_multifile, mapper=self.mapper)
+        num_entries = len(rl.resources)
+        self.logger.warning("Read %s resource list with %d entries in %d sitemaps" % (name,num_entries,rl.num_files))
         if (self.verbose):
             to_show = 100
             override_str = ' (override with --max-sitemap-entries)'
@@ -421,12 +420,12 @@ class Client(object):
             if (num_entries>to_show):
                 print "Showing first %d entries sorted by URI%s..." % (to_show,override_str)
             n=0
-            for r in i:
+            for r in rl.resources:
                 print r
                 n+=1
                 if ( n >= to_show ):
                     break
-        return(i)
+        return(rl)
 
 
     def write_incremental_status(self,site,next=None):

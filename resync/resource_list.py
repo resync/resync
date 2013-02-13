@@ -17,7 +17,7 @@ import sys
 import StringIO
 from urllib import URLopener
 
-from resource_container import ResourceContainer
+from list_base import ListBase
 from sitemap import Sitemap
 
 class ResourceListDict(dict):
@@ -50,7 +50,7 @@ class ResourceListDict(dict):
 class ResourceListDupeError(Exception):
     pass
 
-class ResourceList(ResourceContainer):
+class ResourceList(ListBase):
     """Class representing an resource_list of resources
 
     This same class is used for both the source and the destination
@@ -89,36 +89,6 @@ class ResourceList(ResourceContainer):
                 self.resources.add(r,replace)
         else:
             self.resources.add(resource,replace)
-
-    def parse(self,uri=None,fh=None):
-        if (uri is not None):
-            try:
-                fh = URLopener().open(uri)
-            except IOError as e:
-                raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,str(e)))
-        if (fh is None):
-            raise Exception("Nothing to parse")
-        s = Sitemap()
-        s.sitemap_parse_xml(fh=fh,resources=self,capability=self.capability)
-
-    def as_xml(self,**kwargs):
-        """Return XML serialization of this resource list
-
-        FIXME - What can we do here to deal with the case where the
-        list is too big?"""
-        self.default_capability_and_modified()
-        s = Sitemap(**kwargs)
-        return s.resources_as_xml(self)
-
-    def write(self,**kwargs):
-        self.default_capability_and_modified()
-        basename = "/tmp/resourceList.xml"
-        if ('basename' in kwargs):
-            basename = kwargs['basename']
-            del kwargs['basename']
-        s = Sitemap(**kwargs)
-        return s.write(resources=self,basename=basename)
-        
 
     def compare(self,src):
         """Compare the current resource_list object with the specified resource_list

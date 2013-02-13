@@ -118,15 +118,15 @@ def main():
     # b. modes based solely on files on local disk
     loc = p.add_option_group('LOCAL MODES',
         'These modes act on files on the local disk')
-    loc.add_option('--write', '-w', action='store_true',
+    loc.add_option('--resourcelist', '--resource-list', '-r', action='store_true',
                    help="write a resource list based on files on disk using uri=path mappings "
                         "in reverse to calculate URIs from the local paths. To STDOUT by "
                         "default, override with --outfile")
-    loc.add_option('--changelist', '-c', action='store_true',
+    loc.add_option('--changelist', '--change-list', '-c', action='store_true',
                    help="write a changelist sitemap by comparison of a reference sitemap "
                         "(specify file with --reference) and either files on disk (using "
                         "the map provided) or a second sitemap (specify file with "
-                        "--newreference). Otherwise follows --write options. Also accepts "
+                        "--newreference). Otherwise follows --resourcelist options. Also accepts "
                         "the --empty option (with no mapping) to write and empy changelist.")
 
     # Specification of map between remote URI and local file paths, and remote sitemap
@@ -141,7 +141,7 @@ def main():
     nam.add_option('--newreference', type=str, action='store',
                    help='updated reference sitemap name for --changelist calculation')
     nam.add_option('--dump', metavar="DUMPFILE", type=str, action='store',
-                   help='write dump to specified file for --write or --changelist')
+                   help='write dump to specified file for --resourcelist or --changelist')
     nam.add_option('--changelist-uri', type=str, action='store',
                    help='explicitly set the changelist URI that will be use in --inc mode, '
                         'overrides process of getting this from the sitemap')
@@ -195,11 +195,11 @@ def main():
     # Implement exclusive arguments and default --baseline (support for exclusive
     # groups in argparse is incomplete is python2.6)
     if (not args.baseline and not args.inc and not args.audit and 
-        not args.parse and not args.write and not args.changelist):
+        not args.parse and not args.resourcelist and not args.changelist):
         args.baseline=True
     elif (count_true_args(args.baseline,args.inc,args.audit,args.parse,
-                          args.write,args.changelist)>1):
-        p.error("Only one of --baseline, --inc, --audit, --parse, --write, --changelist modes allowed")
+                          args.resourcelist,args.changelist)>1):
+        p.error("Only one of --baseline, --inc, --audit, --parse, --resourcelist, --changelist modes allowed")
 
     # Configure logging module and create logger instance
     init_logging( to_file=args.logger, logfile=args.logfile, 
@@ -240,7 +240,7 @@ def main():
                           changelist_uri=args.changelist_uri)
         elif (args.parse):
             c.parse_sitemap()
-        elif (args.write):
+        elif (args.resourcelist):
             c.write_resource_list(outfile=args.outfile,
                                   links=links,
                                   dump=args.dump)

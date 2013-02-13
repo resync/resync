@@ -18,11 +18,11 @@ particular resource.
 import collections
 from urllib import URLopener
 
-from resource_container import ResourceContainer
+from list_base import ListBase
 from resource import Resource
 from sitemap import Sitemap
 
-class ChangeList(ResourceContainer):
+class ChangeList(ListBase):
     """Class representing an Change List"""
 
     def __init__(self, resources=None, md=None, ln=None):
@@ -56,20 +56,3 @@ class ChangeList(ResourceContainer):
         for resource in resources:
             rc = Resource( resource=resource, change=change )
             self.add(rc)
-
-    def parse(self,uri=None,fh=None):
-        if (uri is not None):
-            try:
-                fh = URLopener().open(uri)
-            except IOError as e:
-                raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,s(e)))
-        if (fh is None):
-            raise Exception("Nothing to parse")
-        s = Sitemap()
-        s.sitemap_parse_xml(fh=fh,resources=self,capability=self.capability)
-
-    def as_xml(self,**kwargs):
-        """Return XML serialization of this change list"""
-        self.default_capability_and_modified()
-        s = Sitemap(**kwargs)
-        return s.resources_as_xml(self)

@@ -1,12 +1,13 @@
 """ResourceSync Resource Container object
 
-All documents in ResourceSync follow the same basic format:
+All documents in ResourceSync have the same types of information:
 they have some top-level metadata and links, and then a list of
 resources, each of which may also have metadata and links. This 
 class implements this model.
 
-This is a superclass for the ResourceList and ChangeList classes which 
-contains common functionality.
+This is a base class for the ListBase class which is in turn the
+base class for ResourceList, ChangeList, etc. This class provides
+only the data storage and manipulation, ListBase adds IO.
 """
 import collections
 from w3c_datetime import datetime_to_str
@@ -38,7 +39,6 @@ class ResourceContainer(object):
         Baseline implementation use iterator given by resources property
         """
         return(iter(self.resources))
-
 
     @property
     def capability(self):

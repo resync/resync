@@ -141,7 +141,7 @@ class Sitemap(object):
             next = chunk.pop()
         return(chunk,next)
 
-    def read(self, uri=None, resources=None, index_only=False):
+    def read(self, uri=None, resources=None, capability=None, index_only=False):
         """Read sitemap from a URI including handling sitemapindexes
 
         Returns the resource_list or change_list. 
@@ -337,13 +337,11 @@ class Sitemap(object):
          md_element     - etree element <rs:md>
         """
         md = {}
-        # capability
+        # capability. Allow this to be missing but do a very simple syntax
+        # check on plausible values if present
         capability = md_element.attrib.get("capability",None)
         if (capability is not None):
-            if (capability in ('resourcelist','changelist',
-                               'resourcedump','changedump',
-                               'resourcedump-manifest','changedump-manifest',
-                               'capabilitylist')):
+            if (re.match(r"^[\w\-]+$", capability) is not None):
                 md['capability'] = capability
             else:
                 raise ValueError("Bad capability name '%s' in %s" % (capability,context))
