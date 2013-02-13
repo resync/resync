@@ -319,7 +319,6 @@ class Sitemap(object):
             # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
             # digest types. Parse and warn of errors ignored.
             if ('hash' in md):
-                print "## " + md['hash']
                 try:
                     resource.hash = md['hash']
                 except ValueError as e:

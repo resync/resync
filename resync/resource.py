@@ -122,7 +122,6 @@ class Resource(object):
         errors = []
         for entry in hash.split():
             ( hash_type, value ) = entry.split(':',1)
-            print "## %s %s" % ( hash_type, value )
             if (hash_type in hash_seen):
                 errors.append("Ignored duplicate hash type %s" % (hash_type))
             else:
