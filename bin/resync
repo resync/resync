@@ -63,12 +63,11 @@ def count_true_args(*args):
     return(count)
 
 def parse_links(args_link):
-    links={}
+    links=[]
     if (args_link is not None):
         for link_str in args_link:
             try:
-                (href, atts) = parse_link(link_str)
-                links[href]=atts
+                links.append(parse_link(link_str))
             except ValueError as e:
                 raise ClientFatalError("Bad --link option '%s' (%s)"%(link_str,str(e)))
     return(links)
@@ -76,20 +75,21 @@ def parse_links(args_link):
 def parse_link(link_str):
     """Parse --link option to add to <rs:ln> links
 
-    Input string of the form: href,att1=val1,att2=val2
+    Input string of the form: rel,href,att1=val1,att2=val2
     """
     atts={}
     try:
         segs = link_str.split(',')
-        # First segment is relation                                                             
-        href = segs.pop(0)
+        # First segments are relation and subject
+        atts['rel'] = segs.pop(0)
+        atts['href'] = segs.pop(0)
         # Remaining segments are attributes
         for term in segs:
             (k,v)=term.split('=')
             atts[k]=v
     except ValueError as e:
         raise ClientFatalError("Bad component of --link option '%s' (%s)"%(link_str,str(e)))
-    return(href,atts)
+    return(atts)
 
 def parse_capabilities(caps_str):
     """Parse list of capabilities in --capabilitylist option
@@ -178,7 +178,7 @@ def main():
                         'overrides process of getting this from the sitemap')
 
     # Options that apply to multiple modes
-    opt = p.add_option_group('OPTIONS')
+    opt = p.add_option_group('MISCELANEOUS OPTIONS')
     opt.add_option('--checksum', action='store_true',
                    help="use checksum (md5) in addition to last modification time and size")
     opt.add_option('--delete', action='store_true',
@@ -190,8 +190,11 @@ def main():
                    help="combine with --changelist to write and empty changelist, perhaps with links")
     opt.add_option('--link', type=str, action='append',
                    help="add discovery links to the output sitemap, "
-                        "format: href,att1=val1,att2=val2 "
+                        "format: rel,href[,att1=val1,att2=val2] "
                         "(repeat option for multiple links)")
+    opt.add_option('--describedby', type=str, action='store',
+                   help="add an <rs:md rel=\"describedby\" link to the "
+                        "URI given") 
     opt.add_option('--multifile', '-m', action='store_true',
                    help="disable reading and output of sitemapindex for multifile sitemap")
     opt.add_option('--noauth', action='store_true',
@@ -263,6 +266,9 @@ def main():
 
         # Links apply to anything that writes sitemaps
         links = parse_links(args.link)
+        # expand --describedby shorthand for a link, prepend
+        if (args.describedby):
+            links.insert(0,{'rel':'describedby','href':args.describedby})
 
         # Finally, do something...
         if (args.baseline or args.audit):

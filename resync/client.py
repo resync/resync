@@ -353,7 +353,7 @@ class Client(object):
         based on the base_path->base_uri mappings.
         """
         rl = self.resource_list
-        rl.links = links
+        rl.ln = links
         kwargs = { 'pretty_xml': True,
                    'allow_multifile': self.allow_multifile,
                    'mapper' : self.mapper }
@@ -367,8 +367,7 @@ class Client(object):
 
     def write_change_list(self,outfile=None,ref_sitemap=None,newref_sitemap=None,
                           empty=None,links=None,dump=None):
-        cl = ChangeList()
-        cl.links = links
+        cl = ChangeList(ln=links)
         if (not empty):
             # 1. Get and parse reference sitemap
             old_rl = self.read_reference_resource_list(ref_sitemap)
@@ -398,11 +397,10 @@ class Client(object):
 
     def write_capability_list(self,capabilities=None,outfile=None,links=None):
         """Write a Capability List to outfile or STDOUT"""
-        capl = CapabilityList()
+        capl = CapabilityList(ln=links)
         if (capabilities is not None):
             for name in capabilities.keys():
                 capl.add_capability(name=name, uri=capabilities[name])
-        capl.links = links
         kwargs = { 'pretty_xml': True }
         if (outfile is None):
             print capl.as_xml(**kwargs)
@@ -412,11 +410,10 @@ class Client(object):
 
     def write_capability_list_index(self,capability_lists=None,outfile=None,links=None):
         """Write a Capability List to outfile or STDOUT"""
-        capli = CapabilityListIndex()
+        capli = CapabilityListIndex(ln=links)
         if (capability_lists is not None):
             for uri in capability_lists:
                 capli.add_capability_list(uri)
-        capli.links = links
         kwargs = { 'pretty_xml': True }
         if (outfile is None):
             print capli.as_xml(**kwargs)
