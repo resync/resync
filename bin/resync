@@ -136,7 +136,7 @@ def main():
     rem.add_option('--audit', '-a', action='store_true',
                    help="audit sync state of destination wrt source")
     rem.add_option('--parse', '-p', action='store_true',
-                   help="just parse the remote sitemap (from mapping or explicit --sitemap)")
+                   help="parse a remote sitemap/sitemapindex (from mapping or explicit --sitemap) and show summary information including document type and number of entries")
     # b. modes based solely on files on local disk
     loc = p.add_option_group('LOCAL MODES',
         'These modes act on files on the local disk')
@@ -278,7 +278,7 @@ def main():
             c.incremental(allow_deletion=args.delete,
                           changelist_uri=args.changelist_uri)
         elif (args.parse):
-            c.parse_sitemap()
+            c.parse_document()
         elif (args.resourcelist):
             c.write_resource_list(outfile=args.outfile,
                                   links=links,

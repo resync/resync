@@ -29,6 +29,7 @@ class ListBase(ResourceContainer):
         #
         self.logger = logging.getLogger('list_base')
         self.bytes_read = 0
+        self.parsed_index = None
 
     def __iter__(self):
         """Default to iterator provided by resources object"""
@@ -41,8 +42,12 @@ class ListBase(ResourceContainer):
     ##### INPUT #####
 
     def read(self,uri=None,**kwargs):
-        s = Sitemap(**kwargs)
-        s.read(uri=uri,resources=self,capability=self.capability_md,sitemapindex=False)
+        """Default case is just to parse document at this URI
+
+        Intention is that the read() method may be overridden to support reading
+        of compound documents in more then one sitemapindex/sitemap.
+        """
+        self.parse(uri=uri,**kwargs)
 
     def parse(self,uri=None,fh=None,**kwargs):
         """Parse a single XML document for this list
@@ -58,7 +63,8 @@ class ListBase(ResourceContainer):
             raise Exception("Nothing to parse")
         s = Sitemap(**kwargs)
         s.parse_xml(fh=fh,resources=self,capability=self.capability_md,sitemapindex=False)
-
+        self.parsed_index = s.parsed_index
+        
     ##### OUTPUT #####
 
     def as_xml(self,**kwargs):

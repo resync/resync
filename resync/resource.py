@@ -182,9 +182,9 @@ class Resource(object):
         s = [ str(self.uri), str(self.lastmod), str(self.length),
               str(self.md5 if self.md5 else self.sha1) ]
         if (self.change is not None):
-            s.add(str(self.change))
+            s.append(str(self.change))
         if (self.path is not None):
-            s.add(str(self.path))
+            s.append(str(self.path))
         return "[ " + " | ".join(s) + " ]"
                                          
     def __repr__(self):

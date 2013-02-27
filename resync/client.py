@@ -42,9 +42,11 @@ class Client(object):
         self.dryrun = dryrun
         self.logger = logging.getLogger('client')
         self.mapper = None
-        self.resource_list_name = 'resource_list.xml'
+        self.resource_list_name = 'resourcelist.xml'
+        self.change_list_name = 'changelist.xml'
         self.dump_format = None
         self.exclude_patterns = []
+        self.sitemap_name = None
         self.allow_multifile = True
         self.noauth = False
         self.max_sitemap_entries = None
@@ -62,8 +64,8 @@ class Client(object):
         """Build and set Mapper object based on input mappings"""
         self.mapper = Mapper(mappings)
 
-    def sitemap_change_list_uri(self,basename):
-        """Get full URI (filepath) for sitemap/change_list based on basename"""
+    def sitemap_uri(self,basename):
+        """Get full URI (filepath) for sitemap based on basename"""
         if (re.match(r"\w+:",basename)):
             # looks like URI
             return(basename)
@@ -77,7 +79,9 @@ class Client(object):
     @property
     def sitemap(self):
         """Return the sitemap URI based on maps or explicit settings"""
-        return(self.sitemap_change_list_uri(self.resource_list_name))
+        if (self.sitemap_name is not None):
+            return(self.sitemap_name)
+        return(self.sitemap_uri(self.resource_list_name))
 
     @property
     def resource_list(self):
@@ -110,11 +114,10 @@ class Client(object):
             raise ClientFatalError("No source to destination mapping specified")
         ### 1. Get inventories from both src and dst 
         # 1.a source resource_list
-        ib = ResourceListBuilder(mapper=self.mapper)
         try:
             self.logger.info("Reading sitemap %s" % (self.sitemap))
-            src_sitemap = Sitemap(allow_multifile=self.allow_multifile, mapper=self.mapper)
-            src_resource_list = src_sitemap.read(uri=self.sitemap)
+            src_resource_list = ResourceList(allow_multifile=self.allow_multifile, mapper=self.mapper)
+            src_resource_list.read(uri=self.sitemap)
             self.logger.debug("Finished reading sitemap")
         except Exception as e:
             raise ClientFatalError("Can't read source resource_list from %s (%s)" % (self.sitemap,str(e)))
@@ -125,8 +128,9 @@ class Client(object):
             self.checksum=False
             self.logger.info("Not calculating checksums on destination as not present in source resource_list")
         # 1.b destination resource_list mapped back to source URIs
-        ib.do_md5=self.checksum
-        dst_resource_list = ib.from_disk()
+        rlb = ResourceListBuilder(mapper=self.mapper)
+        rlb.do_md5=self.checksum
+        dst_resource_list = rlb.from_disk()
         ### 2. Compare these resource_lists respecting any comparison options
         (same,updated,deleted,created)=dst_resource_list.compare(src_resource_list)   
         ### 3. Report status and planned actions
@@ -187,13 +191,13 @@ class Client(object):
             self.logger.info("ChangeList location from last incremental run %s" % (change_list))
         elif (change_list_uri):
             # Translate as necessary using maps
-            change_list = self.sitemap_change_list_uri(change_list_uri)
+            change_list = self.sitemap_uri(change_list_uri)
         else:
             # Get sitemap
             try:
                 self.logger.info("Reading sitemap %s" % (self.sitemap))
-                src_sitemap = Sitemap(allow_multifile=self.allow_multifile, mapper=self.mapper)
-                src_resource_list = src_sitemap.read(uri=self.sitemap, index_only=True)
+                src_resource_list = ResourceList(allow_multifile=self.allow_multifile, mapper=self.mapper)
+                src_resource_list.read(uri=self.sitemap, index_only=True)
                 self.logger.debug("Finished reading sitemap/sitemapindex")
             except Exception as e:
                 raise ClientFatalError("Can't read source sitemap from %s (%s)" % (self.sitemap,str(e)))
@@ -204,11 +208,10 @@ class Client(object):
             #    raise ClientFatalError("Failed to extract change_list location from sitemap %s" % (self.sitemap))
             #change_list = links['current']
         ### 2. Read change_list from source
-        ib = ResourceListBuilder(mapper=self.mapper)
         try:
             self.logger.info("Reading change_list %s" % (change_list))
-            src_sitemap = Sitemap(allow_multifile=self.allow_multifile, mapper=self.mapper)
-            src_change_list = src_sitemap.read(uri=change_list, change_list=True)
+            src_change_list = ChangeList()
+            src_change_list.read(uri=change_list)
             self.logger.debug("Finished reading change_list")
         except Exception as e:
             raise ClientFatalError("Can't read source change_list from %s (%s)" % (change_list,str(e)))
@@ -326,12 +329,23 @@ class Client(object):
         else:
             self.logger.info("nodelete: would delete %s (--delete to enable)" % uri)
 
-    def parse_sitemap(self):
-        s=Sitemap(allow_multifile=self.allow_multifile)
+    def parse_document(self):
+        """Parse any ResourceSync document and show information
+        
+        Will use sitemap URI taken either from explicit self.sitemap_name
+        or derived from the mappings supplied.
+        """
+        s=Sitemap()
         self.logger.info("Reading sitemap(s) from %s ..." % (self.sitemap))
-        i = s.read(self.sitemap)
-        num_entries = len(i.resources)
-        self.logger.warning("Read sitemap with %d entries in %d sitemaps" % (num_entries,s.sitemaps_created))
+        try:
+            list = s.parse_xml(urllib.urlopen(self.sitemap))
+        except IOError as e:
+            raise ClientFatalError("Cannot read document (%s)" % str(e))
+        num_entries = len(list.resources)
+        capability = '(unknown capability)'
+        if ('capability' in list.md):
+            capability = list.md['capability']
+        print "Parsed %s document with %d entries" % (capability,num_entries)
         if (self.verbose):
             to_show = 100
             override_str = ' (override with --max-sitemap-entries)'
@@ -341,8 +355,8 @@ class Client(object):
             if (num_entries>to_show):
                 print "Showing first %d entries sorted by URI%s..." % (to_show,override_str)
             n=0
-            for r in i:
-                print r
+            for resource in list:
+                print '[%d] %s' % (n,str(resource))
                 n+=1
                 if ( n >= to_show ):
                     break
@@ -428,6 +442,7 @@ class Client(object):
         d = Dump(format=self.dump_format)
         d.write(resource_list=resource_list,dumpfile=dump)
 
+
     def read_reference_resource_list(self,ref_sitemap,name='reference'):
         """Read reference resource list and return the ResourceList object
 
@@ -438,7 +453,7 @@ class Client(object):
         self.logger.info("Reading %s sitemap(s) from %s ..." % (name,ref_sitemap))
         rl.read(uri=ref_sitemap,allow_multifile=self.allow_multifile, mapper=self.mapper)
         num_entries = len(rl.resources)
-        self.logger.warning("Read %s resource list with %d entries in %d sitemaps" % (name,num_entries,rl.num_files))
+        self.logger.info("Read %s resource list with %d entries in %d sitemaps" % (name,num_entries,rl.num_files))
         if (self.verbose):
             to_show = 100
             override_str = ' (override with --max-sitemap-entries)'
