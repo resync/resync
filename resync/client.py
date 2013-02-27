@@ -298,9 +298,9 @@ class Client(object):
                 else:
                     raise ClientFatalError(msg)
             # sanity check
-            size = os.stat(file).st_size
-            if (resource.size != size):
-                self.logger.info("Downloaded size for %s of %d bytes does not match expected %d bytes" % (resource.uri,size,resource.size))
+            length = os.stat(file).st_size
+            if (resource.length != length):
+                self.logger.info("Downloaded size for %s of %d bytes does not match expected %d bytes" % (resource.uri,length,resource.length))
             # set timestamp if we have one
             if (resource.timestamp is not None):
                 unixtime = int(resource.timestamp) #no fractional
