@@ -3,6 +3,7 @@ import StringIO
 import re
 from resync.resource import Resource
 from resync.resource_list import ResourceList, ResourceListDupeError
+from resync.sitemap import SitemapParseError
 
 class TestResourceList(unittest.TestCase):
 
@@ -167,7 +168,7 @@ class TestResourceList(unittest.TestCase):
 <url><loc>http://example.com/bad_res_1</loc><lastmod>2012-03-14T18:37:36Z</lastmod></url>\
 </urlset>'
         rl=ResourceList()
-        self.assertRaises( ValueError, rl.parse, fh=StringIO.StringIO(xml) )
+        self.assertRaises( SitemapParseError, rl.parse, fh=StringIO.StringIO(xml) )
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestResourceList)

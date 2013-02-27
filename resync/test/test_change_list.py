@@ -4,6 +4,7 @@ import re
 from resync.resource import Resource
 from resync.change_list import ChangeList
 from resync.resource_list import ResourceList
+from resync.sitemap import SitemapParseError
 
 class TestChangeList(unittest.TestCase):
 
@@ -114,7 +115,7 @@ class TestChangeList(unittest.TestCase):
 <url><loc>http://example.com/res1</loc><lastmod>2012-03-14T18:37:36Z</lastmod></url>\
 </urlset>'
         cl=ChangeList()
-        self.assertRaises( ValueError, cl.parse, fh=StringIO.StringIO(xml) )
+        self.assertRaises( SitemapParseError, cl.parse, fh=StringIO.StringIO(xml) )
 
     def test32_parse_bad_capability(self):
         # the <rs:md capability="bad_capability".. should give error
@@ -124,7 +125,7 @@ class TestChangeList(unittest.TestCase):
 <url><loc>http://example.com/bad_res_1</loc><lastmod>2012-03-14T18:37:36Z</lastmod></url>\
 </urlset>'
         cl=ChangeList()
-        self.assertRaises( ValueError, cl.parse, fh=StringIO.StringIO(xml) )
+        self.assertRaises( SitemapParseError, cl.parse, fh=StringIO.StringIO(xml) )
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestChangeList)

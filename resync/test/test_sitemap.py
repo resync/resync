@@ -3,7 +3,7 @@ import unittest
 import StringIO
 from resync.resource import Resource
 from resync.resource_list import ResourceList
-from resync.sitemap import Sitemap, SitemapIndexError
+from resync.sitemap import Sitemap, SitemapIndexError, SitemapParseError
 
 # etree gives ParseError in 2.7, ExpatError in 2.6
 etree_error_class = None
@@ -34,6 +34,18 @@ class TestSitemap(unittest.TestCase):
         self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>03hashes</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:aaa sha1:bbb sha256:ccc\" /></url>" )
         r1.sha1 = None
         self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>03hashes</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:aaa sha256:ccc\" /></url>" )
+
+    def test_04_resource_str(self):
+        r1 = Resource(uri='4a',lastmod="2013-01-02",length=9999,md5='ab54de')
+        r1.ln = [{ 'rel':'duplicate',
+                   'pri':'1',
+                   'href':'http://mirror1.example.com/res1',
+                   'modified':'2013-01-02T18:00:00Z' }]
+        self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>4a</loc><lastmod>2013-01-02T00:00:00Z</lastmod><rs:md hash=\"md5:ab54de\" length=\"9999\" /><rs:ln href=\"http://mirror1.example.com/res1\" modified=\"2013-01-02T18:00:00Z\" pri=\"1\" rel=\"duplicate\" /></url>" )
+        # add another two rs:ln's
+        r1.ln.append( { 'rel':'num2' } )
+        r1.ln.append( { 'rel':'num3' } )
+        self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>4a</loc><lastmod>2013-01-02T00:00:00Z</lastmod><rs:md hash=\"md5:ab54de\" length=\"9999\" /><rs:ln href=\"http://mirror1.example.com/res1\" modified=\"2013-01-02T18:00:00Z\" pri=\"1\" rel=\"duplicate\" /><rs:ln rel=\"num2\" /><rs:ln rel=\"num3\" /></url>" )
 
     def test_08_print(self):
         r1 = Resource(uri='a',lastmod='2001-01-01',length=1234)
@@ -106,12 +118,71 @@ class TestSitemap(unittest.TestCase):
 
     def test_13_parse_valid_xml_but_other(self):
         s=Sitemap()
-        self.assertRaises( ValueError, s.parse_xml, StringIO.StringIO('<urlset xmlns="http://example.org/other_namespace"> </urlset>') )
-        self.assertRaises( ValueError, s.parse_xml, StringIO.StringIO('<other xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> </other>') )
+        self.assertRaises( SitemapParseError, s.parse_xml, StringIO.StringIO('<urlset xmlns="http://example.org/other_namespace"> </urlset>') )
+        self.assertRaises( SitemapParseError, s.parse_xml, StringIO.StringIO('<other xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> </other>') )
 
     def test_14_parse_sitemapindex_as_sitemap(self):
         s=Sitemap()
         self.assertRaises( SitemapIndexError, s.parse_xml, StringIO.StringIO('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> </sitemapindex>'), sitemapindex=False )
+
+    def test_15_parse_with_rs_ln_on_resource(self):
+        xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<rs:md capability=\"resourcelist\"/>\
+<url>\
+  <loc>http://example.com/file_a</loc><lastmod>2012-03-14T18:37:36Z</lastmod>\
+  <rs:md hash=\"md5:r2d2\" length=\"12345\" />\
+  <rs:ln rel=\"duplicate\" href=\"http://mirror1.example.com/res1\" modified=\"2013-01-02\" pri=\"1\" />\
+  <rs:ln rel=\"num2\" href=\"http://m2.example.com/res1\"/>\
+  <rs:ln rel=\"num3\" href=\"http://m3.example.com/res1\"/>\
+</url>\
+<url>\
+  <loc>http://example.com/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod>\
+  <rs:md length=\"32\" />\
+</url>\
+</urlset>'
+        s=Sitemap()
+        rc=s.parse_xml(fh=StringIO.StringIO(xml))
+        self.assertFalse( s.parsed_index, 'was a sitemap')
+        self.assertEqual( s.resources_created, 2, 'got 2 resources')
+        i = iter(rc)
+        r1 = i.next()
+        r2 = i.next()
+        self.assertEqual( r1.uri, 'http://example.com/file_a' )
+        self.assertEqual( r1.ln[0]['rel'], 'duplicate' )
+        self.assertEqual( r1.ln[0]['href'], 'http://mirror1.example.com/res1' )
+        self.assertEqual( r1.ln[0]['modified'], '2013-01-02' )
+        self.assertEqual( r1.ln[0]['pri'], 1 )
+        self.assertEqual( r2.uri, 'http://example.com/file_b' )
+
+    def test_16_parse_with_bad_rs_ln(self):
+        xmlstart='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<rs:md capability="resourcelist"/>\
+<url><loc>http://example.com/file_a</loc>'
+        xmlend='</url></urlset>'
+        s=Sitemap()
+        #
+        # missing href
+        xml=xmlstart+'<rs:ln rel="duplicate"/>'+xmlend
+        self.assertRaises( SitemapParseError, s.parse_xml, fh=StringIO.StringIO(xml))
+        # missing rel
+        xml=xmlstart+'<rs:ln href="http://example.com/"/>'+xmlend
+        self.assertRaises( SitemapParseError, s.parse_xml, fh=StringIO.StringIO(xml))
+        # bad length
+        xml=xmlstart+'<rs:ln rel="duplicate" href="http://example.com/" length="a"/>'+xmlend
+        self.assertRaises( SitemapParseError, s.parse_xml, fh=StringIO.StringIO(xml))
+        # bad pri
+        xml=xmlstart+'<rs:ln rel="duplicate" href="http://example.com/" pri="fff"/>'+xmlend
+        self.assertRaises( SitemapParseError, s.parse_xml, fh=StringIO.StringIO(xml))
+        xml=xmlstart+'<rs:ln rel="duplicate" href="http://example.com/" pri="0"/>'+xmlend
+        self.assertRaises( SitemapParseError, s.parse_xml, fh=StringIO.StringIO(xml))
+        xml=xmlstart+'<rs:ln rel="duplicate" href="http://example.com/" pri="1000000"/>'+xmlend
+        self.assertRaises( SitemapParseError, s.parse_xml, fh=StringIO.StringIO(xml))
+        # and finally OK with errors fixes
+        xml=xmlstart+'<rs:ln rel="duplicate" href="http://example.com/" length="12345" pri="1" other="whatever"/>'+xmlend
+        rc = s.parse_xml(fh=StringIO.StringIO(xml))
+        self.assertEqual( len(rc.resources), 1, 'good at last, extra attribute ignored' )
 
     def test_20_parse_sitemapindex_empty(self):
         s=Sitemap()

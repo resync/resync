@@ -29,7 +29,7 @@ class SitemapIndexError(Exception):
     def __repr__(self):
         return(self.message)
 
-class SitemapError(Exception):
+class SitemapParseError(Exception):
     pass
 
 class SitemapDupeError(Exception):
@@ -154,7 +154,7 @@ class Sitemap(object):
                 raise SitemapIndexError("Got sitemapindex when expecting sitemap",etree)
             resource_tag = '{'+SITEMAP_NS+"}sitemap"
         else:
-            raise ValueError("XML is not sitemap or sitemapindex")
+            raise SitemapParseError("XML is not sitemap or sitemapindex")
         
         # have what we expect, read it
         in_preamble = True
@@ -172,14 +172,14 @@ class Sitemap(object):
                 self.resources_created+=1
             elif (e.tag == "{"+RS_NS+"}md"):
                 if (in_preamble):
-                    resources.md = self.md_from_etree(e)
+                    resources.md = self.md_from_etree(e,'preamble')
                 else:
-                    raise Exception("Found <rs:md> after first <url> in sitemap")
+                    raise SitemapParseError("Found <rs:md> after first <url> in sitemap")
             elif (e.tag == "{"+RS_NS+"}ln"):
                 if (in_preamble):
-                    resources.ln.append(self.ln_from_etree(e))
+                    resources.ln.append(self.ln_from_etree(e,'preamble'))
                 else:
-                    raise Exception("Found <rs:md> after first <url> in sitemap")
+                    raise SitemapParseError("Found <rs:md> after first <url> in sitemap")
             else:
                 # element we don't recognize, ignore
                 # FIXME - might add check for debug?
@@ -191,10 +191,10 @@ class Sitemap(object):
                     self.logger.warning('No capability specified in sitemap, assuming resourcelist')
                     resources.md['capability'] = 'resourcelist'
                 else:
-                    raise ValueError("Expected to read a %s document, but not capability specified" %
+                    raise SitemapParseError("Expected to read a %s document, but not capability specified" %
                                  (capability))
             if (resources.md['capability'] != capability):
-                raise ValueError("Expected to read a %s document, got %s" %
+                raise SitemapParseError("Expected to read a %s document, got %s" %
                                  (capability,resources.md['capability']))
         # return the resource container object
         return(resources)
@@ -230,6 +230,11 @@ class Sitemap(object):
         if (len(md_atts)>0):
             md = Element('rs:md',md_atts)
             e.append(md)
+        # add any <rs:ln>
+        if (hasattr(resource,'ln') and
+            resource.ln is not None):
+            for ln in resource.ln:
+                self.add_ln_to_etree(e,ln)
         if (self.pretty_xml):
             e.tail="\n"
         return(e)
@@ -259,7 +264,7 @@ class Sitemap(object):
         """
         loc = etree.findtext('{'+SITEMAP_NS+"}loc")
         if (loc is None):
-            raise SitemapError("Missing <loc> element while parsing <url> in sitemap")
+            raise SitemapParseError("Missing <loc> element while parsing <url> in sitemap")
         ###FIXME - test for mutliple <loc> -> error
         # must at least have a URI, make this object
         resource=resource_class(uri=loc)
@@ -271,7 +276,7 @@ class Sitemap(object):
         # then proceed to look for other resource attributes in an rs:md element
         md_elements = etree.findall('{'+RS_NS+"}md")
         if (len(md_elements)>1):
-            raise SitemapError("Found multiple (%d) <rs:md> elements for %s", (len(md_elements),loc))
+            raise SitemapParseError("Found multiple (%d) <rs:md> elements for %s", (len(md_elements),loc))
         elif (len(md_elements)==1):
             # have on element, look at attributes
             md = self.md_from_etree(md_elements[0],context=loc)
@@ -288,13 +293,15 @@ class Sitemap(object):
                 except ValueError as e:
                     self.logger.warning("%s in <rs:md> for %s" % (str(e),loc))
         # look for rs:ln elements (optional)
-        ln_elements = etree.findall('{'+SITEMAP_NS+"}ln")
+        ln_elements = etree.findall('{'+RS_NS+"}ln")
         if (len(ln_elements)>0):
-            self.logger.warning("Ignored <rs:ln> element(s) for %s, FIXME" % (loc))
+            resource.ln = []
+            for ln_element in ln_elements:
+                resource.ln.append(self.ln_from_etree(ln_element,loc))
         return(resource)
 
     def md_from_etree(self, md_element, context=''):
-        """Parse rs:md attributesConstruct a Resource from an etree
+        """Parse rs:md attributes returning a dict of the data
 
         Parameters:
          md_element     - etree element <rs:md>
@@ -307,7 +314,7 @@ class Sitemap(object):
             if (re.match(r"^[\w\-]+$", capability) is not None):
                 md['capability'] = capability
             else:
-                raise ValueError("Bad capability name '%s' in %s" % (capability,context))
+                raise SitemapParseError("Bad capability name '%s' in %s" % (capability,context))
         # modified
         modified = md_element.attrib.get("modified",None)
         if (modified is not None):
@@ -328,44 +335,65 @@ class Sitemap(object):
             try:
                 md['length']=int(length)
             except ValueError as e:
-                raise Exception("Invalid length element in <rs:md> for %s" % (context))
+                raise SitemapParseError("Invalid length element in <rs:md> for %s" % (context))
         # don't attempt to parse hash values here
         hash = md_element.attrib.get("hash",None)
         if (hash is not None):
             md['hash'] = hash
         return(md)
 
-    def ln_from_etree(self,ln_element):
+
+    def ln_from_etree(self,ln_element,context=''):
+        """Parse rs:ln element from an etree, returning a dict of the data
+
+        Parameters:
+         md_element     - etree element <rs:md>
+        """
         ln = {}
         # href (MANDATORY)
         href = ln_element.attrib.get("href",None)
         if (href is not None):
             ln['href'] = href
         else:
-            raise ValueError("Missing href in <rs:ln> in %s" % (context))
+            raise SitemapParseError("Missing href in <rs:ln> in %s" % (context))
         # rel (MANDATORY)
         rel = ln_element.attrib.get("rel",None)
         if (rel is not None):
             ln['rel'] = rel
         else:
-            raise ValueError("Missing rel in <rs:ln> in %s" % (context))
-        # don't attempt to parse hash values here
+            raise SitemapParseError("Missing rel in <rs:ln> in %s" % (context))
+        # hash - don't attempt to parse hash values here
         hash = ln_element.attrib.get("hash",None)
         if (hash is not None):
             ln['hash'] = hash
-        # modified
-        modified = ln_element.attrib.get("modified",None)
-        if (modified is not None):
-            ln['modified'] = modified
-        # content type
-        type = ln_element.attrib.get("type",None)
         # length in bytes
         length = ln_element.attrib.get("length",None)
         if (length is not None):
             try:
                 ln['length']=int(length)
             except ValueError as e:
-                raise Exception("Invalid length element in <rs:ln> for %s" % (context))
+                raise SitemapParseError("Invalid length attribute value in <rs:ln> for %s" % (context))
+        # modified
+        modified = ln_element.attrib.get("modified",None)
+        if (modified is not None):
+            ln['modified'] = modified
+        # path
+        path = ln_element.attrib.get("path",None)
+        if (path is not None):
+            ln['path'] = modified
+        # type - content type
+        type = ln_element.attrib.get("type",None)
+        if (type is not None):
+            ln['type'] = modified
+        # pri - priority, must be a number between 1 and 999999
+        pri = ln_element.attrib.get("pri",None)
+        if (pri is not None):
+            try:
+                ln['pri']=int(pri)
+            except ValueError as e:
+                raise SitemapParseError("Invalid pri attribute in <rs:ln> for %s" % (context))
+            if (ln['pri']<1 or ln['pri']>999999):
+                raise SitemapParseError("Bad pri attribute value in <rs:ln> for %s" % (context))
         return(ln)
 
 
