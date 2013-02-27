@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<!-- requires the map: http://localhost/=resync/test/testdata/sitemapindex2/ -->
+<sitemap><loc>http://localhost/sitemap00000.xml</loc><lastmod>2012-06-13T18:09:13Z</lastmod></sitemap>
+<sitemap><loc>http://localhost/sitemap00001.xml</loc><lastmod>2012-06-13T18:09:13Z</lastmod></sitemap>
+<sitemap><loc>http://localhost/sitemap00002.xml</loc><lastmod>2012-06-13T18:09:13Z</lastmod></sitemap>
+</sitemapindex>

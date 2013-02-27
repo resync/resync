@@ -11,6 +11,7 @@ from datetime import datetime
 import re
 import sys
 import StringIO
+import logging
 from urllib import URLopener
 
 from resource_container import ResourceContainer
@@ -24,7 +25,10 @@ class ListBase(ResourceContainer):
         super(ListBase, self).__init__(resources=resources, md=md, ln=ln)
         self.capability_name = 'unknown'
         self.capability_md = 'unknown'
-        self.sitemapindex=False
+        self.sitemapindex = False
+        #
+        self.logger = logging.getLogger('list_base')
+        self.bytes_read = 0
 
     def __iter__(self):
         """Default to iterator provided by resources object"""
@@ -38,8 +42,7 @@ class ListBase(ResourceContainer):
 
     def read(self,uri=None,**kwargs):
         s = Sitemap(**kwargs)
-        s.read(uri=uri,resources=self,capability=self.capability_md)
-        self.num_files = s.sitemaps_created
+        s.read(uri=uri,resources=self,capability=self.capability_md,sitemapindex=False)
 
     def parse(self,uri=None,fh=None,**kwargs):
         """Parse a single XML document for this list
@@ -54,8 +57,7 @@ class ListBase(ResourceContainer):
         if (fh is None):
             raise Exception("Nothing to parse")
         s = Sitemap(**kwargs)
-        s.sitemap_parse_xml(fh=fh,resources=self,capability=self.capability_md)
-        self.num_files = s.sitemaps_created
+        s.parse_xml(fh=fh,resources=self,capability=self.capability_md,sitemapindex=False)
 
     ##### OUTPUT #####
 

@@ -4,21 +4,23 @@ import re
 import os
 import sys
 import logging
-from urllib import URLopener
 from xml.etree.ElementTree import ElementTree, Element, parse, tostring
-from datetime import datetime
 import StringIO
 
 from resource import Resource
 from resource_container import ResourceContainer
 from mapper import Mapper, MapperError
-from url_authority import UrlAuthority
 
 SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9'
 RS_NS = 'http://www.openarchives.org/rs/terms/'
 
 class SitemapIndexError(Exception):
-    """Exception on attempt to read a sitemapindex instead of sitemap"""
+    """Exception on attempt to read a sitemapindex instead of sitemap 
+    or vice-versa
+
+    Provides both a message and a place to store the etree so that
+    the parse tree may be reused as a sitemapingex.
+    """
 
     def __init__(self, message=None, etree=None):
         self.message = message
@@ -26,10 +28,6 @@ class SitemapIndexError(Exception):
 
     def __repr__(self):
         return(self.message)
-
-class SitemapIndex(ResourceContainer):
-    """Reuse a ResourceContainer to hold the set of sitemaps"""
-    pass
 
 class SitemapError(Exception):
     pass
@@ -43,6 +41,11 @@ class Sitemap(object):
     Implemented as a separate class that uses ResourceContainer 
     (ResourceList or ChangeList) and Resource classes as data objects. 
     Reads and write sitemaps, including multiple file sitemaps.
+
+    This class does not automatically handle the reading or writing
+    of a sitemapindex and multiple sitemap documents. Instead it will
+    take a default and throw and exception if the other case is found
+    so that the calling code can handle it.
     """
 
     def __init__(self, pretty_xml=False, allow_multifile=True, mapper=None):
@@ -51,16 +54,11 @@ class Sitemap(object):
         self.allow_multifile=allow_multifile
         self.mapper=mapper
         self.max_sitemap_entries=50000
-        self.check_url_authority=False
         # Classes used when parsing
         self.resource_class=Resource
         # Information recorded for logging
-        self.resources_created=None # Set during parsing sitemap
-        self.sitemaps_created=None  # Set during parsing sitemapindex
-        self.content_length=None    # Size of last sitemap read
-        self.bytes_read=0           # Aggregate of content_length values
-        self.change_list_read=None  # Set true if change_list read
-        self.read_type=None         # Either sitemap/sitemapindex/change_list/change_listindex
+        self.resources_created=0    # Set during parsing sitemap
+        self.parsed_index=None      # Set True for sitemapindex, False for sitemap
 
     ##### General sitemap methods that also handle sitemapindexes #####
 
@@ -79,7 +77,7 @@ class Sitemap(object):
         self.allow_multifile is set true then a set of sitemap files, 
         with an sitemapindex, will be written.
         """
-        # Access resources trough iterator only
+        # Access resources through iterator only
         resources_iter = iter(resources)
         ( chunk, next ) = self.get_resources_chunk(resources_iter)
         if (next is not None):
@@ -140,101 +138,6 @@ class Sitemap(object):
         if (len(chunk)>self.max_sitemap_entries):
             next = chunk.pop()
         return(chunk,next)
-
-    def read(self, uri=None, resources=None, capability=None, index_only=False):
-        """Read sitemap from a URI including handling sitemapindexes
-
-        Returns the resource_list or change_list. 
-
-        If index_only is True then individual sitemaps references in a sitemapindex
-        will not be read. This will result in no resources being returned and is
-        useful only to read the metadata and links listed in the sitemapindex.
-
-        Will set self.read_type to a string value sitemap/sitemapindex/change_list/change_listindex
-        depleding on the type of the file expected/read.
-
-        Includes the subtlety that if the input URI is a local file and is a 
-        sitemapindex which contains URIs for the individual sitemaps, then these
-        are mapped to the filesystem also.
-        """
-        try:
-            fh = URLopener().open(uri)
-        except IOError as e:
-            raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,str(e)))
-        # Get the Content-Length if we can (works fine for local files)
-        try:
-            self.content_length = int(fh.info()['Content-Length'])
-            self.bytes_read += self.content_length
-            self.logger.debug( "Read %d bytes from %s" % (self.content_length,uri) )
-        except KeyError:
-            # If we don't get a length then c'est la vie
-            self.logger.debug( "Read ????? bytes from %s" % (uri) )
-            pass
-        self.logger.info( "Read sitemap/sitemapindex from %s" % (uri) )
-        etree = parse(fh)
-        # check root element: urlset (for sitemap), sitemapindex or bad
-        self.sitemaps_created=0
-        root = etree.getroot()
-        # assume resource_list but look to see whether this is a change_list 
-        # as indicated with rs:type="change_list" on the root
-        self.change_list_read = False
-        self.read_type = 'sitemap'
-        root_type = root.attrib.get('{'+RS_NS+'}type',None)
-        if (root_type is not None):
-            if (root_type == 'change_list'):
-                self.change_list_read = True
-            else:
-                self.logger.info("Bad value of rs:type on root element (%s), ignoring" % (root_type))
-        if (self.change_list_read):
-            self.read_type = 'change_list'
-        # now have make sure we have a place to put the data we read
-        if (resources is None):
-            resources=ResourceContainer()
-        # sitemap or sitemapindex?
-        if (root.tag == '{'+SITEMAP_NS+"}urlset"):
-            self.logger.info( "Parsing as sitemap" )
-            self.sitemap_parse_xml(etree=etree, resources=resources)
-            self.sitemaps_created+=1
-        elif (root.tag == '{'+SITEMAP_NS+"}sitemapindex"):
-            self.read_type += 'index'
-            if (not self.allow_multifile):
-                raise Exception("Got sitemapindex from %s but support for sitemapindex disabled" % (uri))
-            self.logger.info( "Parsing as sitemapindex" )
-            sitemaps=self.sitemapindex_parse_xml(etree=etree)
-            sitemapindex_is_file = self.is_file_uri(uri)
-            if (index_only):
-                return(resources)
-            # now loop over all entries to read each sitemap and add to resources
-            self.logger.info( "Now reading %d sitemaps" % len(sitemaps.uris()) )
-            for sitemap_uri in sorted(sitemaps.uris()):
-                if (sitemapindex_is_file):
-                    if (not self.is_file_uri(sitemap_uri)):
-                        # Attempt to map URI to local file
-                        remote_uri = sitemap_uri
-                        sitemap_uri = self.mapper.src_to_dst(remote_uri)
-                else:
-                    # The individual sitemaps should be at a URL (scheme/server/path)
-                    # that the sitemapindex URL can speak authoritatively about
-                    if (self.check_url_authority and
-                        not UrlAuthority(uri).has_authority_over(sitemap_uri)):
-                        raise Exception("The sitemapindex (%s) refers to sitemap at a location it does not have authority over (%s)" % (uri,sitemap_uri))
-                try:
-                    fh = URLopener().open(sitemap_uri)
-                except IOError as e:
-                    raise Exception("Failed to load sitemap from %s listed in sitemap index %s (%s)" % (sitemap_uri,uri,str(e)))
-                # Get the Content-Length if we can (works fine for local files)
-                try:
-                    self.content_length = int(fh.info()['Content-Length'])
-                    self.bytes_read += self.content_length
-                except KeyError:
-                    # If we don't get a length then c'est la vie
-                    pass
-                self.logger.info( "Read sitemap from %s (%d)" % (sitemap_uri,self.content_length) )
-                self.sitemap_parse_xml( fh=fh, resources=resources )
-                self.sitemaps_created+=1
-        else:
-            raise ValueError("XML read from %s is not a sitemap or sitemapindex" % (uri))
-        return(resources)
 
     ##### Resource methods #####
 
@@ -446,7 +349,7 @@ class Sitemap(object):
             tree.write(xml_buf,encoding='UTF-8',xml_declaration=True,method='xml')
         return(xml_buf.getvalue())
 
-    def sitemap_parse_xml(self, fh=None, etree=None, resources=None, capability=None):
+    def parse_xml(self, fh=None, etree=None, resources=None, capability=None, sitemapindex=None):
         """Parse XML Sitemap from fh or etree and add resources to a
         resorces object (which must support the add method). Returns 
         the resources object.
@@ -456,9 +359,16 @@ class Sitemap(object):
         aware but we search just for the elements wanted and leave everything 
         else alone.
 
-        The one exception is detection of Sitemap indexes. If the root element
-        indicates a sitemapindex then an SitemapIndexError() is thrown 
-        and the etree passed along with it.
+        This method will read either sitemap or sitemapindex documents. Behavior
+        depends on the sitemapindex parameter:
+        - None - will read either
+        - False - SitemapIndexError exception if sitemapindex detected
+        - True - SitemapIndexError exception if sitemap detected
+
+        Will set self.parsed_index based on whether a sitemap or sitemapindex 
+        document was read:
+        - False - sitemap
+        - True - sitemapindex
         """
         if (resources is None):
             resources=ResourceContainer()
@@ -467,17 +377,29 @@ class Sitemap(object):
         elif (etree is None):
             raise ValueError("Neither fh or etree set")
         # check root element: urlset (for sitemap), sitemapindex or bad
-        if (etree.getroot().tag == '{'+SITEMAP_NS+"}sitemapindex"):
-            raise SitemapIndexError("Got sitemapindex when expecting sitemap",etree)
-        elif (etree.getroot().tag != '{'+SITEMAP_NS+"}urlset"):
+        root_tag = etree.getroot().tag
+        resource_tag = None # will be <url> or <sitemap> depending on type
+        self.parsed_index = None
+        if (root_tag == '{'+SITEMAP_NS+"}urlset"):
+            self.parsed_index = False
+            if (sitemapindex is not None and sitemapindex):
+                raise SitemapIndexError("Got sitemap when expecting sitemapindex",etree)
+            resource_tag = '{'+SITEMAP_NS+"}url"
+        elif (root_tag == '{'+SITEMAP_NS+"}sitemapindex"):
+            self.parsed_index = True
+            if (sitemapindex is not None and not sitemapindex):
+                raise SitemapIndexError("Got sitemapindex when expecting sitemap",etree)
+            resource_tag = '{'+SITEMAP_NS+"}sitemap"
+        else:
             raise ValueError("XML is not sitemap or sitemapindex")
+        
         # have what we expect, read it
         in_preamble = True
         self.resources_created=0
         for e in etree.getroot().getchildren():
             # look for <rs:md> and <rs:ln>, first <url> ends
             # then look for resources in <url> blocks
-            if (e.tag == "{"+SITEMAP_NS+"}url"):
+            if (e.tag == resource_tag):
                 in_preamble = False #any later rs:md or rs:ln is error
                 r = self.resource_from_etree(e, self.resource_class)
                 try:
@@ -512,7 +434,7 @@ class Sitemap(object):
 
     ##### Sitemap Index #####
 
-    def sitemapindex_as_xml(self, file=None, sitemaps={}, resource_list=None):
+    def sitemapindex_as_xml(self, file=None, sitemaps={}):
         """Return a sitemapindex as an XML string
 
         Format:
@@ -524,10 +446,7 @@ class Sitemap(object):
           ...more...
         </sitemapeindex>
         """
-        namespaces = { 'xmlns': SITEMAP_NS }
-        root = Element('sitemapindex', namespaces)
-        if (self.pretty_xml):
-            root.text="\n"
+        resources = ResourceContainer()
         for file in sitemaps.keys():
             try:
                 uri = self.mapper.dst_to_src(file)
@@ -535,49 +454,8 @@ class Sitemap(object):
                 uri = 'file://'+file
                 self.logger.error("sitemapindex: can't map %s into URI space, writing %s" % (file,uri))
             # Make a Resource for the Sitemap and serialize
-            smr = Resource( uri=uri, timestamp=sitemaps[file] )
-            root.append( self.resource_etree_element(smr, element_name='sitemap') )
-        tree = ElementTree(root);
-        xml_buf=StringIO.StringIO()
-        if (sys.version_info < (2,7)):
-            tree.write(xml_buf,encoding='UTF-8')
-        else:
-            tree.write(xml_buf,encoding='UTF-8',xml_declaration=True,method='xml')
-        return(xml_buf.getvalue())
-
-    def sitemapindex_parse_xml(self, fh=None, etree=None, sitemapindex=None):
-        """Parse XML SitemapIndex from fh and return sitemap info
-
-        Returns the SitemapIndex object.
-
-        Also sets self.sitemaps_created to be the number of resources created. 
-        We adopt a very lax approach here. The parsing is properly namespace 
-        aware but we search just for the elements wanted and leave everything 
-        else alone.
-
-        The one exception is detection of a Sitemap when an index is expected. 
-        If the root element indicates a sitemap then a SitemapIndexError() is 
-        thrown and the etree passed along with it.
-        """
-        if (sitemapindex is None):
-            sitemapindex=SitemapIndex()
-        if (fh is not None):
-            etree=parse(fh)
-        elif (etree is None):
-            raise ValueError("Neither fh or etree set")
-        # check root element: urlset (for sitemap), sitemapindex or bad
-        if (etree.getroot().tag == '{'+SITEMAP_NS+"}sitemapindex"):
-            self.sitemaps_created=0
-            for sitemap_element in etree.findall('{'+SITEMAP_NS+"}sitemap"):
-                # We can parse the inside just like a <url> element indicating a resource
-                sitemapindex.add( self.resource_from_etree(sitemap_element,self.resource_class) )
-                self.sitemaps_created+=1
-            return(sitemapindex)
-        elif (etree.getroot().tag == '{'+SITEMAP_NS+"}urlset"):
-            raise SitemapIndexError("Got sitemap when expecting sitemapindex",etree)
-        else:
-            raise ValueError("XML is not sitemap or sitemapindex")
-
+            resources.add( Resource( uri=uri, timestamp=sitemaps[file] ) )
+        return( self.resources_as_xml(resources, sitemapindex=True))
 
     ##### Metadata and links #####
 
@@ -623,10 +501,3 @@ class Sitemap(object):
             if (self.pretty_xml):
                 e.tail="\n"
             etree.append(e)
-
-
-    ##### Utility #####
-
-    def is_file_uri(self, uri):
-        """Return true is uri looks like a local file URI, false otherwise"""
-        return(re.match('file:',uri) or re.match('/',uri))

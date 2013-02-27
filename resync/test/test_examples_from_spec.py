@@ -22,8 +22,8 @@ class TestSitemap(unittest.TestCase):
                    "ex_9_1.xml","ex_9_2.xml","ex_9_3.xml",
                    "ex_10_1.xml","ex_10_2.xml"):
             s=Sitemap()
-            uri = 'resync/test/testdata/examples_from_spec/%s' % (ex)
-            si = s.read( uri=uri, index_only=True )
+            fh = open( 'resync/test/testdata/examples_from_spec/%s' % (ex), 'r')
+            si = s.parse_xml( fh=fh )
 
     def test_ex_2_1(self):
         """ex2_1 is a simple resource_list with 2 resources, no metadata"""
