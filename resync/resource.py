@@ -5,6 +5,13 @@ other metadata such as timestamp, length, md5. The lastmod property
 provides ISO8601 format string access to the timestamp.
 
 The timestamp is assumed to be stored in UTC.
+
+This object is optimized for size in the case whether there is not large
+data in the attributes. This is done using __slots__ for the attributes
+so that there is no __dict__ defined. The 'ln' attribute is used if
+necessary to add links or other information in a hash which is convenient
+but will significantly increase the size of each object with such
+information.
 """
 
 import re
@@ -189,7 +196,7 @@ class Resource(object):
                                          
     def __repr__(self):
         """Return an unambigous representation"""
-        dict_repr = dict((name, getattr(self, name)) 
+        dict_repr = dict((name, getattr(self, name, None)) 
                     for name in dir(self) if not (name.startswith('__') 
                                                   or name == 'equal'
                                                   or name == 'basename'
