@@ -187,9 +187,13 @@ class Sitemap(object):
         # check that we read to right capability document
         if (capability is not None):
             if ('capability' not in resources.md):
-                self.logger.warning('No capabiliy specified, assuming resourcelist')
-                resources.md['capability'] = 'resourcelist'
-            elif (resources.md['capability'] != capability):
+                if (capability == 'resourcelist'):
+                    self.logger.warning('No capability specified in sitemap, assuming resourcelist')
+                    resources.md['capability'] = 'resourcelist'
+                else:
+                    raise ValueError("Expected to read a %s document, but not capability specified" %
+                                 (capability))
+            if (resources.md['capability'] != capability):
                 raise ValueError("Expected to read a %s document, got %s" %
                                  (capability,resources.md['capability']))
         # return the resource container object

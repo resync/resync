@@ -62,6 +62,7 @@ class ListBase(ResourceContainer):
         if (fh is None):
             raise Exception("Nothing to parse")
         s = Sitemap(**kwargs)
+        print "##"+self.capability_md
         s.parse_xml(fh=fh,resources=self,capability=self.capability_md,sitemapindex=False)
         self.parsed_index = s.parsed_index
         
