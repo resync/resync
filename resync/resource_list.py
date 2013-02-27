@@ -79,7 +79,7 @@ class ResourceList(ListBase):
     which is currently alphabetical by URI.
     """
 
-    def __init__(self, resources=None, md=None, ln=None):
+    def __init__(self, resources=None, md=None, ln=None, allow_multifile=None, mapper=None):
         if (resources is None):
             resources = ResourceListDict()
         super(ResourceList, self).__init__(resources=resources, md=md, ln=ln)
@@ -88,8 +88,8 @@ class ResourceList(ListBase):
         # specific to Resource Lists:
         self.max_sitemap_entries=50000
         # related to Indexes
-        self.mapper = None
-        self.allow_multifile = True
+        self.mapper = mapper
+        self.allow_multifile = (True if (allow_multifile is None) else allow_multifile)
         self.check_url_authority = False
         self.content_length = 0
         self.bytes_read = 0           # Aggregate of content_length values
