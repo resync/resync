@@ -1,12 +1,22 @@
 """ResourceSync resource_list object
 
-An resource_list is a set of resources with some metadata for each 
-resource. Comparison of inventories from a source and a 
-destination allows understanding of whether the two are in
+An resource_list is a set of resources with some metadata for 
+each resource. Comparison of resource lists from a source and 
+a destination allows understanding of whether the two are in
 sync or whether some resources need to be updated at the
 destination.
 
 The resource_list object may also contain metadata and links.
+
+Described in specification at:
+http://www.openarchives.org/rs/resourcesync#DescResources
+
+- mandatory <rs:md> element:
+-- must have capability="resourcelist"
+-- should have modified=".." attribute also, which should match the 
+   mtime of a file written.
+- one <url> element for each resource
+
 """
 
 import collections
@@ -207,6 +217,7 @@ class ResourceList(ListBase):
             f.close()
             self.logger.info("Wrote sitemap %s" % (basename))
 
+
     def read(self, uri=None, resources=None, capability=None, index_only=False):
         """Read sitemap from a URI including handling sitemapindexes
 
@@ -233,7 +244,7 @@ class ResourceList(ListBase):
             pass
         self.logger.info( "Read sitemap/sitemapindex from %s" % (uri) )
         s = Sitemap()
-        s.parse_xml(fh=fh,resources=self,capability='resource_list')
+        s.parse_xml(fh=fh,resources=self,capability='resourcelist')
         # what did we read? sitemap or sitemapindex?
         if (s.parsed_index):
             # sitemapindex
@@ -253,6 +264,7 @@ class ResourceList(ListBase):
         else:
             # sitemap
             self.logger.info( "Parsed as sitemap, %d resources" % (len(self.resources)) )
+
 
     def read_component_sitemap(self, sitemapindex_uri, sitemap_uri, sitemap, sitemapindex_is_file):
         """Read a component sitemap of a Resource List with index

@@ -1,10 +1,12 @@
 import unittest
+import StringIO
+import re
 from resync.resource import Resource
 from resync.resource_list import ResourceList, ResourceListDupeError
 
 class TestResourceList(unittest.TestCase):
 
-    def test1_same(self):
+    def test01_same(self):
         src = ResourceList()
         src.add( Resource('a',timestamp=1) )
         src.add( Resource('b',timestamp=2) )
@@ -20,7 +22,7 @@ class TestResourceList(unittest.TestCase):
         self.assertEqual( len(deleted), 0, "nothing deleted" )
         self.assertEqual( len(added), 0, "nothing added" )
 
-    def test2_changed(self):
+    def test02_changed(self):
         src = ResourceList()
         src.add( Resource('a',timestamp=1) )
         src.add( Resource('b',timestamp=2) )
@@ -36,7 +38,7 @@ class TestResourceList(unittest.TestCase):
         self.assertEqual( len(deleted), 0, "nothing deleted" )
         self.assertEqual( len(added), 0, "nothing added" )
 
-    def test3_deleted(self):
+    def test03_deleted(self):
         src = ResourceList()
         src.add( Resource('a',timestamp=1) )
         src.add( Resource('b',timestamp=2) )
@@ -54,7 +56,7 @@ class TestResourceList(unittest.TestCase):
         self.assertEqual( i.next().uri, 'd', "second was d" )
         self.assertEqual( len(added), 0, "nothing added" )
 
-    def test4_added(self):
+    def test04_added(self):
         src = ResourceList()
         src.add( Resource('a',timestamp=1) )
         src.add( Resource('b',timestamp=2) )
@@ -72,7 +74,7 @@ class TestResourceList(unittest.TestCase):
         self.assertEqual( i.next().uri, 'b', "first was b" )
         self.assertEqual( i.next().uri, 'd', "second was d" )
 
-    def test5_add(self):
+    def test05_add(self):
         r1 = Resource(uri='a',length=1)
         r2 = Resource(uri='b',length=2)
         i = ResourceList()
@@ -86,7 +88,7 @@ class TestResourceList(unittest.TestCase):
         self.assertEqual( len(i), 2 )
         self.assertEqual( i.resources['a'].length, 10 ) 
 
-    def test5_add_iterable(self):
+    def test06_add_iterable(self):
         r1 = Resource(uri='a',length=1)
         r2 = Resource(uri='b',length=2)
         i = ResourceList()
@@ -99,7 +101,7 @@ class TestResourceList(unittest.TestCase):
         self.assertEqual( len(i), 2 )
         self.assertEqual( i.resources['a'].length, 10 ) 
 
-    def test6_has_md5(self):
+    def test07_has_md5(self):
         r1 = Resource(uri='a')
         r2 = Resource(uri='b')
         i = ResourceList()
@@ -110,7 +112,7 @@ class TestResourceList(unittest.TestCase):
         r1.md5="aabbcc"
         self.assertTrue( i.has_md5() )
 
-    def test7_iter(self):
+    def test08_iter(self):
         i = ResourceList()
         i.add( Resource('a',timestamp=1) )
         i.add( Resource('b',timestamp=2) )
@@ -123,7 +125,50 @@ class TestResourceList(unittest.TestCase):
         self.assertEqual( resources[0].uri, 'a')
         self.assertEqual( resources[3].uri, 'd')
 
+    def test20_as_xml(self):
+        rl = ResourceList()
+        rl.add( Resource('a',timestamp=1) )
+        rl.add( Resource('b',timestamp=2) )
+        xml = rl.as_xml()
+        print xml
+        self.assertTrue( re.search(r'<rs:md .*capability="resourcelist"', xml), 'XML has capability' )
+        self.assertTrue( re.search(r'<rs:md .*modified="\d\d\d\d\-\d\d\-\d\dT\d\d:\d\d:\d\dZ"', xml), 'XML has modified to seconds precision (and not more)' )
+        self.assertTrue( re.search(r'<url><loc>a</loc><lastmod>1970-01-01T00:00:01Z</lastmod></url>', xml), 'XML has resource a' ) 
+
+    def test30_parse(self):
+        xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<rs:md capability="resourcelist" modified="2013-01-01"/>\
+<url><loc>/tmp/rs_test/src/file_a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md change="updated" length="12" /></url>\
+<url><loc>/tmp/rs_test/src/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length="32" /></url>\
+</urlset>'
+        rl=ResourceList()
+        rl.parse(fh=StringIO.StringIO(xml))
+        self.assertEqual( len(rl.resources), 2, 'got 2 resources')
+        self.assertEqual( rl.md['capability'], 'resourcelist', 'capability set' )
+        self.assertEqual( rl.md['modified'], '2013-01-01' )
+
+    def test31_parse_no_capability(self):
+        xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\
+<url><loc>http://example.com/res1</loc><lastmod>2012-03-14T18:37:36Z</lastmod></url>\
+</urlset>'
+        rl=ResourceList()
+        rl.parse(fh=StringIO.StringIO(xml))
+        self.assertEqual( len(rl.resources), 1, 'got 1 resource')
+        self.assertEqual( rl.md['capability'], 'resourcelist', 'capability set by reading routine' )
+        self.assertFalse( 'modified' in rl.md )
+
+    def test32_parse_bad_capability(self):
+        # the <rs:md capability="bad_capability".. should give error
+        xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<rs:md capability="bad_capability" modified="2013-01-01"/>\
+<url><loc>http://example.com/bad_res_1</loc><lastmod>2012-03-14T18:37:36Z</lastmod></url>\
+</urlset>'
+        rl=ResourceList()
+        self.assertRaises( ValueError, rl.parse, fh=StringIO.StringIO(xml) )
+
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestResourceList)
-#    unittest.TextTestRunner(verbosity=1).run(suite)
     unittest.TextTestRunner().run(suite)

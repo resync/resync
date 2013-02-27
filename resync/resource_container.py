@@ -47,7 +47,7 @@ class ResourceContainer(object):
 
     @capability.setter
     def capability(self,capability):
-        """Get/set the capability attribute of rh"""
+        """Get/set the capability attribute of this resource container"""
         self.md['capability']=capability
 
     def default_capability_and_modified(self):
@@ -59,7 +59,7 @@ class ResourceContainer(object):
         if ('capability' not in self.md and self.capability_md is not None):
             self.md['capability']=self.capability_md
         if ('modified' not in self.md):
-            self.md['modified']=datetime_to_str()
+            self.md['modified']=datetime_to_str(no_fractions=True)
 
     def add(self, resource):
         """Add a resource or an iterable collection of resources to this container

@@ -70,8 +70,9 @@ class ListBase(ResourceContainer):
     def as_xml(self,**kwargs):
         """Return XML serialization of this list
 
-        FIXME - What can we do here to deal with the case where the
-        list is too big. Applies only to ResourceList since v0.5"""
+        This code does not support the case where the list is too big for 
+        a single XML document.
+        """
         self.default_capability_and_modified()
         s = Sitemap(**kwargs)
         return s.resources_as_xml(self,sitemapindex=self.sitemapindex)

@@ -13,7 +13,7 @@ from datetime import datetime
 from dateutil import parser as dateutil_parser
 import re
 
-def datetime_to_str(dt='now'):
+def datetime_to_str(dt='now',no_fractions=False):
     """The Last-Modified data in ISO8601 syntax, Z notation
 
     The lastmod is stored as unix timestamp which is already
@@ -30,6 +30,8 @@ def datetime_to_str(dt='now'):
         return None
     elif (dt == 'now'):
         dt = time.time()
+    if (no_fractions):
+        dt = int(dt)
     return datetime.utcfromtimestamp(dt).isoformat() + 'Z'
 
 def str_to_datetime(s):
