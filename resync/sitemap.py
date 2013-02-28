@@ -219,14 +219,10 @@ class Sitemap(object):
             sub.text = str(resource.lastmod) #W3C Datetime in UTC
             e.append(sub)
         md_atts = {}
-        if (resource.change is not None):
-            md_atts['change'] = resource.change
-        if (resource.length is not None):
-            md_atts['length'] = str(resource.length)
-        if (resource.hash is not None):
-            md_atts['hash'] = resource.hash
-        if (resource.capability is not None):
-            md_atts['capability'] = resource.capability
+        for att in ('capability','change','hash','length','path','type'):
+            val = getattr(resource,att,None)
+            if (val is not None):
+                md_atts[att] = str(val)
         if (len(md_atts)>0):
             md = Element('rs:md',md_atts)
             e.append(md)
@@ -280,11 +276,10 @@ class Sitemap(object):
         elif (len(md_elements)==1):
             # have on element, look at attributes
             md = self.md_from_etree(md_elements[0],context=loc)
-            # change type
-            if ('change' in md):
-                resource.change = md['change']
-            if ('length' in md):
-                resource.length = md['length']
+            # simple attributes that map directly to Resource object attributes
+            for att in ('capability','change','length','path','type'):
+                if (att in md):
+                    setattr(resource,att,md[att])
             # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
             # digest types. Parse and warn of errors ignored.
             if ('hash' in md):
@@ -307,39 +302,26 @@ class Sitemap(object):
          md_element     - etree element <rs:md>
         """
         md = {}
+        # grab all understood attributes into md dict
+        for att in ('capability','change','hash','length','modified','path','type'):
+            val = md_element.attrib.get(att,None)
+            if (val is not None):
+                md[att] = val
         # capability. Allow this to be missing but do a very simple syntax
         # check on plausible values if present
-        capability = md_element.attrib.get("capability",None)
-        if (capability is not None):
-            if (re.match(r"^[\w\-]+$", capability) is not None):
-                md['capability'] = capability
-            else:
+        if ('capability' in md):
+            if (re.match(r"^[\w\-]+$", md['capability']) is None):
                 raise SitemapParseError("Bad capability name '%s' in %s" % (capability,context))
-        # modified
-        modified = md_element.attrib.get("modified",None)
-        if (modified is not None):
-            md['modified'] = modified
-        # change type
-        change = md_element.attrib.get("change",None)
-        if (change is not None):
-            if (change not in ['created','updated','deleted'] ):
+        # change should be one of defined values
+        if ('change' in md):
+            if (md['change'] not in ['created','updated','deleted'] ):
                 self.logger.warning("Bad change attribute in <rs:md> for %s" % (context))
-            md['change'] = change
-        # content type
-        type = md_element.attrib.get("type",None)
-        if (type is not None):
-            md['type'] = type
-        # length in bytes
-        length = md_element.attrib.get("length",None)
-        if (length is not None):
+        # length should be an integer
+        if ('length' in md):
             try:
-                md['length']=int(length)
+                md['length']=int(md['length'])
             except ValueError as e:
                 raise SitemapParseError("Invalid length element in <rs:md> for %s" % (context))
-        # don't attempt to parse hash values here
-        hash = md_element.attrib.get("hash",None)
-        if (hash is not None):
-            md['hash'] = hash
         return(md)
 
 
@@ -350,46 +332,28 @@ class Sitemap(object):
          md_element     - etree element <rs:md>
         """
         ln = {}
+        # grab all understood attributes into ln dict
+        for att in ('hash','href','length','modified','path','rel','pri','type'):
+            val = ln_element.attrib.get(att,None)
+            if (val is not None):
+                ln[att] = val
+        # now do some checks and conversions...
         # href (MANDATORY)
-        href = ln_element.attrib.get("href",None)
-        if (href is not None):
-            ln['href'] = href
-        else:
+        if ('href' not in ln):
             raise SitemapParseError("Missing href in <rs:ln> in %s" % (context))
         # rel (MANDATORY)
-        rel = ln_element.attrib.get("rel",None)
-        if (rel is not None):
-            ln['rel'] = rel
-        else:
+        if ('rel' not in ln):
             raise SitemapParseError("Missing rel in <rs:ln> in %s" % (context))
-        # hash - don't attempt to parse hash values here
-        hash = ln_element.attrib.get("hash",None)
-        if (hash is not None):
-            ln['hash'] = hash
         # length in bytes
-        length = ln_element.attrib.get("length",None)
-        if (length is not None):
+        if ('length' in ln):
             try:
-                ln['length']=int(length)
+                ln['length']=int(ln['length'])
             except ValueError as e:
                 raise SitemapParseError("Invalid length attribute value in <rs:ln> for %s" % (context))
-        # modified
-        modified = ln_element.attrib.get("modified",None)
-        if (modified is not None):
-            ln['modified'] = modified
-        # path
-        path = ln_element.attrib.get("path",None)
-        if (path is not None):
-            ln['path'] = modified
-        # type - content type
-        type = ln_element.attrib.get("type",None)
-        if (type is not None):
-            ln['type'] = modified
         # pri - priority, must be a number between 1 and 999999
-        pri = ln_element.attrib.get("pri",None)
-        if (pri is not None):
+        if ('pri' in ln):
             try:
-                ln['pri']=int(pri)
+                ln['pri']=int(ln['pri'])
             except ValueError as e:
                 raise SitemapParseError("Invalid pri attribute in <rs:ln> for %s" % (context))
             if (ln['pri']<1 or ln['pri']>999999):
