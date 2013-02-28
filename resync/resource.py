@@ -21,12 +21,12 @@ from w3c_datetime import str_to_datetime, datetime_to_str
 
 class Resource(object):
     __slots__=('uri', 'timestamp', 'length',
-               'md5', 'sha1', 'sha256',
+               'md5', 'sha1', 'sha256', 'type',
                'change', 'path',
                'capability', 'ln' )
     
     def __init__(self, uri = None, timestamp = None, length = None, 
-                 md5 = None, sha1 = None, sha256 = None, 
+                 md5 = None, sha1 = None, sha256 = None, type = None,
                  change = None, path = None,
                  lastmod = None, resource = None,
                  capability = None, ln = None):
@@ -42,6 +42,7 @@ class Resource(object):
         self.md5 = None
         self.sha1 = None
         self.sha256 = None
+        self.type = None
         self.change = None
         self.path = None
         self.capability = None
@@ -69,6 +70,8 @@ class Resource(object):
             self.sha1 = sha1
         if (sha256 is not None):
             self.sha256 = sha256
+        if (type is not None):
+            self.type = type
         if (change is not None):
             self.change = change
         if (path is not None):
