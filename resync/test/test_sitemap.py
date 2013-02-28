@@ -29,11 +29,11 @@ class TestSitemap(unittest.TestCase):
         r1 = Resource('03hashes',1234.1)
         r1.md5 = 'aaa'
         r1.sha1 = 'bbb'
-        self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>03hashes</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:aaa sha1:bbb\" /></url>" )
+        self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>03hashes</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:aaa sha-1:bbb\" /></url>" )
         r1.sha256 = 'ccc'
-        self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>03hashes</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:aaa sha1:bbb sha256:ccc\" /></url>" )
+        self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>03hashes</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:aaa sha-1:bbb sha-256:ccc\" /></url>" )
         r1.sha1 = None
-        self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>03hashes</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:aaa sha256:ccc\" /></url>" )
+        self.assertEqual( Sitemap().resource_as_xml(r1), "<?xml version='1.0' encoding='UTF-8'?>\n<url><loc>03hashes</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:aaa sha-256:ccc\" /></url>" )
 
     def test_04_resource_str(self):
         r1 = Resource(uri='4a',lastmod="2013-01-02",length=9999,md5='ab54de')

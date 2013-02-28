@@ -110,9 +110,9 @@ class Resource(object):
         if (self.md5 is not None):
             hashvals.append('md5:'+self.md5)
         if (self.sha1 is not None):
-            hashvals.append('sha1:'+self.sha1)
+            hashvals.append('sha-1:'+self.sha1)
         if (self.sha256 is not None):
-            hashvals.append('sha256:'+self.sha256)
+            hashvals.append('sha-256:'+self.sha256)
         if (len(hashvals)>0):
             return(' '.join(hashvals))
         return(None)

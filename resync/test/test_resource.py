@@ -102,7 +102,7 @@ class TestResource(unittest.TestCase):
         self.assertEqual( r1.md5, "some_md5" )
         self.assertEqual( r1.sha1, "some_sha1" )
         self.assertEqual( r1.sha256, "some_sha256" )
-        self.assertEqual( r1.hash, "md5:some_md5 sha1:some_sha1 sha256:some_sha256" )
+        self.assertEqual( r1.hash, "md5:some_md5 sha-1:some_sha1 sha-256:some_sha256" )
         r2 = Resource('def')
         r2.hash = "md5:ddd"
         self.assertEqual( r2.md5, 'ddd' )
