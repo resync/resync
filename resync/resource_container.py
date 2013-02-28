@@ -43,12 +43,28 @@ class ResourceContainer(object):
 
     @property
     def capability(self):
-        return(self.md['capability'])
+        if ('capability' in self.md):
+            return(self.md['capability'])
+        else:
+            return(None)
 
     @capability.setter
     def capability(self,capability):
         """Get/set the capability attribute of this resource container"""
         self.md['capability']=capability
+
+    @property
+    def modified(self):
+        if ('modified' in self.md):
+            return(self.md['modified'])
+        else:
+            return(None)
+
+    @modified.setter
+    def modified(self,modified):
+        """Get/set the modified attribute of this resource container"""
+        self.md['modified']=modified
+
 
     def default_capability_and_modified(self):
         """Set capability name and modified time in md
