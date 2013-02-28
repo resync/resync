@@ -77,14 +77,13 @@ class ListBase(ResourceContainer):
         s = Sitemap(**kwargs)
         return s.resources_as_xml(self,sitemapindex=self.sitemapindex)
 
-    def write(self,**kwargs):
-        """Write one or perhaps multiple sitemap/sitemapindex XML documents
+    def write(self,basename="/tmp/resynclist.xml",**kwargs):
+        """Write a single sitemap or sitemapindex XML document
+
+        Must be overridden to support multi-file lists.
         """
         self.default_capability_and_modified()
-        basename = "/tmp/resynclist.xml"
-        if ('basename' in kwargs):
-            basename = kwargs['basename']
-            del kwargs['basename']
+        fh = open(basename,'w')
         s = Sitemap(**kwargs)
-        # FIXME - add in sitemapindex option
-        return s.write(resources=self,basename=basename)
+        s.resources_as_xml(self,fh=fh,sitemapindex=self.sitemapindex)
+        fh.close()
