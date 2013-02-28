@@ -297,6 +297,16 @@ class ResourceList(ListBase):
         self.logger.info( "Reading sitemap from %s (%d bytes)" % (sitemap_uri,self.content_length) )
         sitemap.parse_xml( fh=fh, resources=self.resources, sitemapindex=False )
 
+
+    def index_as_xml(self,**kwargs):
+        """Return XML serialization of this list taken to be sitemapindex entries
+
+        """
+        self.default_capability_and_modified()
+        s = Sitemap(**kwargs)
+        return s.resources_as_xml(self,sitemapindex=True)
+
+
     ##### Utility #####                                                                                          
     def is_file_uri(self, uri):
         """Return true if uri looks like a local file URI, false otherwise
