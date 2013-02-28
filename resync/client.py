@@ -451,7 +451,8 @@ class Client(object):
         """
         rl = ResourceList()
         self.logger.info("Reading %s sitemap(s) from %s ..." % (name,ref_sitemap))
-        rl.read(uri=ref_sitemap,allow_multifile=self.allow_multifile, mapper=self.mapper)
+        rl.mapper=self.mapper
+        rl.read(uri=ref_sitemap,index_only=(not self.allow_multifile))
         num_entries = len(rl.resources)
         self.logger.info("Read %s resource list with %d entries in %d sitemaps" % (name,num_entries,rl.num_files))
         if (self.verbose):
