@@ -103,9 +103,9 @@ class Sitemap(object):
             xml_buf=StringIO.StringIO()
             fh=xml_buf
         if (sys.version_info < (2,7)):
-            tree.write(xml_buf,encoding='UTF-8')
+            tree.write(fh,encoding='UTF-8')
         else:
-            tree.write(xml_buf,encoding='UTF-8',xml_declaration=True,method='xml')
+            tree.write(fh,encoding='UTF-8',xml_declaration=True,method='xml')
         if (xml_buf is not None):
             return(xml_buf.getvalue())
 
