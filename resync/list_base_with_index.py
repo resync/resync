@@ -25,6 +25,7 @@ class ListBaseWithIndex(ListBase):
         self.allow_multifile = (True if (allow_multifile is None) else allow_multifile)
         self.check_url_authority = False
         self.content_length = 0
+        self.num_files = 0            # Number of files read
         self.bytes_read = 0           # Aggregate of content_length values
 
     ##### General sitemap methods that also handle sitemapindexes #####
@@ -97,6 +98,7 @@ class ListBaseWithIndex(ListBase):
         """
         try:
             fh = URLopener().open(uri)
+            self.num_files += 1
         except IOError as e:
             raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,str(e)))
         # Get the Content-Length if we can (works fine for local files)
@@ -135,8 +137,6 @@ class ListBaseWithIndex(ListBase):
     def read_component_sitemap(self, sitemapindex_uri, sitemap_uri, sitemap, sitemapindex_is_file):
         """Read a component sitemap of a Resource List with index
         """
-        print sitemapindex_is_file
-        print self.mapper
         if (sitemapindex_is_file):
             if (not self.is_file_uri(sitemap_uri)):
                 # Attempt to map URI to local file
@@ -151,6 +151,7 @@ class ListBaseWithIndex(ListBase):
                     raise Exception("The sitemapindex (%s) refers to sitemap at a location it does not have authority over (%s)" % (sitemapindex_uri,sitemap_uri))
         try:
             fh = URLopener().open(sitemap_uri)
+            self.num_files += 1
         except IOError as e:
             raise Exception("Failed to load sitemap from %s listed in sitemap index %s (%s)" % (sitemap_uri,sitemapindex_uri,str(e)))
         # Get the Content-Length if we can (works fine for local files)
