@@ -2,9 +2,9 @@
 
 """
 
-from list_base import ListBase
+from list_base_with_index import ListBaseWithIndex
 
-class ResourceDumpManifest(ListBase):
+class ResourceDumpManifest(ListBaseWithIndex):
     """Class representing a Resource Dump Manifest"""
 
     def __init__(self, resources=None, md=None, ln=None):
