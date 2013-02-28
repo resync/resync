@@ -40,7 +40,7 @@ class TestResourceListBuilder(unittest.TestCase):
     def test4_data(self):
         rlb = ResourceListBuilder(do_md5=True)
         rlb.mapper = Mapper(['http://example.org/t','resync/test/testdata/dir1'])
-        rl = rlb.from_disk()
+        rl = rlb.from_disk(set_path=True)
         self.assertEqual( len(rl), 2)
         r1 = rl.resources.get('http://example.org/t/file_a')
         self.assertTrue( r1 is not None )

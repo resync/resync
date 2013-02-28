@@ -56,7 +56,7 @@ class ResourceListBuilder():
                 return(True)
         return(False)
 
-    def from_disk(self,resource_list=None):
+    def from_disk(self, resource_list=None, set_path=False):
         """Create or extend resource_list with resources from disk scan
 
         Assumes very simple disk path to URL mapping: chop path and
@@ -65,6 +65,9 @@ class ResourceListBuilder():
 
         If a resource_list is specified then items are added to that rather
         than creating a new one.
+
+        If set_path is True then the path attribue will be set with the
+        local path for each Resource.
 
         mapper=Mapper('http://example.org/path','/path/to/files')
         mb = ResourceListBuilder(mapper=mapper)
@@ -79,10 +82,15 @@ class ResourceListBuilder():
         # Run for each map in the mappings
         for map in self.mapper.mappings:
             self.logger.info("Scanning disk for %s" % (str(map)))
-            self.from_disk_add_map(resource_list=resource_list, map=map)
+            self.from_disk_add_map(resource_list=resource_list, map=map, set_path=set_path)
         return(resource_list)
 
-    def from_disk_add_map(self, resource_list=None, map=None):
+    def from_disk_add_map(self, resource_list=None, map=None, set_path=False):
+        """Add to resource_list with resources from disk scan based one map
+
+        If set_path is True then the path attribue will be set with the
+        local path for each Resource.
+        """
         # sanity
         if (resource_list is None or map is None):
             raise ValueError("Must specify resource_list and map")
@@ -111,7 +119,9 @@ class ResourceListBuilder():
                     sys.stderr.write("Ignoring file %s (error: %s)" % (file,str(e)))
                     continue
                 timestamp = file_stat.st_mtime #UTC
-                r = Resource(uri=uri,timestamp=timestamp,path=file)
+                r = Resource(uri=uri,timestamp=timestamp)
+                if (set_path):
+                    r.path=file
                 if (self.do_md5):
                     # add md5
                     r.md5=compute_md5_for_file(file)
