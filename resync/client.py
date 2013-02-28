@@ -450,7 +450,7 @@ class Client(object):
         of resource list is being read.
         """
         rl = ResourceList()
-        self.logger.info("Reading %s sitemap(s) from %s ..." % (name,ref_sitemap))
+        self.logger.info("Reading reference %s resource list from %s ..." % (name,ref_sitemap))
         rl.mapper=self.mapper
         rl.read(uri=ref_sitemap,index_only=(not self.allow_multifile))
         num_entries = len(rl.resources)
