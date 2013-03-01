@@ -30,7 +30,7 @@ class ListBaseWithIndex(ListBase):
 
     ##### General sitemap methods that also handle sitemapindexes #####
 
-    def write(self, resources=None, basename='/tmp/sitemap.xml'):
+    def write(self, basename='/tmp/sitemap.xml', **kwargs):
         """Write one or a set of sitemap files to disk
 
         resources is a ResourceContainer that may be an ResourceList or
@@ -46,8 +46,9 @@ class ListBaseWithIndex(ListBase):
         with an sitemapindex, will be written.
         """
         # Access resources through iterator only
-        resources_iter = iter(resources)
+        resources_iter = iter(self.resources)
         ( chunk, next ) = self.get_resources_chunk(resources_iter)
+        s = Sitemap(**kwargs)
         if (next is not None):
             # Have more than self.max_sitemap_entries => sitemapindex
             if (not self.allow_multifile):
@@ -65,7 +66,7 @@ class ListBaseWithIndex(ListBase):
                 file = sitemap_prefix + ( "%05d" % (len(sitemaps)) ) + sitemap_suffix
                 self.logger.info("Writing sitemap %s..." % (file))
                 f = open(file, 'w')
-                f.write(self.resources_as_xml(chunk))
+                f.write(s.resources_as_xml(chunk))
                 f.close()
                 # Record timestamp
                 sitemaps[file] = os.stat(file).st_mtime
@@ -80,7 +81,7 @@ class ListBaseWithIndex(ListBase):
         else:
             f = open(basename, 'w')
             self.logger.info("Writing sitemap %s..." % (basename))
-            f.write(self.resources_as_xml(chunk))
+            f.write(s.resources_as_xml(chunk))
             f.close()
             self.logger.info("Wrote sitemap %s" % (basename))
 
@@ -173,7 +174,37 @@ class ListBaseWithIndex(ListBase):
         s = Sitemap(**kwargs)
         return s.resources_as_xml(self,sitemapindex=True)
 
-    ##### Utility #####                                                                                          
+
+    ##### Utility #####                                                                                         
+
+    def get_resources_chunk(self, resource_iter, first=None):
+        """Return next chunk of resources from resource_iter, and next item
+        
+        If first parameter is specified then this will be prepended to
+        the list.
+
+        The chunk will contain self.max_sitemap_entries if the iterator 
+        returns that many. next will have the value of the next value from
+        the iterator, providing indication of whether more is available. 
+        Use this as first when asking for the following chunk.
+        """
+        chunk = ListBase()
+        chunk.capability_name = self.capability_name
+        chunk.capability_md = self.capability_md
+        chunk.default_capability_and_modified()
+        if (first is not None):
+            chunk.add(first)
+        for r in resource_iter:
+            chunk.add(r)
+            if (len(chunk)>=self.max_sitemap_entries):
+                break
+        # Get next to see whether there are more resources
+        try:
+            next = resource_iter.next()
+        except StopIteration:
+            next = None
+        return(chunk,next)
+ 
     def is_file_uri(self, uri):
         """Return true if uri looks like a local file URI, false otherwise
         
