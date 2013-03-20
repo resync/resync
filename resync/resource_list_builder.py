@@ -1,4 +1,6 @@
-"""ResourceListBuilder to create ResourceList objects from various sources
+"""ResourceListBuilder to create ResourceList objects
+
+Currently implements build from files on disk only.
 
 Attributes:
 - do_md5 set true to calculate MD5 sums for all files
@@ -134,4 +136,3 @@ class ResourceListBuilder():
                 if exclude in dirs:
                     self.logger.debug("Excluding dir %s" % (exclude))
                     dirs.remove(exclude)
-        return(resource_list)

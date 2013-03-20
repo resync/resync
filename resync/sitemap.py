@@ -63,12 +63,11 @@ class Sitemap(object):
 
     ##### Write the XML for a sitemap or sitemapindex #####
 
-    def resources_as_xml(self, resources, num_resources=None, sitemapindex=False, fh=None):
+    def resources_as_xml(self, resources, sitemapindex=False, fh=None):
         """Return XML for a set of resources in sitemap format
         
         Arguments:
         - resources - either an iterable or iterator of Resource objects.
-        - num_resources - if not None then only that number will be written
         - sitemapindex - set True to write sitemapindex instead of sitemap
         - fh - write to filehandle fh instead of returning string
 
@@ -92,10 +91,6 @@ class Sitemap(object):
         for r in resources:
             e=self.resource_etree_element(r, element_name=item_element)
             root.append(e)
-            if (num_resources is not None):
-                num_resources-=1
-                if (num_resources==0):
-                    break
         # have tree, now serialize
         tree = ElementTree(root);
         xml_buf=None
