@@ -1,5 +1,7 @@
-"""Base class for ResourceSync capabilities with lists of resources including sitemap and sitemapindex
+"""Base class for ResourceSync capabilities with lists of resources including 
+support for both sitemaps and sitemapindexes.
 
+Extends ListBase to add support for sitemapindexes.
 """
 
 import collections
@@ -10,9 +12,15 @@ import sys
 from urllib import URLopener
 
 from list_base import ListBase
+from resource import Resource
 from sitemap import Sitemap
 from mapper import Mapper, MapperError
 from url_authority import UrlAuthority
+from utils import compute_md5_for_file
+
+class ListBaseIndexError(Exception):
+    """Exception for problems with sitemapindexes"""
+    pass
 
 class ListBaseWithIndex(ListBase):
 
@@ -52,7 +60,7 @@ class ListBaseWithIndex(ListBase):
         if (next is not None):
             # Have more than self.max_sitemap_entries => sitemapindex
             if (not self.allow_multifile):
-                raise Exception("Too many entries for a single sitemap but multifile disabled")
+                raise ListBaseIndexError("Too many entries for a single sitemap but multifile disabled")
             # Work out how to name the sitemaps, attempt to add %05d before ".xml$", else append
             sitemap_prefix = basename
             sitemap_suffix = '.xml'
@@ -61,27 +69,31 @@ class ListBaseWithIndex(ListBase):
             # Use iterator over all resources and count off sets of
             # max_sitemap_entries to go into each sitemap, store the
             # names of the sitemaps as we go
-            sitemaps={}
+            sitemaps=ListBase()
             while (len(chunk)>0):
                 file = sitemap_prefix + ( "%05d" % (len(sitemaps)) ) + sitemap_suffix
                 self.logger.info("Writing sitemap %s..." % (file))
                 f = open(file, 'w')
-                f.write(s.resources_as_xml(chunk))
+                s.resources_as_xml(chunk, fh=f)
                 f.close()
-                # Record timestamp
-                sitemaps[file] = os.stat(file).st_mtime
+                # Record information about this sitemap for index
+                r = Resource( uri = self.mapper.dst_to_src(file),
+                              path = file,
+                              timestamp = os.stat(file).st_mtime,
+                              md5 = compute_md5_for_file(file) )
+                sitemaps.add(r)
                 # Get next chunk
                 ( chunk, next ) = self.get_resources_chunk(resources_iter,next)
             self.logger.info("Wrote %d sitemaps" % (len(sitemaps)))
             f = open(basename, 'w')
             self.logger.info("Writing sitemapindex %s..." % (basename))
-            f.write(self.sitemapindex_as_xml(sitemaps=sitemaps,resource_list=resources))
+            s.resources_as_xml(resources=sitemaps,sitemapindex=True,fh=f)
             f.close()
             self.logger.info("Wrote sitemapindex %s" % (basename))
         else:
             f = open(basename, 'w')
             self.logger.info("Writing sitemap %s..." % (basename))
-            f.write(s.resources_as_xml(chunk))
+            s.resources_as_xml(chunk, fh=f)
             f.close()
             self.logger.info("Wrote sitemap %s" % (basename))
 
@@ -101,7 +113,7 @@ class ListBaseWithIndex(ListBase):
             fh = URLopener().open(uri)
             self.num_files += 1
         except IOError as e:
-            raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,str(e)))
+            raise IOError("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,str(e)))
         # Get the Content-Length if we can (works fine for local files)
         try:
             self.content_length = int(fh.info()['Content-Length'])
@@ -118,11 +130,12 @@ class ListBaseWithIndex(ListBase):
         if (s.parsed_index):
             # sitemapindex
             if (not self.allow_multifile):
-                raise Exception("Got sitemapindex from %s but support for sitemapindex disabled" % (uri))
+                raise ListBaseIndexError("Got sitemapindex from %s but support for sitemapindex disabled" % (uri))
             self.logger.info( "Parsed as sitemapindex, %d sitemaps" % (len(self.resources)) )
             sitemapindex_is_file = self.is_file_uri(uri)
             if (index_only):
                 # don't read the component sitemaps
+                self.sitemapindex = True
                 return
             # now loop over all entries to read each sitemap and add to resources
             sitemaps = self.resources
@@ -149,12 +162,12 @@ class ListBaseWithIndex(ListBase):
                 # that the sitemapindex URL can speak authoritatively about
                 if (self.check_url_authority and
                     not UrlAuthority(sitemapindex_uri).has_authority_over(sitemap_uri)):
-                    raise Exception("The sitemapindex (%s) refers to sitemap at a location it does not have authority over (%s)" % (sitemapindex_uri,sitemap_uri))
+                    raise ListBaseIndexError("The sitemapindex (%s) refers to sitemap at a location it does not have authority over (%s)" % (sitemapindex_uri,sitemap_uri))
         try:
             fh = URLopener().open(sitemap_uri)
             self.num_files += 1
         except IOError as e:
-            raise Exception("Failed to load sitemap from %s listed in sitemap index %s (%s)" % (sitemap_uri,sitemapindex_uri,str(e)))
+            raise ListBaseIndexError("Failed to load sitemap from %s listed in sitemap index %s (%s)" % (sitemap_uri,sitemapindex_uri,str(e)))
         # Get the Content-Length if we can (works fine for local files)
         try:
             self.content_length = int(fh.info()['Content-Length'])

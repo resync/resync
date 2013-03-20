@@ -64,13 +64,12 @@ class Sitemap(object):
     ##### Write the XML for a sitemap or sitemapindex #####
 
     def resources_as_xml(self, resources, sitemapindex=False, fh=None):
-        """Return XML for a set of resources in sitemap format
+        """Write or return XML for a set of resources in sitemap format
         
         Arguments:
         - resources - either an iterable or iterator of Resource objects.
         - sitemapindex - set True to write sitemapindex instead of sitemap
         - fh - write to filehandle fh instead of returning string
-
         """
         # element names depending on sitemapindex or not
         root_element = ( 'sitemapindex' if (sitemapindex) else 'urlset' )

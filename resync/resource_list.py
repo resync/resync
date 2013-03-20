@@ -82,7 +82,7 @@ class ResourceList(ListBaseWithIndex):
     def __init__(self, resources=None, md=None, ln=None, allow_multifile=None, mapper=None):
         if (resources is None):
             resources = ResourceListDict()
-        super(ResourceList, self).__init__(resources=resources, md=md, ln=ln)
+        super(ResourceList, self).__init__(resources=resources, md=md, ln=ln, mapper=mapper)
         self.capability_name = 'resourcelist'
         self.capability_md = 'resourcelist'
         self.resources_class = ResourceListDict
