@@ -2,6 +2,7 @@
 
 import sys
 import urllib
+import urlparse
 import os.path
 import datetime
 import distutils.dir_util 
@@ -20,6 +21,7 @@ from resync.sitemap import Sitemap
 from resync.dump import Dump
 from resync.resource import Resource
 from resync.url_authority import UrlAuthority
+from resync.utils import compute_md5_for_file
 
 class ClientFatalError(Exception):
     """Non-recoverable error in client, should include message to user"""
@@ -62,7 +64,7 @@ class Client(object):
 
     def set_mappings(self,mappings):
         """Build and set Mapper object based on input mappings"""
-        self.mapper = Mapper(mappings)
+        self.mapper = Mapper(mappings, default_path='/tmp')
 
     def sitemap_uri(self,basename):
         """Get full URI (filepath) for sitemap based on basename"""
@@ -282,12 +284,14 @@ class Client(object):
         or at least warn if different from LastModified from the GET response instead 
         but maybe warn if different (or just earlier than) the lastmod we expected 
         from the resource_list
+        3. check that resource matches expected information
         """
         path = os.path.dirname(file)
         distutils.dir_util.mkpath(path)
         if (self.dryrun):
             self.logger.info("dryrun: would GET %s --> %s" % (resource.uri,file))
         else:
+            # 1. GET
             try:
                 urllib.urlretrieve(resource.uri,file)
             except IOError as e:
@@ -297,15 +301,19 @@ class Client(object):
                     return
                 else:
                     raise ClientFatalError(msg)
-            # sanity check
-            length = os.stat(file).st_size
-            if (resource.length != length):
-                self.logger.info("Downloaded size for %s of %d bytes does not match expected %d bytes" % (resource.uri,length,resource.length))
-            # set timestamp if we have one
+            # 2. set timestamp if we have one
             if (resource.timestamp is not None):
                 unixtime = int(resource.timestamp) #no fractional
                 os.utime(file,(unixtime,unixtime))
             self.log_event(Resource(resource=resource, change=change))
+            # 3. sanity check
+            length = os.stat(file).st_size
+            if (resource.length != length):
+                self.logger.info("Downloaded size for %s of %d bytes does not match expected %d bytes" % (resource.uri,length,resource.length))
+            if (self.checksum and resource.md5 is not None):
+                file_md5 = compute_md5_for_file(file)
+                if (resource.md5 != file_md5):
+                    self.logger.info("MD5 mismatch for %s, got %s but expected %s bytes" % (resource.uri,file_md5,resource.md5))
 
     def delete_resource(self, resource, file, allow_deletion=False):
         """Delete copy of resource in file on local system
@@ -361,6 +369,89 @@ class Client(object):
                 if ( n >= to_show ):
                     break
 
+    def explore(self):
+        """Explore capabilities of a server interactvely
+        
+        Will use sitemap URI taken either from explicit self.sitemap_name
+        or derived from the mappings supplied.
+        """
+        uri = None
+        if (self.sitemap_name is not None):
+            uri = self.sitemap
+            print "Taking location from --sitemap option"
+            acceptable_capabilities = None #ie. any
+        elif (len(self.mappings)>0):
+            pu = urlparse.urlparse(self.mappings[0].src_uri)
+            uri = urlparse.urlunparse( [ pu[0], pu[1], '/.well-known/resourcesync', '', '', '' ] )
+            print "Will look for discovery information based on mappings"
+            acceptable_capabilities = [ 'capabilitylist', 'capabilitylistindex' ]
+        else:
+            raise FatalError("Neither explicit sitemap nor mapping specified")
+        inp = None
+        while (inp!='q'):
+            print
+            (uri, acceptable_capabilities, inp) = self.explore_uri(uri,acceptable_capabilities)
+
+    def explore_uri(self, uri, caps):
+        """Interactive exploration of document at uri
+
+        Will flag warnings if the document is not of type listed in caps
+        """
+        s=Sitemap()
+        print "Reading %s" % (uri)
+        try:
+            list = s.parse_xml(urllib.urlopen(uri))
+        except IOError as e:
+            raise ClientFatalError("Cannot read %s (%s)" % (uri,str(e)))
+        num_entries = len(list.resources)
+        capability = '(unknown capability)'
+        if ('capability' in list.md):
+            capability = list.md['capability']
+        if (s.parsed_index):
+            capability += 'index'
+        print "Parsed %s document with %d entries:" % (capability,num_entries)
+        if (caps is not None and capability not in caps):
+            print "WARNING - expected a %s document" % (','.join(caps))
+        to_show = num_entries
+        if (num_entries>21):
+            to_show = 20
+        # What entries are allowed? 
+        # FIXME - not complete
+        if (capability == 'capabilitylistindex'):
+            entry_caps = ['capabilitylist']
+        elif (capability == 'capabilitylist'):
+            entry_caps = ['resourcelist','changelist','resourcedump','changedump','changelistindex']
+        elif (capability == 'changelistindex'):
+            entry_caps = ['changelist']
+        n = 0
+        options = {}
+        for r in list.resources:
+            if (n>=to_show):
+                print "(not showing remaining %d entries)" % (num_entries-n)
+                last
+            n+=1
+            options[str(n)]=r
+            print "[%d] %s" % (n,r.uri)
+            if (r.capability is not None):
+                warning = ''
+                if (r.capability not in entry_caps):
+                    warning = " (EXPECTED %s)" % (' or '.join(entry_caps))
+                print "  %s%s" % (r.capability,warning)
+            elif (len(entry_caps)==1):
+                r.capability=entry_caps[0]
+                print "  capability not specified, should be %s" % (r.capability)
+        while (True):
+            inp = raw_input( "Follow [number or q(uit)]?" )
+            if (inp in options.keys()):
+                break
+            if (inp == 'q'):
+                return('','',inp)
+        caps = [ options[inp].capability ]
+        if (capability == 'capabilitylistindex'):
+            # all links should be to capabilitylist documents
+            if (caps is None):
+                caps = ['capabilitylist']
+        return( options[inp].uri, caps, inp )
 
     def write_resource_list(self,outfile=None,links=None,dump=None):
         """Write a resource list sitemap for files on local disk

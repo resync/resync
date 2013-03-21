@@ -166,6 +166,7 @@ class Sitemap(object):
                 self.resources_created+=1
             elif (e.tag == "{"+RS_NS+"}md"):
                 if (in_preamble):
+                    # FIXME - more then one <rs:md> should be error
                     resources.md = self.md_from_etree(e,'preamble')
                 else:
                     raise SitemapParseError("Found <rs:md> after first <url> in sitemap")

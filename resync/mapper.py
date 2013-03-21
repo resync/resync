@@ -8,16 +8,16 @@ class MapperError(Exception):
 
 class Mapper():
     
-    def __init__(self,mappings=None):
+    def __init__(self, mappings=None, default_path=None):
         self.mappings=[]
         if (mappings):
-            self.parse(mappings)
+            self.parse(mappings, default_path)
 
     def __len__(self):
         """Length is number of mappings"""
         return(len(self.mappings))
 
-    def parse(self, mappings):
+    def parse(self, mappings, default_path=None):
         """Parse a list of map strings (mappings)
 
         Accepts two distinct formats:
@@ -25,8 +25,17 @@ class Mapper():
         and the destination base path. Neither may contain an equals (=) sign.
         2. For any number of mapping stings interpret each as a mapping URI=path. 
         These are in the order they will be tried.
+        
+        And if default_path is set then a third:
+        3. If there is exactly one entry and it does not contain an equals (=)
+        sign then default_path is assumed for the local path.
+        
         """
-        if (len(mappings)==2 and 
+        if (default_path is not None and
+            len(mappings)==1 and
+            re.search(r"=",mappings[0])==None):
+            self.mappings.append(Map(mappings[0],default_path))
+        elif (len(mappings)==2 and 
             re.search(r"=",mappings[0])==None and 
             re.search(r"=",mappings[1])==None):
             self.mappings.append(Map(mappings[0],mappings[1]))

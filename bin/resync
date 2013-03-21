@@ -137,6 +137,8 @@ def main():
                    help="audit sync state of destination wrt source")
     rem.add_option('--parse', '-p', action='store_true',
                    help="parse a remote sitemap/sitemapindex (from mapping or explicit --sitemap) and show summary information including document type and number of entries")
+    rem.add_option('--explore','-x', action='store_true',
+                   help="read discovery information and show capabilities. Will use either an explicit --sitemap or the first mapping URI specified to determine which server to look for .well-known discovery information or which URI to try")
     # b. modes based solely on files on local disk
     loc = p.add_option_group('LOCAL MODES',
         'These modes act on files on the local disk')
@@ -229,13 +231,14 @@ def main():
     # Implement exclusive arguments and default --baseline (support for exclusive
     # groups in argparse is incomplete is python2.6)
     if (not args.baseline and not args.inc and not args.audit and 
-        not args.parse and not args.resourcelist and not args.changelist and
+        not args.parse and not args.explore and
+        not args.resourcelist and not args.changelist and
         not args.capabilitylist and not args.capabilitylistindex):
         args.baseline=True
-    elif (count_true_args(args.baseline,args.inc,args.audit,args.parse,
+    elif (count_true_args(args.baseline,args.inc,args.audit,args.parse,args.explore,
                           args.resourcelist,args.changelist,args.capabilitylist,
                           args.capabilitylistindex)>1):
-        p.error("Only one of --baseline, --inc, --audit, --parse, --resourcelist, --changelist, --capabilitylist, --capabilitylistindex modes allowed")
+        p.error("Only one of --baseline, --inc, --audit, --parse, --explore, --resourcelist, --changelist, --capabilitylist, --capabilitylistindex modes allowed")
 
     # Configure logging module and create logger instance
     init_logging( to_file=args.logger, logfile=args.logfile, 
@@ -279,6 +282,8 @@ def main():
                           changelist_uri=args.changelist_uri)
         elif (args.parse):
             c.parse_document()
+        elif (args.explore):
+            c.explore()
         elif (args.resourcelist):
             c.write_resource_list(outfile=args.outfile,
                                   links=links,
