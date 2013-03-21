@@ -64,7 +64,7 @@ class Client(object):
 
     def set_mappings(self,mappings):
         """Build and set Mapper object based on input mappings"""
-        self.mapper = Mapper(mappings, default_path='/tmp')
+        self.mapper = Mapper(mappings, default_path='/tmp/resync')
 
     def sitemap_uri(self,basename):
         """Get full URI (filepath) for sitemap based on basename"""
