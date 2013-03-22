@@ -140,9 +140,9 @@ class Client(object):
         (same,updated,deleted,created)=dst_resource_list.compare(src_resource_list)   
         ### 3. Report status and planned actions
         self.log_status(in_sync=(len(updated)+len(deleted)+len(created)==0),
-                        audit=audit_only,same=len(same),created=len(created),
+                        audit=True,same=len(same),created=len(created),
                         updated=len(updated),deleted=len(deleted))
-        if (audit_only):
+        if (audit_only or len(created)+len(updated)+len(deleted)==0):
             self.logger.debug("Completed "+action)
             return
         ### 4. Check that sitemap has authority over URIs listed
@@ -155,26 +155,34 @@ class Client(object):
                 else:
                     raise ClientFatalError("Aborting as sitemap (%s) mentions resource at a location it does not have authority over (%s), override with --noauth" % (self.sitemap,resource.uri))
         ### 5. Grab files to do sync
+        delete_msg = (", and delete %d resources" % len(deleted)) if (allow_deletion) else ''
+        self.logger.warning("Will GET %d resources%s" % (len(created)+len(updated),delete_msg))
         self.last_timestamp = 0
-        for resource in updated:
-            uri = resource.uri
-            file = self.mapper.src_to_dst(uri)
-            self.logger.info("updated: %s -> %s" % (uri,file))
-            self.update_resource(resource,file,'updated')
+        num_created=0
+        num_updated=0
+        num_deleted=0
         for resource in created:
             uri = resource.uri
             file = self.mapper.src_to_dst(uri)
             self.logger.info("created: %s -> %s" % (uri,file))
-            self.update_resource(resource,file,'created')
+            num_created+=self.update_resource(resource,file,'created')
+        for resource in updated:
+            uri = resource.uri
+            file = self.mapper.src_to_dst(uri)
+            self.logger.info("updated: %s -> %s" % (uri,file))
+            num_updated+=self.update_resource(resource,file,'updated')
         for resource in deleted:
             uri = resource.uri
             file = self.mapper.src_to_dst(uri)
-            self.delete_resource(resource,file,allow_deletion)
+            num_deleted+=self.delete_resource(resource,file,allow_deletion)
         ### 6. Store last timestamp to allow incremental sync
         if (not audit_only and self.last_timestamp>0):
             ClientState().set_state(self.sitemap,self.last_timestamp)
             self.logger.info("Written last timestamp %s for incremental sync" % (datetime_to_str(self.last_timestamp)))
         ### 7. Done
+        self.log_status(in_sync=(len(updated)+len(deleted)+len(created)==0),
+                        same=len(same),created=num_created,
+                        updated=num_updated,deleted=num_deleted)
         self.logger.debug("Completed %s" % (action))
 
     def incremental(self, allow_deletion=False, change_list_uri=None, from_datetime=None):
@@ -290,15 +298,19 @@ class Client(object):
 
         Also update self.last_timestamp if the timestamp (in source frame) of this
         resource is later and the current value.
+
+        Returns the number of resources updated/created (0 or 1)
         """
         path = os.path.dirname(file)
         distutils.dir_util.mkpath(path)
+        num_updated=0
         if (self.dryrun):
             self.logger.info("dryrun: would GET %s --> %s" % (resource.uri,file))
         else:
             # 1. GET
             try:
                 urllib.urlretrieve(resource.uri,file)
+                num_updated+=1
             except IOError as e:
                 msg = "Failed to GET %s -- %s" % (resource.uri,str(e))
                 if (self.ignore_failures):
@@ -321,6 +333,7 @@ class Client(object):
                 file_md5 = compute_md5_for_file(file)
                 if (resource.md5 != file_md5):
                     self.logger.info("MD5 mismatch for %s, got %s but expected %s bytes" % (resource.uri,file_md5,resource.md5))
+        return(num_updated)
 
     def delete_resource(self, resource, file, allow_deletion=False):
         """Delete copy of resource in file on local system
@@ -328,7 +341,10 @@ class Client(object):
         Will only actually do the deletion if allow_deletion is True. Regardless 
         of whether the deletion occurs, self.last_timestamp will be updated 
         if the resource.timestamp is later than the current value.
+
+        Returns the number of files actually deleted (0 or 1).
         """
+        num_deleted=0
         uri = resource.uri
         if (resource.timestamp is not None and
             resource.timestamp > self.last_timestamp):
@@ -339,17 +355,19 @@ class Client(object):
             else:
                 try:
                     os.unlink(file)
+                    num_deleted+=1
                 except OSError as e:
                     msg = "Failed to DELETE %s -> %s : %s" % (uri,file,str(e))
-                    if (self.ignore_failures):
-                        self.logger.warning(msg)
-                        return
-                    else:
-                        raise ClientFatalError(msg)
+                    #if (self.ignore_failures):
+                    self.logger.warning(msg)
+                    #    return
+                    #else:
+                    #    raise ClientFatalError(msg)
                 self.logger.info("deleted: %s -> %s" % (uri,file))
                 self.log_event(Resource(resource=resource, change="deleted"))
         else:
             self.logger.info("nodelete: would delete %s (--delete to enable)" % uri)
+        return(num_deleted)
 
     def parse_document(self):
         """Parse any ResourceSync document and show information
