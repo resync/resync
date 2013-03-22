@@ -52,6 +52,17 @@ class TestMapper(unittest.TestCase):
         self.assertEqual( m.dst_to_src('/tmp/s/'), 'http://e.org/r/')
         self.assertEqual( m.dst_to_src('/tmp/s/bb'), 'http://e.org/r/bb')
 
+    def test05_path_from_uri(self):
+        m=Mapper()
+        self.assertEqual( m.path_from_uri('a_file'), 'localfile_a_file' )
+        self.assertEqual( m.path_from_uri('http://localhost/p'), 'localhost_p' )
+        self.assertEqual( m.path_from_uri('http://localhost:8888/p'), 'localhost_8888_p' )
+        self.assertEqual( m.path_from_uri('https://localhost:8888/p'), 'localhost_8888_p' )
+        self.assertEqual( m.path_from_uri('http://example.com'), 'example.com' )
+        self.assertEqual( m.path_from_uri('http://example.com/'), 'example.com' )
+        self.assertEqual( m.path_from_uri('http://example.com/ex1'), 'example.com_ex1' )
+        self.assertEqual( m.path_from_uri('http://example.com/ex1/'), 'example.com_ex1' )
+
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestMapper)
     unittest.TextTestRunner(verbosity=2).run(suite)

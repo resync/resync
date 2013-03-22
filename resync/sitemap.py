@@ -186,7 +186,7 @@ class Sitemap(object):
                     self.logger.warning('No capability specified in sitemap, assuming resourcelist')
                     resources.md['capability'] = 'resourcelist'
                 else:
-                    raise SitemapParseError("Expected to read a %s document, but not capability specified" %
+                    raise SitemapParseError("Expected to read a %s document, but no capability specified in sitemap" %
                                  (capability))
             if (resources.md['capability'] != capability):
                 raise SitemapParseError("Expected to read a %s document, got %s" %

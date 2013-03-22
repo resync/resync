@@ -2,22 +2,23 @@
 import os
 import os.path
 import re
+import urlparse
 
 class MapperError(Exception):
     pass
 
 class Mapper():
     
-    def __init__(self, mappings=None, default_path=None):
+    def __init__(self, mappings=None, use_default_path=False):
         self.mappings=[]
         if (mappings):
-            self.parse(mappings, default_path)
+            self.parse(mappings, use_default_path)
 
     def __len__(self):
         """Length is number of mappings"""
         return(len(self.mappings))
 
-    def parse(self, mappings, default_path=None):
+    def parse(self, mappings, use_default_path=False):
         """Parse a list of map strings (mappings)
 
         Accepts two distinct formats:
@@ -31,10 +32,10 @@ class Mapper():
         sign then default_path is assumed for the local path.
         
         """
-        if (default_path is not None and
+        if (use_default_path and
             len(mappings)==1 and
             re.search(r"=",mappings[0])==None):
-            self.mappings.append(Map(mappings[0],default_path))
+            self.mappings.append(Map(mappings[0],self.path_from_uri(mappings[0])))
         elif (len(mappings)==2 and 
             re.search(r"=",mappings[0])==None and 
             re.search(r"=",mappings[1])==None):
@@ -68,6 +69,19 @@ class Mapper():
                 return(dst_path)
         # Must have failed if loop exited
         raise MapperError("Unable to translate source URI (%s) into a destination path." % (src_uri))
+
+    def path_from_uri(self,uri):
+        """Make a safe path name from uri
+        """
+        (scheme, netloc, path, params, query, fragment) = urlparse.urlparse( uri )
+        if (netloc == ''):
+            netloc = 'localfile'
+        path = '/'.join([netloc,path])
+        path = re.sub('[^\w\-\.]', '_', path)
+        path = re.sub('__+', '_', path)
+        path = re.sub('[_\.]+$', '', path)
+        path = re.sub('^[_\.]+', '', path)
+        return(path)
 
     def __repr__(self):
         s = 'Mapper: with %d maps:\n' % (len(self.mappings))

@@ -22,6 +22,7 @@ from resync.dump import Dump
 from resync.resource import Resource
 from resync.url_authority import UrlAuthority
 from resync.utils import compute_md5_for_file
+from resync.client_state import ClientState
 
 class ClientFatalError(Exception):
     """Non-recoverable error in client, should include message to user"""
@@ -64,7 +65,7 @@ class Client(object):
 
     def set_mappings(self,mappings):
         """Build and set Mapper object based on input mappings"""
-        self.mapper = Mapper(mappings, default_path='/tmp/resync')
+        self.mapper = Mapper(mappings, use_default_path=True)
 
     def sitemap_uri(self,basename):
         """Get full URI (filepath) for sitemap based on basename"""
@@ -107,7 +108,8 @@ class Client(object):
         """Baseline synchonization or audit
 
 	Both functions implemented in this routine because audit is a prerequisite
-	for a baseline sync.
+	for a baseline sync. In the case of baseline sync the last timestamp seen
+        is recorded as client state.
 	"""
         action = ( 'audit' if (audit_only) else 'baseline sync' ) 
         self.logger.debug("Starting "+action)
@@ -154,6 +156,7 @@ class Client(object):
                 else:
                     raise ClientFatalError("Aborting as sitemap (%s) mentions resource at a location it does not have authority over (%s), override with --noauth" % (self.sitemap,resource.uri))
         ### 5. Grab files to do sync
+        self.last_timestamp = 0
         for resource in updated:
             uri = resource.uri
             file = self.mapper.src_to_dst(uri)
@@ -168,64 +171,50 @@ class Client(object):
             uri = resource.uri
             file = self.mapper.src_to_dst(uri)
             self.delete_resource(resource,file,allow_deletion)
-        ### 6. For sync reset any incremental status for site
-        if (not audit_only):
-            #links = self.extract_links(src_resource_list)
-            #if ('next' in links):
-            #    self.write_incremental_status(self.sitemap,links['next'])
-            #    self.logger.info("Written config with next incremental at %s" % (links['next']))
-            #else:
-                self.write_incremental_status(self.sitemap)
-        self.logger.debug("Completed "+action)
+        ### 6. Store last timestamp to allow incremental sync
+        if (not audit_only and self.last_timestamp>0):
+            ClientState().set_state(self.sitemap,self.last_timestamp)
+            self.logger.info("Written last timestamp %d for incremental sync" % (self.last_timestamp))
+        ### 7. Done
+        self.logger.debug("Completed %s" % (action))
 
-    def incremental(self, allow_deletion=False, change_list_uri=None):
-	"""Incremental synchronization"""
+    def incremental(self, allow_deletion=False, change_list_uri=None, from_timestamp=None):
+	"""Incremental synchronization
+
+        """
         self.logger.debug("Starting incremental sync")
         ### 0. Sanity checks
         if (len(self.mappings)<1):
             raise ClientFatalError("No source to destination mapping specified")
-        # Get current config
-        inc_config_next=self.read_incremental_status(self.sitemap)
-        ### 1. Get URI of change_list, from sitemap or explicit
-        if (inc_config_next is not None):
-            # We have config from last run for this site
-            change_list = inc_config_next
-            self.logger.info("ChangeList location from last incremental run %s" % (change_list))
-        elif (change_list_uri):
+        ### 1. Work out where to start from
+        if (from_timestamp is None):
+            from_timestamp=ClientState().get_state(self.sitemap)
+            if (from_timestamp is None):
+                raise ClientFatalError("No stored timestamp for this site, and no explicit --from")
+        ### 2. Get URI of change list, from sitemap or explicit
+        if (change_list_uri):
             # Translate as necessary using maps
             change_list = self.sitemap_uri(change_list_uri)
         else:
-            # Get sitemap
-            try:
-                self.logger.info("Reading sitemap %s" % (self.sitemap))
-                src_resource_list = ResourceList(allow_multifile=self.allow_multifile, mapper=self.mapper)
-                src_resource_list.read(uri=self.sitemap, index_only=True)
-                self.logger.debug("Finished reading sitemap/sitemapindex")
-            except Exception as e:
-                raise ClientFatalError("Can't read source sitemap from %s (%s)" % (self.sitemap,str(e)))
-            # Extract change_list location
-            # FIXME - need to completely rework the way we handle/store links
-            #links = self.extract_links(src_resource_list)
-            #if ('current' not in links):
-            #    raise ClientFatalError("Failed to extract change_list location from sitemap %s" % (self.sitemap))
-            #change_list = links['current']
-        ### 2. Read change_list from source
+            # Try default name
+            change_list = self.sitemap_uri(self.change_list_name)
+        ### 3. Read change list from source
         try:
-            self.logger.info("Reading change_list %s" % (change_list))
+            self.logger.info("Reading change list %s" % (change_list))
             src_change_list = ChangeList()
             src_change_list.read(uri=change_list)
-            self.logger.debug("Finished reading change_list")
+            self.logger.debug("Finished reading change list")
         except Exception as e:
-            raise ClientFatalError("Can't read source change_list from %s (%s)" % (change_list,str(e)))
-        self.logger.info("Read source change_list, %d resources listed" % (len(src_change_list)))
+            raise ClientFatalError("Can't read source change list from %s (%s)" % (change_list,str(e)))
+        self.logger.info("Read source change list, %d resources listed" % (len(src_change_list)))
         #if (len(src_change_list)==0):
         #    raise ClientFatalError("Aborting as there are no resources to sync")
         if (self.checksum and not src_change_list.has_md5()):
             self.checksum=False
-            self.logger.info("Not calculating checksums on destination as not present in source resource_list")
-        ### 3. Check that sitemap has authority over URIs listed
-        # FIXME - What does authority mean for change_list? Here use both the
-        # change_list URI and, if we used it, the sitemap URI
+            self.logger.info("Not calculating checksums on destination as not present in source change list")
+        ### 4. Check that the change list has authority over URIs listed
+        # FIXME - What does authority mean for change list? Here use both the
+        # change list URI and, if we used it, the sitemap URI
         uauth_cs = UrlAuthority(change_list)
         if (not change_list_uri):
             uauth_sm = UrlAuthority(self.sitemap)
@@ -233,16 +222,23 @@ class Client(object):
             if (not uauth_cs.has_authority_over(resource.uri) and 
                 (change_list_uri or not uauth_sm.has_authority_over(resource.uri))):
                 if (self.noauth):
-                    #self.logger.info("ChangeList (%s) mentions resource at a location it does not have authority over (%s)" % (change_list,resource.uri))
+                    #self.logger.info("Change list (%s) mentions resource at a location it does not have authority over (%s)" % (change_list,resource.uri))
                     pass
                 else:
-                    raise ClientFatalError("Aborting as change_list (%s) mentions resource at a location it does not have authority over (%s), override with --noauth" % (change_list,resource.uri))
-        ### 3. Apply changes
+                    raise ClientFatalError("Aborting as change list (%s) mentions resource at a location it does not have authority over (%s), override with --noauth" % (change_list,resource.uri))
+        ### 5. Apply changes at same time or after from_timestamp
+        self.last_timestamp = 0
+        num_skipped = 0
         num_updated = 0
         num_deleted = 0
         num_created = 0
         for resource in src_change_list:
             uri = resource.uri
+            if (resource.timestamp is None):
+                raise ClientFatalError("Aborting - missing timestamp for change in %s" % (uri))
+            if (resource.timestamp < from_timestamp):
+                num_skipped+=1
+                continue
             file = self.mapper.src_to_dst(uri)
             if (resource.change == 'updated'):
                 self.logger.info("updated: %s -> %s" % (uri,file))
@@ -257,34 +253,33 @@ class Client(object):
                 num_deleted+=1
             else:
                 raise ClientError("Unknown change type %s" % (resource.change) )
-        # 4. Report status and planned actions
-        status = "NO CHANGES"
-        if ((num_updated+num_deleted+num_created)>0):
-            status = " CHANGES  "
+        ### 6. Report status and planned actions
+        if (num_skipped>0):
+            self.logger.info("Skipped %d changes before %d" % (num_skipped,from_timestamp))
+        status = " CHANGES  " if ((num_updated+num_deleted+num_created)>0) else "NO CHANGES"
         self.logger.warning("Status: %s (updated=%d, deleted=%d, created=%d)" %\
               (status,num_updated,num_deleted,num_created))
-        # 5. Store next link if available
-        if ((num_updated+num_deleted+num_created)>0):
-            pass
-            #links = self.extract_links(src_change_list)
-            #if ('next' in links):
-            #    self.write_incremental_status(self.sitemap,links['next'])
-            #    self.logger.info("Written config with next incremental at %s" % (links['next']))
-            #else:
-            #    self.logger.warning("Failed to extract next change_list location from change_list %s" % (change_list))
-        # 6. Done
+        ### 7. Store next link if available
+        if ((num_updated+num_deleted+num_created)>0 and
+            self.last_timestamp>0):
+            ClientState().set_state(self.sitemap,self.last_timestamp)
+            self.logger.info("Written last timestamp %d for incremental sync" % (self.last_timestamp))
+        ### 8. Done
         self.logger.debug("Completed incremental sync")
 
     def update_resource(self, resource, file, change=None):
         """Update resource from uri to file on local system
 
-        Update means two things:
+        Update means three things:
         1. GET resources
         2. set mtime in local time to be equal to timestamp in UTC (should perhaps
         or at least warn if different from LastModified from the GET response instead 
         but maybe warn if different (or just earlier than) the lastmod we expected 
         from the resource_list
         3. check that resource matches expected information
+
+        Also update self.last_timestamp if the timestamp (in source frame) of this
+        resource is later and the current value.
         """
         path = os.path.dirname(file)
         distutils.dir_util.mkpath(path)
@@ -305,6 +300,8 @@ class Client(object):
             if (resource.timestamp is not None):
                 unixtime = int(resource.timestamp) #no fractional
                 os.utime(file,(unixtime,unixtime))
+                if (resource.timestamp > self.last_timestamp):
+                    self.last_timestamp = resource.timestamp
             self.log_event(Resource(resource=resource, change=change))
             # 3. sanity check
             length = os.stat(file).st_size
@@ -317,8 +314,15 @@ class Client(object):
 
     def delete_resource(self, resource, file, allow_deletion=False):
         """Delete copy of resource in file on local system
+
+        Will only actually do the deletion if allow_deletion is True. Regardless 
+        of whether the deletion occurs, self.last_timestamp will be updated 
+        if the resource.timestamp is later than the current value.
         """
         uri = resource.uri
+        if (resource.timestamp is not None and
+            resource.timestamp > self.last_timestamp):
+            self.last_timestamp = resource.timestamp
         if (allow_deletion):
             if (self.dryrun):
                 self.logger.info("dryrun: would delete %s -> %s" % (uri,file))
@@ -499,7 +503,6 @@ class Client(object):
             cl.write(basename=outfile,**kwargs)
         self.write_dump_if_requested(cl,dump)
 
-
     def write_capability_list(self,capabilities=None,outfile=None,links=None):
         """Write a Capability List to outfile or STDOUT"""
         capl = CapabilityList(ln=links)
@@ -511,7 +514,6 @@ class Client(object):
             print capl.as_xml(**kwargs)
         else:
             capl.write(basename=outfile,**kwargs)
-
 
     def write_capability_list_index(self,capability_lists=None,outfile=None,links=None):
         """Write a Capability List to outfile or STDOUT"""
@@ -525,14 +527,12 @@ class Client(object):
         else:
             capli.write(basename=outfile,**kwargs)
 
-
     def write_dump_if_requested(self,resource_list,dump):
         if (dump is None):
             return
         self.logger.info("Writing dump to %s..." % (dump))
         d = Dump(format=self.dump_format)
         d.write(resource_list=resource_list,dumpfile=dump)
-
 
     def read_reference_resource_list(self,ref_sitemap,name='reference'):
         """Read reference resource list and return the ResourceList object
@@ -561,42 +561,6 @@ class Client(object):
                 if ( n >= to_show ):
                     break
         return(rl)
-
-
-    def write_incremental_status(self,site,next=None):
-        """Write status dict to client status file
-        
-        FIXME - should have some file lock to avoid race
-        """
-        parser = ConfigParser.SafeConfigParser()
-        parser.read(self.status_file)
-        status_section = 'incremental'
-        if (not parser.has_section(status_section)):
-            parser.add_section(status_section)
-        if (next is None):
-            parser.remove_option(status_section, self.config_site_to_name(site))
-        else:
-            parser.set(status_section, self.config_site_to_name(site), next)
-        with open(self.status_file, 'wb') as configfile:
-            parser.write(configfile)
-            configfile.close()
-
-    def read_incremental_status(self,site):
-        """Read client status file and return dict"""
-        parser = ConfigParser.SafeConfigParser()
-        status_section = 'incremental'
-        parser.read(self.status_file)
-        next = None
-        try:
-            next = parser.get(status_section,self.config_site_to_name(site))
-        except ConfigParser.NoSectionError as e:
-            pass
-        except ConfigParser.NoOptionError as e:
-            pass
-        return(next)
-
-    def config_site_to_name(self, name):
-        return( re.sub(r"[^\w]",'_',name) )
 
 if __name__ == '__main__':
     main()
