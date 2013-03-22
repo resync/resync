@@ -23,6 +23,7 @@ from resync.resource import Resource
 from resync.url_authority import UrlAuthority
 from resync.utils import compute_md5_for_file
 from resync.client_state import ClientState
+from w3c_datetime import str_to_datetime,datetime_to_str
 
 class ClientFatalError(Exception):
     """Non-recoverable error in client, should include message to user"""
@@ -138,11 +139,9 @@ class Client(object):
         ### 2. Compare these resource_lists respecting any comparison options
         (same,updated,deleted,created)=dst_resource_list.compare(src_resource_list)   
         ### 3. Report status and planned actions
-        status = "  IN SYNC  "
-        if (len(updated)>0 or len(deleted)>0 or len(created)>0):
-            status = "NOT IN SYNC"
-        self.logger.warning("Status: %s (same=%d, updated=%d, deleted=%d, created=%d)" %\
-              (status,len(same),len(updated),len(deleted),len(created)))
+        self.log_status(in_sync=(len(updated)+len(deleted)+len(created)==0),
+                        audit=audit_only,same=len(same),created=len(created),
+                        updated=len(updated),deleted=len(deleted))
         if (audit_only):
             self.logger.debug("Completed "+action)
             return
@@ -174,11 +173,11 @@ class Client(object):
         ### 6. Store last timestamp to allow incremental sync
         if (not audit_only and self.last_timestamp>0):
             ClientState().set_state(self.sitemap,self.last_timestamp)
-            self.logger.info("Written last timestamp %d for incremental sync" % (self.last_timestamp))
+            self.logger.info("Written last timestamp %s for incremental sync" % (datetime_to_str(self.last_timestamp)))
         ### 7. Done
         self.logger.debug("Completed %s" % (action))
 
-    def incremental(self, allow_deletion=False, change_list_uri=None, from_timestamp=None):
+    def incremental(self, allow_deletion=False, change_list_uri=None, from_datetime=None):
 	"""Incremental synchronization
 
         """
@@ -186,6 +185,12 @@ class Client(object):
         ### 0. Sanity checks
         if (len(self.mappings)<1):
             raise ClientFatalError("No source to destination mapping specified")
+        from_timestamp = None
+        if (from_datetime is not None):
+            try:
+                from_timestamp = str_to_datetime(from_datetime)
+            except ValueError:
+                raise ClientFatalError("Bad datetime in --from (%s)" % from_datetime)
         ### 1. Work out where to start from
         if (from_timestamp is None):
             from_timestamp=ClientState().get_state(self.sitemap)
@@ -206,12 +211,19 @@ class Client(object):
             self.logger.debug("Finished reading change list")
         except Exception as e:
             raise ClientFatalError("Can't read source change list from %s (%s)" % (change_list,str(e)))
-        self.logger.info("Read source change list, %d resources listed" % (len(src_change_list)))
+        self.logger.info("Read source change list, %d changes listed" % (len(src_change_list)))
         #if (len(src_change_list)==0):
         #    raise ClientFatalError("Aborting as there are no resources to sync")
         if (self.checksum and not src_change_list.has_md5()):
             self.checksum=False
             self.logger.info("Not calculating checksums on destination as not present in source change list")
+        # Check all changes have timestamp and record last
+        self.last_timestamp = 0
+        for resource in src_change_list:
+            if (resource.timestamp is None):
+                raise ClientFatalError("Aborting - missing timestamp for change in %s" % (uri))
+            if (resource.timestamp > self.last_timestamp):
+                self.last_timestamp = resource.timestamp
         ### 4. Check that the change list has authority over URIs listed
         # FIXME - What does authority mean for change list? Here use both the
         # change list URI and, if we used it, the sitemap URI
@@ -226,19 +238,20 @@ class Client(object):
                     pass
                 else:
                     raise ClientFatalError("Aborting as change list (%s) mentions resource at a location it does not have authority over (%s), override with --noauth" % (change_list,resource.uri))
-        ### 5. Apply changes at same time or after from_timestamp
-        self.last_timestamp = 0
-        num_skipped = 0
+        ### 5. Prune entries before starting timestamp and dupe changes for a resource
+        num_skipped = src_change_list.prune_before(from_timestamp)
+        if (num_skipped>0):
+            self.logger.info("Skipped %d changes before %s" % (num_skipped,datetime_to_str(from_timestamp)))
+        num_dupes = src_change_list.prune_dupes()
+        if (num_dupes>0):
+            self.logger.info("Removed %d prior changes" % (num_dupes))
+        ### 6. Apply changes at same time or after from_timestamp
+        self.logger.info("Applying %d changes" % (len(src_change_list)))
         num_updated = 0
         num_deleted = 0
         num_created = 0
         for resource in src_change_list:
             uri = resource.uri
-            if (resource.timestamp is None):
-                raise ClientFatalError("Aborting - missing timestamp for change in %s" % (uri))
-            if (resource.timestamp < from_timestamp):
-                num_skipped+=1
-                continue
             file = self.mapper.src_to_dst(uri)
             if (resource.change == 'updated'):
                 self.logger.info("updated: %s -> %s" % (uri,file))
@@ -253,18 +266,15 @@ class Client(object):
                 num_deleted+=1
             else:
                 raise ClientError("Unknown change type %s" % (resource.change) )
-        ### 6. Report status and planned actions
-        if (num_skipped>0):
-            self.logger.info("Skipped %d changes before %d" % (num_skipped,from_timestamp))
-        status = " CHANGES  " if ((num_updated+num_deleted+num_created)>0) else "NO CHANGES"
-        self.logger.warning("Status: %s (updated=%d, deleted=%d, created=%d)" %\
-              (status,num_updated,num_deleted,num_created))
-        ### 7. Store next link if available
-        if ((num_updated+num_deleted+num_created)>0 and
-            self.last_timestamp>0):
+        ### 7. Report status and planned actions
+        self.log_status(in_sync=((num_updated+num_deleted+num_created)==0),
+                        incremental=True,created=num_created, updated=num_updated, 
+                        deleted=num_deleted)
+        ### 8. Record last timestamp we have seen
+        if (self.last_timestamp>0):
             ClientState().set_state(self.sitemap,self.last_timestamp)
-            self.logger.info("Written last timestamp %d for incremental sync" % (self.last_timestamp))
-        ### 8. Done
+            self.logger.info("Written last timestamp %s for incremental sync" % (datetime_to_str(self.last_timestamp)))
+        ### 9. Done
         self.logger.debug("Completed incremental sync")
 
     def update_resource(self, resource, file, change=None):
@@ -561,6 +571,30 @@ class Client(object):
                 if ( n >= to_show ):
                     break
         return(rl)
+
+    def log_status(self, in_sync=True, incremental=False, audit=False,
+                   same=None, created=0, updated=0, deleted=0):
+        """Write log message regarding status in standard form
+        
+        Split this off so we messages from baseline/audit/incremental
+        are written in a consistent form.
+        """
+        if (incremental):     
+            status = "NO CHANGES" if in_sync else "CHANGES"
+        else:
+            status = "IN SYNC" if in_sync else ("NOT IN SYNC" if (audit) else "SYNCED")
+        if (audit):
+            words = { 'created': 'to create',
+                      'updated': 'to update',
+                      'deleted': 'to delete' }
+        else:
+            words = { 'created': 'created',
+                      'updated': 'updated',
+                      'deleted': 'deleted' }
+        same =  "" if (same is None) else ("same=%d, " % same)
+        self.logger.warning("Status: %11s (%s%s=%d, %s=%d, %s=%d)" %\
+             (status, same, words['created'], created, 
+              words['updated'], updated, words['deleted'], deleted))
 
 if __name__ == '__main__':
     main()

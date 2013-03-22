@@ -132,7 +132,7 @@ def main():
     rem.add_option('--baseline', '-b', action='store_true',
                    help='baseline sync of resources from remote source (src) to local filesystem (dst)')
     rem.add_option('--inc', '-i', action='store_true',
-                   help='incremental sync of resources from remote source (src) to local filesystem (dst)')
+                   help='incremental sync of resources from remote source (src) to local filesystem (dst). Uses either timestamp recorded from last baseline or incremental sync for this source, or explicit --from parameter, to determine the earlier update timestamp to act on.')
     rem.add_option('--audit', '-a', action='store_true',
                    help="audit sync state of destination wrt source")
     rem.add_option('--parse', '-p', action='store_true',
@@ -175,7 +175,7 @@ def main():
                    help='updated reference sitemap name for --changelist calculation')
     nam.add_option('--dump', metavar="DUMPFILE", type=str, action='store',
                    help='write dump to specified file for --resourcelist or --changelist')
-    nam.add_option('--changelist-uri', type=str, action='store',
+    nam.add_option('--changelist-uri','--change-list-uri', type=str, action='store',
                    help='explicitly set the changelist URI that will be use in --inc mode, '
                         'overrides process of getting this from the sitemap')
 
@@ -185,6 +185,9 @@ def main():
                    help="use checksum (md5) in addition to last modification time and size")
     opt.add_option('--delete', action='store_true',
                    help="allow files on destination to be deleted")
+    opt.add_option('--from', type=str, action='store', dest='from_datetime', metavar="DATETIME",
+                   help="explicit datetime value used to filter updates in change list for "
+                        "--incremental sync")
     opt.add_option('--exclude', type=str, action='append',
                    help="exclude resources with URI or filename matching pattern "
                         "(repeat option for multiple excludes)")
@@ -279,7 +282,8 @@ def main():
                                 audit_only=args.audit)
         elif (args.inc):
             c.incremental(allow_deletion=args.delete,
-                          changelist_uri=args.changelist_uri)
+                          change_list_uri=args.changelist_uri,
+                          from_datetime=args.from_datetime)
         elif (args.parse):
             c.parse_document()
         elif (args.explore):
