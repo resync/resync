@@ -28,14 +28,14 @@ class ResourceContainer(object):
     """
 
     def __init__(self, resources=None, md=None, ln=None):
-        self.resources=(resources if (resources is not None) else list())
+        self.resources=(resources if (resources is not None) else [])
         self.md=(md if (md is not None) else {})
         self.ln=(ln if (ln is not None) else [])
         self.capability_name=None
         self.capability_md=None
 
     def __iter__(self):
-        """Iterator over all the resources in this resource_list
+        """Iterator over all the resources in this resource list
 
         Baseline implementation use iterator given by resources property
         """
@@ -94,6 +94,55 @@ class ResourceContainer(object):
         for r in self.resources:
             uris.append(r.uri)
         return(uris)
+
+    def prune_before(self, timestamp):
+        """Remove all resources with timestamp earlier than that given
+        
+        Returns the number of entries removed. Will raise an excpetion
+        if there are any entries without a timestamp.
+        """
+        n = 0
+        pruned = []
+        for r in self.resources:
+            if (r.timestamp is None):
+                raise Exception("Entry %s has no timestamp" % (r.uri))
+            elif (r.timestamp >= timestamp):
+                pruned.append(r)
+            else:
+                n += 1
+        self.resources = pruned
+        return(n)
+
+    def prune_dupes(self):
+        """Remove all but the last entry for a given resource URI
+        
+        Returns the number of entries removed. Also removes all entries for a 
+        given URI where the first entry is a create and the last entry is a
+        delete.
+        """
+        n = 0
+        pruned1 = []
+        seen = set()
+        deletes = {}
+        for r in reversed(self.resources):
+            if (r.uri in seen):
+                n += 1
+                if (r.uri in deletes):
+                    deletes[r.uri]=r.change
+            else:
+                pruned1.append(r)
+                seen.add(r.uri)
+                if (r.change == 'deleted'):
+                    deletes[r.uri]=r.change
+        # go through all deletes and prune if first was create
+        pruned2 = []
+        for r in reversed(pruned1):
+            if (r.uri in deletes and deletes[r.uri] == 'created'):
+                n += 1
+            else:
+                pruned2.append(r)
+        self.resources=pruned2
+        return(n)
 
     def __str__(self):
         """Return string of all resources in order given by interator"""
