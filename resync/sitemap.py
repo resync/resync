@@ -9,7 +9,6 @@ import StringIO
 
 from resource import Resource
 from resource_container import ResourceContainer
-from mapper import Mapper, MapperError
 
 SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9'
 RS_NS = 'http://www.openarchives.org/rs/terms/'
@@ -48,12 +47,9 @@ class Sitemap(object):
     so that the calling code can handle it.
     """
 
-    def __init__(self, pretty_xml=False, allow_multifile=True, mapper=None):
+    def __init__(self, pretty_xml=False):
         self.logger = logging.getLogger('sitemap')
         self.pretty_xml=pretty_xml
-        self.allow_multifile=allow_multifile
-        self.mapper=mapper
-        self.max_sitemap_entries=50000
         # Classes used when parsing
         self.resource_class=Resource
         # Information recorded for logging
