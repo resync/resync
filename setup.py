@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='resync',
-    version='0.1',
+    version='0.5.3',
     packages=['resync'],
     classifiers=["Development Status :: 3 - Alpha",
                  "Programming Language :: Python",
