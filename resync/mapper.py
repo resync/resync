@@ -3,6 +3,7 @@ import os
 import os.path
 import re
 import urlparse
+import logging
 
 class MapperError(Exception):
     pass
@@ -10,6 +11,7 @@ class MapperError(Exception):
 class Mapper():
     
     def __init__(self, mappings=None, use_default_path=False):
+        self.logger = logging.getLogger('mapper')
         self.mappings=[]
         if (mappings):
             self.parse(mappings, use_default_path)
@@ -27,15 +29,18 @@ class Mapper():
         2. For any number of mapping stings interpret each as a mapping URI=path. 
         These are in the order they will be tried.
         
-        And if default_path is set then a third:
+        And if use_default_path is True then a third:
         3. If there is exactly one entry and it does not contain an equals (=)
-        sign then default_path is assumed for the local path.
-        
+        sign then a safe local path is created based on the source base URI. In
+        the case that the source base URI is a local path already then an indentity 
+        mapping is used.
         """
         if (use_default_path and
             len(mappings)==1 and
             re.search(r"=",mappings[0])==None):
-            self.mappings.append(Map(mappings[0],self.path_from_uri(mappings[0])))
+            path = self.path_from_uri(mappings[0])
+            self.logger.info("Assuming mapping: %s -> %s" % (mappings[0],path))
+            self.mappings.append(Map(mappings[0],path))
         elif (len(mappings)==2 and 
             re.search(r"=",mappings[0])==None and 
             re.search(r"=",mappings[1])==None):
@@ -54,7 +59,29 @@ class Mapper():
                         raise MapperError("Attempt to set duplicate mapping for destination path %s (with source URI %s)" % (dst_path,src_uri))
                 self.mappings.append(Map(src_uri, dst_path))
 
+    def default_src_uri(self):
+        """Default src_uri from mapping
+
+        This is take just to be the src_uri of the first entry
+        """
+        if (len(self.mappings)>0):
+            return(self.mappings[0].src_uri)
+        raise MapperError("Can't get default source URI from empty mapping")
+
+    def unsafe(self):
+        """True is one or more mapping is unsafe
+
+        See Map.unsafe() for logic. Provide this as a test rather than 
+        building into object creation/parse because it is useful to 
+        allow unsafe mappings in situations where it doesn't matter.
+        """
+        for map in self.mappings:
+            if (map.unsafe()):
+                return(True)
+        return(False)
+
     def dst_to_src(self,dst_file):
+        """Map destination path to source URI"""
         for map in self.mappings:
             src_uri = map.dst_to_src(dst_file)
             if (src_uri is not None):
@@ -63,6 +90,7 @@ class Mapper():
         raise MapperError("Unable to translate destination path (%s) into a source URI." % (dst_file))
 
     def src_to_dst(self,src_uri):
+        """Map source URI to destination path"""
         for map in self.mappings:
             dst_path = map.src_to_dst(src_uri)
             if (dst_path is not None):
@@ -72,10 +100,13 @@ class Mapper():
 
     def path_from_uri(self,uri):
         """Make a safe path name from uri
+
+        In the case that uri is already a local path then the same path
+        is returned.
         """
         (scheme, netloc, path, params, query, fragment) = urlparse.urlparse( uri )
         if (netloc == ''):
-            netloc = 'localfile'
+            return(uri)
         path = '/'.join([netloc,path])
         path = re.sub('[^\w\-\.]', '_', path)
         path = re.sub('__+', '_', path)
@@ -84,7 +115,7 @@ class Mapper():
         return(path)
 
     def __repr__(self):
-        s = 'Mapper: with %d maps:\n' % (len(self.mappings))
+        s = 'Mapper with %d maps:\n' % (len(self.mappings))
         for map in self.mappings:
             s += str(map) + '\n'
         return(s)
@@ -134,6 +165,20 @@ class Map:
             return(None)
         rel_path=m.group(1)
         return(self.dst_path+'/'+rel_path)
+
+    def unsafe(self):
+        """True is the mapping is unsafe for an update
+
+        Applies only to local source. Returns True if the paths for source and 
+        destination are the same, or if one is a component of the other path.
+        """
+        (scheme, netloc, path, params, query, fragment) = urlparse.urlparse( self.src_uri )
+        if (scheme != ''):
+            return(False)
+        s = os.path.normpath(self.src_uri)
+        d = os.path.normpath(self.dst_path)
+        lcp = os.path.commonprefix([s,d])
+        return(s == lcp or d == lcp)
 
     def __repr__(self):
         return("Map( %s -> %s )" % (self.src_uri, self.dst_path))

@@ -1,5 +1,5 @@
 import unittest
-from resync.mapper import Mapper, MapperError
+from resync.mapper import Mapper, MapperError, Map
 
 class TestMapper(unittest.TestCase):
 
@@ -54,7 +54,8 @@ class TestMapper(unittest.TestCase):
 
     def test05_path_from_uri(self):
         m=Mapper()
-        self.assertEqual( m.path_from_uri('a_file'), 'localfile_a_file' )
+        self.assertEqual( m.path_from_uri('a_file'), 'a_file' )
+        self.assertEqual( m.path_from_uri('some_path/a_file'), 'some_path/a_file' )
         self.assertEqual( m.path_from_uri('http://localhost/p'), 'localhost_p' )
         self.assertEqual( m.path_from_uri('http://localhost:8888/p'), 'localhost_8888_p' )
         self.assertEqual( m.path_from_uri('https://localhost:8888/p'), 'localhost_8888_p' )
@@ -62,6 +63,33 @@ class TestMapper(unittest.TestCase):
         self.assertEqual( m.path_from_uri('http://example.com/'), 'example.com' )
         self.assertEqual( m.path_from_uri('http://example.com/ex1'), 'example.com_ex1' )
         self.assertEqual( m.path_from_uri('http://example.com/ex1/'), 'example.com_ex1' )
+
+    def test06_mapper_unsafe(self):
+        self.assertFalse( Mapper( ['http://example.com/=/tmp/a'] ).unsafe() )
+        self.assertFalse( Mapper( ['http://example.com/=http://example.com/'] ).unsafe() )
+        self.assertFalse( Mapper( ['http://example.com/'], use_default_path=True ).unsafe() )
+        # Following hits case of single local arg supplied
+        self.assertTrue( Mapper( ['/tmp/a'], use_default_path=True ).unsafe() )
+        # One good, one bad -> bad
+        self.assertTrue( Mapper( ['http://example.com/=/tmp/a','/tmp/a=/tmp'] ).unsafe() )
+
+    def test07_default_src_uri(self):
+        self.assertEqual( Mapper(['a=b']).default_src_uri(), 'a')
+        self.assertEqual( Mapper(['a=b','b=c']).default_src_uri(), 'a')
+        self.assertRaises( MapperError, Mapper().default_src_uri )
+        
+    ##### Map #####
+
+    def test10_map_unsafe(self):
+        self.assertFalse( Map('http://example.com/','path').unsafe() )
+        # Note the first is a URI and the second is a (silly) path in the following
+        self.assertFalse( Map('http://example.com/','http://example.com/').unsafe() )
+        self.assertFalse( Map('a','b').unsafe() )
+        self.assertFalse( Map('path/a','path/b').unsafe() )
+        # The following are unsafe
+        self.assertTrue( Map('path','path').unsafe() )
+        self.assertTrue( Map('path/a','path').unsafe() )
+        self.assertTrue( Map('path','path/b').unsafe() )
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestMapper)

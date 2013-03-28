@@ -45,7 +45,7 @@ class Client(object):
         self.verbose = verbose
         self.dryrun = dryrun
         self.logger = logging.getLogger('client')
-        self.mapper = None
+        self.mapper = Mapper()
         self.resource_list_name = 'resourcelist.xml'
         self.change_list_name = 'changelist.xml'
         self.dump_format = None
@@ -56,13 +56,6 @@ class Client(object):
         self.max_sitemap_entries = None
         self.ignore_failures = False
         self.status_file = '.resync-client-status.cfg'
-
-    @property
-    def mappings(self):
-        """Provide access to mappings list within Mapper object"""
-        if (self.mapper is None):
-            raise ClientFatalError("No mappings specified")
-        return(self.mapper.mappings)
 
     def set_mappings(self,mappings):
         """Build and set Mapper object based on input mappings"""
@@ -78,7 +71,7 @@ class Client(object):
             return(basename)
         else:
             # build from mapping with name appended
-            return(self.mappings[0].src_uri + '/' + basename)
+            return(self.mapper.default_src_uri() + '/' + basename)
 
     @property
     def sitemap(self):
@@ -94,7 +87,7 @@ class Client(object):
         Return resource_list. Uses existing self.mapper settings.
         """
         ### 0. Sanity checks
-        if (len(self.mappings)<1):
+        if (len(self.mapper)<1):
             raise ClientFatalError("No source to destination mapping specified")
         ### 1. Build from disk
         rlb = ResourceListBuilder(do_md5=self.checksum,mapper=self.mapper)
@@ -115,8 +108,10 @@ class Client(object):
         action = ( 'audit' if (audit_only) else 'baseline sync' ) 
         self.logger.debug("Starting "+action)
         ### 0. Sanity checks
-        if (len(self.mappings)<1):
+        if (len(self.mapper)<1):
             raise ClientFatalError("No source to destination mapping specified")
+        if (not audit_only and self.mapper.unsafe()):
+            raise ClientFatalError("Source to destination mappings unsafe: %s" % str(self.mapper))
         ### 1. Get inventories from both src and dst 
         # 1.a source resource_list
         try:
@@ -191,8 +186,10 @@ class Client(object):
         """
         self.logger.debug("Starting incremental sync")
         ### 0. Sanity checks
-        if (len(self.mappings)<1):
+        if (len(self.mapper)<1):
             raise ClientFatalError("No source to destination mapping specified")
+        if (self.mapper.unsafe()):
+            raise ClientFatalError("Source to destination mappings unsafe: %s" % str(self.mapper))
         from_timestamp = None
         if (from_datetime is not None):
             try:
@@ -412,8 +409,8 @@ class Client(object):
             uri = self.sitemap
             print "Taking location from --sitemap option"
             acceptable_capabilities = None #ie. any
-        elif (len(self.mappings)>0):
-            pu = urlparse.urlparse(self.mappings[0].src_uri)
+        elif (len(self.mapper)>0):
+            pu = urlparse.urlparse(self.mapper.default_src_uri())
             uri = urlparse.urlunparse( [ pu[0], pu[1], '/.well-known/resourcesync', '', '', '' ] )
             print "Will look for discovery information based on mappings"
             acceptable_capabilities = [ 'capabilitylist', 'capabilitylistindex' ]
