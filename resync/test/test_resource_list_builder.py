@@ -27,7 +27,8 @@ class TestResourceListBuilder(unittest.TestCase):
         rlb.mapper = Mapper(['http://example.org/t','resync/test/testdata/dir1'])
         rl = rlb.from_disk()
         rl.md['modified']=None #don't write so we can test output easily
-        self.assertEqual(rl.as_xml(pretty_xml=True),'<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\n<rs:md capability="resourcelist" />\n<url><loc>http://example.org/t/file_a</loc><lastmod>2012-07-25T17:13:46Z</lastmod><rs:md length=\"20\" /></url>\n<url><loc>http://example.org/t/file_b</loc><lastmod>2001-09-09T01:46:40Z</lastmod><rs:md length=\"45\" /></url>\n</urlset>' )
+        rl.pretty_xml=True
+        self.assertEqual(rl.as_xml(),'<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\n<rs:md capability="resourcelist" />\n<url><loc>http://example.org/t/file_a</loc><lastmod>2012-07-25T17:13:46Z</lastmod><rs:md length=\"20\" /></url>\n<url><loc>http://example.org/t/file_b</loc><lastmod>2001-09-09T01:46:40Z</lastmod><rs:md length=\"45\" /></url>\n</urlset>' )
 
     def test3_with_md5(self):
         rlb = ResourceListBuilder(do_md5=True)

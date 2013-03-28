@@ -26,6 +26,7 @@ class ListBase(ResourceContainer):
         self.capability_name = 'unknown'
         self.capability_md = 'unknown'
         self.sitemapindex = False
+        self.pretty_xml = False
         #
         self.logger = logging.getLogger('list_base')
         self.bytes_read = 0
@@ -41,15 +42,15 @@ class ListBase(ResourceContainer):
 
     ##### INPUT #####
 
-    def read(self,uri=None,**kwargs):
+    def read(self,uri=None):
         """Default case is just to parse document at this URI
 
         Intention is that the read() method may be overridden to support reading
         of compound documents in more then one sitemapindex/sitemap.
         """
-        self.parse(uri=uri,**kwargs)
+        self.parse(uri=uri)
 
-    def parse(self,uri=None,fh=None,**kwargs):
+    def parse(self,uri=None,fh=None):
         """Parse a single XML document for this list
 
         Does not handle the case of sitemapindex+sitemaps ResourceList
@@ -61,29 +62,35 @@ class ListBase(ResourceContainer):
                 raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,str(e)))
         if (fh is None):
             raise Exception("Nothing to parse")
-        s = Sitemap(**kwargs)
+        s = self.new_sitemap()
         s.parse_xml(fh=fh,resources=self,capability=self.capability_md,sitemapindex=False)
         self.parsed_index = s.parsed_index
         
     ##### OUTPUT #####
 
-    def as_xml(self,**kwargs):
+    def as_xml(self):
         """Return XML serialization of this list
 
         This code does not support the case where the list is too big for 
         a single XML document.
         """
         self.default_capability_and_modified()
-        s = Sitemap(**kwargs)
+        s = self.new_sitemap()
         return s.resources_as_xml(self,sitemapindex=self.sitemapindex)
 
-    def write(self,basename="/tmp/resynclist.xml",**kwargs):
+    def write(self,basename="/tmp/resynclist.xml"):
         """Write a single sitemap or sitemapindex XML document
 
         Must be overridden to support multi-file lists.
         """
         self.default_capability_and_modified()
         fh = open(basename,'w')
-        s = Sitemap(**kwargs)
+        s = self.new_sitemap()
         s.resources_as_xml(self,fh=fh,sitemapindex=self.sitemapindex)
         fh.close()
+
+    ##### UTILITY #####
+
+    def new_sitemap(self):
+        """Create new Sitemap object with default settings"""
+        return Sitemap(pretty_xml=self.pretty_xml)

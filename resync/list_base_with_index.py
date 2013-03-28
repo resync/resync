@@ -36,67 +36,7 @@ class ListBaseWithIndex(ListBase):
         self.num_files = 0            # Number of files read
         self.bytes_read = 0           # Aggregate of content_length values
 
-    ##### General sitemap methods that also handle sitemapindexes #####
-
-    def write(self, basename='/tmp/sitemap.xml', **kwargs):
-        """Write one or a set of sitemap files to disk
-
-        resources is a ResourceContainer that may be an ResourceList or
-        a ChangeList. This may be a generator so data is read as needed
-        and length is determined at the end.
-
-        basename is used as the name of the single sitemap file or the 
-        sitemapindex for a set of sitemap files.
-
-        Uses self.max_sitemap_entries to determine whether the resource_list can 
-        be written as one sitemap. If there are more entries and 
-        self.allow_multifile is set true then a set of sitemap files, 
-        with an sitemapindex, will be written.
-        """
-        # Access resources through iterator only
-        resources_iter = iter(self.resources)
-        ( chunk, next ) = self.get_resources_chunk(resources_iter)
-        s = Sitemap(**kwargs)
-        if (next is not None):
-            # Have more than self.max_sitemap_entries => sitemapindex
-            if (not self.allow_multifile):
-                raise ListBaseIndexError("Too many entries for a single sitemap but multifile disabled")
-            # Work out how to name the sitemaps, attempt to add %05d before ".xml$", else append
-            sitemap_prefix = basename
-            sitemap_suffix = '.xml'
-            if (basename[-4:] == '.xml'):
-                sitemap_prefix = basename[:-4]
-            # Use iterator over all resources and count off sets of
-            # max_sitemap_entries to go into each sitemap, store the
-            # names of the sitemaps as we go
-            sitemaps=ListBase()
-            while (len(chunk)>0):
-                file = sitemap_prefix + ( "%05d" % (len(sitemaps)) ) + sitemap_suffix
-                self.logger.info("Writing sitemap %s..." % (file))
-                f = open(file, 'w')
-                s.resources_as_xml(chunk, fh=f)
-                f.close()
-                # Record information about this sitemap for index
-                r = Resource( uri = self.mapper.dst_to_src(file),
-                              path = file,
-                              timestamp = os.stat(file).st_mtime,
-                              md5 = compute_md5_for_file(file) )
-                sitemaps.add(r)
-                # Get next chunk
-                ( chunk, next ) = self.get_resources_chunk(resources_iter,next)
-            self.logger.info("Wrote %d sitemaps" % (len(sitemaps)))
-            f = open(basename, 'w')
-            self.logger.info("Writing sitemapindex %s..." % (basename))
-            s.resources_as_xml(resources=sitemaps,sitemapindex=True,fh=f)
-            f.close()
-            self.logger.info("Wrote sitemapindex %s" % (basename))
-        else:
-            f = open(basename, 'w')
-            self.logger.info("Writing sitemap %s..." % (basename))
-            s.resources_as_xml(chunk, fh=f)
-            f.close()
-            self.logger.info("Wrote sitemap %s" % (basename))
-
+    ##### INPUT #####
 
     def read(self, uri=None, resources=None, capability=None, index_only=False):
         """Read sitemap from a URI including handling sitemapindexes
@@ -124,7 +64,7 @@ class ListBaseWithIndex(ListBase):
             self.logger.debug( "Read ????? bytes from %s" % (uri) )
             pass
         self.logger.info( "Read sitemap/sitemapindex from %s" % (uri) )
-        s = Sitemap()
+        s = self.new_sitemap()
         s.parse_xml(fh=fh,resources=self,capability='resourcelist')
         # what did we read? sitemap or sitemapindex?
         if (s.parsed_index):
@@ -150,6 +90,8 @@ class ListBaseWithIndex(ListBase):
 
     def read_component_sitemap(self, sitemapindex_uri, sitemap_uri, sitemap, sitemapindex_is_file):
         """Read a component sitemap of a Resource List with index
+
+        Each component must be a sitemap with the 
         """
         if (sitemapindex_is_file):
             if (not self.is_file_uri(sitemap_uri)):
@@ -176,19 +118,110 @@ class ListBaseWithIndex(ListBase):
             # If we don't get a length then c'est la vie
             pass
         self.logger.info( "Reading sitemap from %s (%d bytes)" % (sitemap_uri,self.content_length) )
-        sitemap.parse_xml( fh=fh, resources=self.resources, sitemapindex=False )
+        component = sitemap.parse_xml( fh=fh, sitemapindex=False )
+        # Copy resources into self, check any metadata
+        for r in component:
+            self.resources.add(r)
+        # FIXME - if rel="up" check it goes to correct place
+        # FIXME - check capability
 
+    ##### OUTPUT #####
 
-    def index_as_xml(self,**kwargs):
+    def as_xml(self):
+        """Return XML serialization of this list
+
+        A single XML serailization does not make sense in the case that the list
+        resources is more than is allowed in a single sitemap so will raise an
+        exception if that is the case. Otherwise passes to superclass method.
+        """
+        if (self.max_sitemap_entries is not None):
+            if (len(self)>self.max_sitemap_entries):
+                raise ListBaseIndexError("Attempt to write single XLM string for list with %d entries when max_sitemap_entries is set to %d" % (len(self),self.max_sitemap_entries))
+        return super(ListBaseWithIndex, self).as_xml()
+
+    def write(self, basename='/tmp/sitemap.xml'):
+        """Write one or a set of sitemap files to disk
+
+        resources is a ResourceContainer that may be an ResourceList or
+        a ChangeList. This may be a generator so data is read as needed
+        and length is determined at the end.
+
+        basename is used as the name of the single sitemap file or the 
+        sitemapindex for a set of sitemap files.
+
+        Uses self.max_sitemap_entries to determine whether the resource_list can 
+        be written as one sitemap. If there are more entries and 
+        self.allow_multifile is set true then a set of sitemap files, 
+        with an sitemapindex, will be written.
+        """
+        # Access resources through iterator only
+        resources_iter = iter(self.resources)
+        ( chunk, next ) = self.get_resources_chunk(resources_iter)
+        s = self.new_sitemap()
+        if (next is not None):
+            # Have more than self.max_sitemap_entries => sitemapindex
+            if (not self.allow_multifile):
+                raise ListBaseIndexError("Too many entries for a single sitemap but multifile disabled")
+            # Work out how to name the sitemaps, attempt to add %05d before ".xml$", else append
+            sitemap_prefix = basename
+            sitemap_suffix = '.xml'
+            if (basename[-4:] == '.xml'):
+                sitemap_prefix = basename[:-4]
+            # Work out URI of sitemapindex so that we can link up to
+            # it from the individual sitemap files
+            try:
+                index_uri = self.mapper.dst_to_src(basename)
+            except MapperError as e:
+                raise ListBaseIndexError("Cannot map sitemapindex filename to URI (%s)" % str(e))
+            # Use iterator over all resources and count off sets of
+            # max_sitemap_entries to go into each sitemap, store the
+            # names of the sitemaps as we go
+            index=ListBase()
+            index.capability_name = self.capability_name
+            index.capability_md = self.capability_md
+            index.default_capability_and_modified()
+            while (len(chunk)>0):
+                file = sitemap_prefix + ( "%05d" % (len(index)) ) + sitemap_suffix
+                # Check that we can map the filename of this sitemap into
+                # URI space for the sitemapindex
+                try:
+                    uri = self.mapper.dst_to_src(file)
+                except MapperError as e:
+                    raise ListBaseIndexError("Cannot map sitemap filename to URI (%s)" % str(e))
+                self.logger.info("Writing sitemap %s..." % (file))
+                f = open(file, 'w')
+                chunk.ln.append({'rel': 'up', 'href': index_uri})
+                s.resources_as_xml(chunk, fh=f)
+                f.close()
+                # Record information about this sitemap for index
+                r = Resource( uri = uri, path = file,
+                              timestamp = os.stat(file).st_mtime,
+                              md5 = compute_md5_for_file(file) )
+                index.add(r)
+                # Get next chunk
+                ( chunk, next ) = self.get_resources_chunk(resources_iter,next)
+            self.logger.info("Wrote %d sitemaps" % (len(index)))
+            f = open(basename, 'w')
+            self.logger.info("Writing sitemapindex %s..." % (basename))
+            s.resources_as_xml(index,sitemapindex=True,fh=f)
+            f.close()
+            self.logger.info("Wrote sitemapindex %s" % (basename))
+        else:
+            f = open(basename, 'w')
+            self.logger.info("Writing sitemap %s..." % (basename))
+            s.resources_as_xml(chunk, fh=f)
+            f.close()
+            self.logger.info("Wrote sitemap %s" % (basename))
+
+    def index_as_xml(self):
         """Return XML serialization of this list taken to be sitemapindex entries
 
         """
         self.default_capability_and_modified()
-        s = Sitemap(**kwargs)
+        s = self.new_sitemap()
         return s.resources_as_xml(self,sitemapindex=True)
 
-
-    ##### Utility #####                                                                                         
+    ##### Utility #####
 
     def get_resources_chunk(self, resource_iter, first=None):
         """Return next chunk of resources from resource_iter, and next item

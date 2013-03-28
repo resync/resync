@@ -56,6 +56,7 @@ class Client(object):
         self.max_sitemap_entries = None
         self.ignore_failures = False
         self.status_file = '.resync-client-status.cfg'
+        self.pretty_xml = True
 
     def set_mappings(self,mappings):
         """Build and set Mapper object based on input mappings"""
@@ -82,17 +83,24 @@ class Client(object):
 
     @property
     def resource_list(self):
-        """Return resource_list on disk based on current mappings
+        """Return a resource list for files on disk based on current mappings
 
         Return resource_list. Uses existing self.mapper settings.
         """
-        ### 0. Sanity checks
+        # 0. Sanity checks
         if (len(self.mapper)<1):
             raise ClientFatalError("No source to destination mapping specified")
-        ### 1. Build from disk
+        # 1. Build from disk
         rlb = ResourceListBuilder(do_md5=self.checksum,mapper=self.mapper)
         rlb.add_exclude_files(self.exclude_patterns)
-        return( rlb.from_disk() )
+        rl = rlb.from_disk()
+        # 2. Set defaults and overrides
+        rl.allow_multifile = self.allow_multifile
+        rl.pretty_xml = self.pretty_xml
+        rl.mapper = self.mapper
+        if (self.max_sitemap_entries is not None):
+            rl.max_sitemap_entries = self.max_sitemap_entries
+        return(rl)
 
     def log_event(self, change):
         """Log a Resource object as an event for automated analysis"""
@@ -484,19 +492,17 @@ class Client(object):
 
     def write_resource_list(self,outfile=None,links=None,dump=None):
         """Write a resource list sitemap for files on local disk
-        based on the base_path->base_uri mappings.
+
+        Set of resources included is based on the mappings. Optionally
+        links can be added. Output will be to stdout unless outfile
+        is specified.
         """
         rl = self.resource_list
         rl.ln = links
-        kwargs = { 'pretty_xml': True,
-                   'allow_multifile': self.allow_multifile,
-                   'mapper' : self.mapper }
-        if (self.max_sitemap_entries is not None):
-            kwargs['max_sitemap_entries'] = self.max_sitemap_entries
         if (outfile is None):
-            print rl.as_xml(**kwargs)
+            print rl.as_xml()
         else:
-            rl.write(basename=outfile,**kwargs)
+            rl.write(basename=outfile)
         self.write_dump_if_requested(rl,dump)
 
     def write_change_list(self,outfile=None,ref_sitemap=None,newref_sitemap=None,
@@ -518,39 +524,39 @@ class Client(object):
             cl.add_changed_resources( deleted, change='deleted' )
             cl.add_changed_resources( created, change='created' )
         # 4. Write out change list
-        kwargs = { 'pretty_xml': True,
-                   'mapper' : self.mapper }
+        cl.mapper = self.mapper
+        cl.pretty_xml = self.pretty_xml
         if (self.max_sitemap_entries is not None):
-            kwargs['max_sitemap_entries'] = self.max_sitemap_entries
+            cl.max_sitemap_entries = self.max_sitemap_entries
         if (outfile is None):
-            print cl.as_xml(**kwargs)
+            print cl.as_xml()
         else:
-            cl.write(basename=outfile,**kwargs)
+            cl.write(basename=outfile)
         self.write_dump_if_requested(cl,dump)
 
     def write_capability_list(self,capabilities=None,outfile=None,links=None):
         """Write a Capability List to outfile or STDOUT"""
         capl = CapabilityList(ln=links)
+        capl.pretty_xml = self.pretty_xml
         if (capabilities is not None):
             for name in capabilities.keys():
                 capl.add_capability(name=name, uri=capabilities[name])
-        kwargs = { 'pretty_xml': True }
         if (outfile is None):
-            print capl.as_xml(**kwargs)
+            print capl.as_xml()
         else:
-            capl.write(basename=outfile,**kwargs)
+            capl.write(basename=outfile)
 
     def write_capability_list_index(self,capability_lists=None,outfile=None,links=None):
         """Write a Capability List to outfile or STDOUT"""
         capli = CapabilityListIndex(ln=links)
+        capli.pretty_xml = self.pretty_xml
         if (capability_lists is not None):
             for uri in capability_lists:
                 capli.add_capability_list(uri)
-        kwargs = { 'pretty_xml': True }
         if (outfile is None):
-            print capli.as_xml(**kwargs)
+            print capli.as_xml()
         else:
-            capli.write(basename=outfile,**kwargs)
+            capli.write(basename=outfile)
 
     def write_dump_if_requested(self,resource_list,dump):
         if (dump is None):

@@ -63,7 +63,9 @@ class Sitemap(object):
         """Write or return XML for a set of resources in sitemap format
         
         Arguments:
-        - resources - either an iterable or iterator of Resource objects.
+        - resources - either an iterable or iterator of Resource objects;
+                      if there an md attribute this will go to <rs:md>
+                      if there an ln attribute this will go to <rs:ln>
         - sitemapindex - set True to write sitemapindex instead of sitemap
         - fh - write to filehandle fh instead of returning string
         """
