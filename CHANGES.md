@@ -6,6 +6,13 @@ The first two components of the version tags are tied to the ResourceSync specif
 version. Versions 0.5.x are intended to implement the v0.5 ResourceSync specification
 http://www.openarchives.org/rs/0.5/
 
+v0.5.3 2013-03-28
+- Improve handling of assumed mappings for testing client on a local filesystem
+- Fix sitemapindex support for large resource lists, add rel="up" for component sitemaps
+
+v0.5.2 2013-03-26
+- Fix setup.py
+
 v0.5.1 2013-03-22
 - Code reworked for 0.5 specification (http://www.openarchives.org/rs/0.5/)
 - Client code handles --baseline, --audit and --incremental sync against the simulator
