@@ -3,11 +3,11 @@ resync change log
 =================
 
 The first two components of the version tags are tied to the ResourceSync specification 
-version. Versions 0.5.x are intended to implement the v0.5 ResourceSync specification
-(http://www.openarchives.org/rs/0.5/),
+version. Versions 0.6.x are intended to implement the v0.6 ResourceSync specification
+(http://www.openarchives.org/rs/0.6/),
 
-v0.6 of the ResourceSync specification was released 2013-05-06 and future versions will
-be based on that, see (http://www.openarchives.org/rs/0.6/).
+v0.6.1 2013-??-??
+-
 
 v0.5.3 2013-05-08
 - Final release working with v0.5 specification
