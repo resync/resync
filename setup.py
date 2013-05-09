@@ -18,6 +18,6 @@ setup(
     author='Simeon Warner',
     author_email='simeon.warner@cornell.edu',
     description='ResourceSync library and client',
-    long_description=open('README.md').read(),
+    long_description=open('README').read(),
     url='http://github.com/resync/resync',
 )
