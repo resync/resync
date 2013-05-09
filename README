@@ -2,7 +2,7 @@
 resync
 ======
 
-*resync* is a ResourceSync client and library in python. `ResourceSync 
+**resync** is a ResourceSync client and library in python. `ResourceSync 
 <http://www.openarchives.org/rs/>`_ is a synchronization framework for 
 the web consisting of various capabilities that allow third party 
 systems to remain synchronized with a server's evolving resources. 
@@ -12,12 +12,13 @@ or community requirements.
 Client usage
 ------------
 
-Typical client usage to synchronize from a source at http://source.example.com/
-to a set of local files would be::
+Typical client usage to synchronize from a source at 
+``http://source.example.com/`` to a set of local files would be::
 
     resync http://source.example.com/
 
-which will create or update a local directory ./source.example.com. Alternatively, the destination directory may be specified explicitly::
+which will create or update a local directory ``./source.example.com``. 
+Alternatively, the destination directory may be specified explicitly::
 
     resync http://source.example.com/ /tmp/my_copy
 
@@ -45,7 +46,11 @@ The client and library are designed to work with Python 2.6 or 2.7.
 
 **Automatic installation**::
 
-    pip install resync
+    easy_install resync
+
+rsync is listed in `PyPI
+<http://pypi.python.org/pypi/resync>`_ and can be installed with 
+``pip`` or ``easy_install``. 
 
 **Manual installation from github**::
 
@@ -55,9 +60,15 @@ The client and library are designed to work with Python 2.6 or 2.7.
     python setup.py build
     sudo python setup.py install
 
-This will install the library code in the appropriate place within your python setup, and the client (resync) in an appropriate system path (perhaps /usr/local/bin or /usr/bin depending on your system).
+This will install the library code in the appropriate place within 
+your python setup, and the client ``resync`` in an appropriate system 
+path (perhaps ``/usr/local/bin`` or ``/usr/bin`` depending on your system).
 
-The source code is maintained on `Github<https://github.com/resync/resync>`_ and there may be branches/versions available there that are not yet packaged for `pypi<http://pypi.python.org/pypi/resync>`_.
+The source code is maintained on `Github
+<https://github.com/resync/resync>`_
+and there may be branches/versions available there that are not 
+yet packaged for `pypi
+<http://pypi.python.org/pypi/resync>`_.
 
 See also
 --------
