@@ -1,16 +1,25 @@
 """ResourceSync ResourceDumpManifest object
 
+A ResourceDumpManifest lists the set of files/resources included 
+within a content package that is included in a ResourceDump.
+
+The ResourceDumpManifest object may also contain metadata and links.
+
+Described in specification at:
+http://www.openarchives.org/rs/resourcesync#ResourceDumpManifest
 """
 
-from list_base_with_index import ListBaseWithIndex
+from resource_list import ResourceList
 
-class ResourceDumpManifest(ListBaseWithIndex):
-    """Class representing a Resource Dump Manifest"""
+class ResourceDumpManifest(ResourceList):
+    """Class representing a Resource Dump Manifest
 
-    def __init__(self, resources=None, md=None, ln=None):
-        if (resources is None):
-            resources = list()
-        super(ResourceDumpManifest, self).__init__(resources=resources, md=md, ln=ln)
-        self.capability_name='resourcedump-manifest'
-        self.capability_md='resourcedump-manifest'
+    A ResourceDumpManifest comprises a set of files/resources
+    in a content package. Properties much Like a ResourceList
+    and implemented as a sub-class of ResourceList.
+    """
 
+    def __init__(self, resources=None, md=None, ln=None, allow_multifile=None, mapper=None):
+        super(ResourceDumpManifest, self).__init__(resources=resources, md=md, ln=ln, mapper=mapper)
+        self.capability_name = 'resourcedump-manifest'
+        self.capability_md = 'resourcedump-manifest'
