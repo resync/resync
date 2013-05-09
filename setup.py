@@ -7,7 +7,7 @@ from distutils.core import setup
 import re
 VERSIONFILE="resync/_version.py"
 verfilestr = open(VERSIONFILE, "rt").read()
-match = re.search(r"^_-_version__ = '(\d\.\d.\d+(\.\d+)?)'", verfilestr, re.MULTILINE)
+match = re.search(r"^__version__ = '(\d\.\d.\d+(\.\d+)?)'", verfilestr, re.MULTILINE)
 if match:
     version = match.group(1)
 else:
