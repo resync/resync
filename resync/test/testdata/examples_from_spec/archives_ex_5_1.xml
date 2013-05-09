@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-              xmlns:rs="http://www.openarchives.org/rs/terms/">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
   <rs:ln rel="resourcesync"
          href="http://example.com/dataset1/capabilitylist.xml"/>
-  <rs:md capability="resourcedump"
+  <rs:md capability="resourcedump-archive"
          modified="2013-01-03T09:00:00Z"/>
-  <sitemap>
-      <loc>http://example.com/resourcedump3.xml</loc>
+  <url>
+      <loc>http://example.com/resourcedump1.xml</loc>
       <lastmod>2012-11-03T09:00:00Z</lastmod>
-  </sitemap>
-  <sitemap>
+  </url>
+  <url>
       <loc>http://example.com/resourcedump2.xml</loc>
       <lastmod>2012-12-03T09:00:00Z</lastmod>
-  </sitemap>
-  <sitemap>
-      <loc>http://example.com/resourcedump1.xml</loc>
+  </url>
+  <url>
+      <loc>http://example.com/resourcedump3.xml</loc>
       <lastmod>2013-01-03T09:00:00Z</lastmod>
-  </sitemap>
-</sitemapindex>
+  </url>
+</urlset>

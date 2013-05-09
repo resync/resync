@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="resourcesync"
+         href="http://example.com/dataset1/capabilitylist.xml"/>
+  <rs:md capability="changedump-archive"
+         modified="2013-01-03T09:00:00Z"/>
+  <url>
+      <loc>http://example.com/changedump-w1.xml</loc>
+      <lastmod>2012-12-20T09:00:00Z</lastmod>
+  </url>
+  <url>
+      <loc>http://example.com/changedump-w2.xml</loc>
+      <lastmod>2012-12-27T09:00:00Z</lastmod>
+  </url>
+  <url>
+      <loc>http://example.com/changedump-w3.xml</loc>
+      <lastmod>2013-01-03T09:00:00Z</lastmod>
+  </url>
+</urlset>
