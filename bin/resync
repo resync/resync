@@ -120,8 +120,9 @@ def main():
         sys.exit("This program requires python version 2.6 or later")
     
     # Options and arguments
-    p = optparse.OptionParser(description='ResourceSync sync script',
+    p = optparse.OptionParser(description='ResourceSync command line client',
                               usage='usage: %prog [options] uri_path local_path  (-h for help)',
+                              version='%prog '+__version__,
                               add_help_option=False)
 
     # Modes
@@ -227,16 +228,10 @@ def main():
     opt.add_option('--eval', '-e', action='store_true',
                    help="output evaluation of source/client synchronization performance... "
                         "be warned, this is very verbose")
-    opt.add_option('--version', action='store_true',
-                   help="print resync version number and exit")
     opt.add_option('--help', '-h', action='help',
                    help="this help")
 
     (args, map) = p.parse_args()
-
-    if (args.version):
-        print "resync %s" % (__version__)
-        return
 
     # Implement exclusive arguments and default --baseline (support for exclusive
     # groups in argparse is incomplete is python2.6)
@@ -244,7 +239,12 @@ def main():
         not args.parse and not args.explore and
         not args.resourcelist and not args.changelist and
         not args.capabilitylist and not args.capabilitylistindex):
-        args.baseline=True
+        if (len(map)==0):
+            # No args at all, show help
+            p.print_help()
+            return
+        else:
+            args.baseline=True
     elif (count_true_args(args.baseline,args.inc,args.audit,args.parse,args.explore,
                           args.resourcelist,args.changelist,args.capabilitylist,
                           args.capabilitylistindex)>1):
