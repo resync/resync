@@ -2,12 +2,31 @@
 resync
 ======
 
-resync is ResourceSync client and library in python.
+*resync* is a ResourceSync client and library in python. `ResourceSync 
+<http://www.openarchives.org/rs/>`_ is a synchronization framework for 
+the web consisting of various capabilities that allow third party 
+systems to remain synchronized with a server's evolving resources. 
+The capabilities can be combined in a modular manner to meet local 
+or community requirements.
+
+Client usage
+------------
 
 Typical client usage to synchronize from a source at http://source.example.com/
-to a set of local files in /tmp/my_source_example_com::
+to a set of local files would be::
 
-    resync http://source.example.com/ /tmp/my_source_example_com
+    resync http://source.example.com/
+
+which will create or update a local directory ./source.example.com. Alternatively, the destination directory may be specified explicitly::
+
+    resync http://source.example.com/ /tmp/my_copy
+
+Option details and a number of different modes are described with::
+
+    resync -h
+
+Library usage
+-------------
 
 Typical library usage in a source::
 
@@ -22,11 +41,13 @@ Typical library usage in a source::
 Installation
 ------------
 
-The client and library are designed to work with Python 2.6 or 2.7. You may check the version running on your system with::
+The client and library are designed to work with Python 2.6 or 2.7.
 
-    python --version
+**Automatic installation**::
 
-To download and install the reync client and library, which is currently available only from [Github](https://github.com/resync/resync) (not yet on pypi)::
+    pip install resync
+
+**Manual installation from github**::
 
     cd /tmp
     git clone git://github.com/resync/resync.git
@@ -34,7 +55,9 @@ To download and install the reync client and library, which is currently availab
     python setup.py build
     sudo python setup.py install
 
-This will install the library code in the appropriate place within your python setup, and the client (resync) in an appropriate system path (perhaps /usr/local/bin).
+This will install the library code in the appropriate place within your python setup, and the client (resync) in an appropriate system path (perhaps /usr/local/bin or /usr/bin depending on your system).
+
+The source code is maintained on `Github<https://github.com/resync/resync>`_ and there may be branches/versions available there that are not yet packaged for `pypi<http://pypi.python.org/pypi/resync>`_.
 
 See also
 --------
