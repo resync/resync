@@ -10,6 +10,7 @@ import logging.config
 import optparse
 import sys
 
+from resync import __version__
 from resync.client import Client, ClientFatalError
 from resync.utils import UTCFormatter
 
@@ -226,10 +227,16 @@ def main():
     opt.add_option('--eval', '-e', action='store_true',
                    help="output evaluation of source/client synchronization performance... "
                         "be warned, this is very verbose")
+    opt.add_option('--version', action='store_true',
+                   help="print resync version number and exit")
     opt.add_option('--help', '-h', action='help',
                    help="this help")
 
     (args, map) = p.parse_args()
+
+    if (args.version):
+        print "resync %s" % (__version__)
+        return
 
     # Implement exclusive arguments and default --baseline (support for exclusive
     # groups in argparse is incomplete is python2.6)
