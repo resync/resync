@@ -23,9 +23,33 @@ class ListBaseIndexError(Exception):
     pass
 
 class ListBaseWithIndex(ListBase):
+    """Class that add handling of sitemapindexes to ListBase
 
-    def __init__(self, resources=None, md=None, ln=None, allow_multifile=None, mapper=None):
-        super(ListBaseWithIndex, self).__init__(resources=resources, md=md, ln=ln)
+    Splitting of a list into multiple sitemaps with a sitemapindex is currently
+    handled based solely on the number of entries in the list. The configurable
+    self.max_sitemap_entries controls the number of entries that will be written
+    in a single sitemap or a component sitemap that has a sitemapindex. Support
+    for sitemapindexes can be disabled by setting allow_multifile False.
+
+    resources - an iterable of resources
+
+    count - add optional explicit setting of the number of items in
+        resources which is useful when this is an iterator/generator.
+        Is used instead of trying len(resources)
+
+    md - metadata information for the list (<rs:md>)
+
+    ln - link information for the list (<rs:ln>)
+
+    allow_multifile - set False to disable support for indexes. Defaults to True
+
+    mapper - Mapper instance used to map between file names and URIs so that
+        the correct URIs can be written into a sitemapindex which correspond
+        to those that the component sitemap files will be exposed as
+    """
+
+    def __init__(self, resources=None, count=None, md=None, ln=None, allow_multifile=None, mapper=None):
+        super(ListBaseWithIndex, self).__init__(resources=resources, count=count, md=md, ln=ln)
         # specific to lists with indexes
         self.resources_class=dict
         self.max_sitemap_entries=50000
@@ -130,13 +154,14 @@ class ListBaseWithIndex(ListBase):
     def as_xml(self):
         """Return XML serialization of this list
 
-        A single XML serailization does not make sense in the case that the list
-        resources is more than is allowed in a single sitemap so will raise an
-        exception if that is the case. Otherwise passes to superclass method.
+        A single XML serailization does not make sense in the case that the 
+        number of list resources is more than is allowed in a single sitemap
+        so will raise an exception if that is the case. Otherwise passes to 
+        superclass method.
         """
         if (self.max_sitemap_entries is not None):
             if (len(self)>self.max_sitemap_entries):
-                raise ListBaseIndexError("Attempt to write single XLM string for list with %d entries when max_sitemap_entries is set to %d" % (len(self),self.max_sitemap_entries))
+                raise ListBaseIndexError("Attempt to write single XML string for list with %d entries when max_sitemap_entries is set to %d" % (len(self),self.max_sitemap_entries))
         return super(ListBaseWithIndex, self).as_xml()
 
     def write(self, basename='/tmp/sitemap.xml'):
