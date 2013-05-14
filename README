@@ -29,7 +29,7 @@ Option details and a number of different modes are described with::
 Library usage
 -------------
 
-Typical library usage in a source::
+Typical library use in a source (create and output a Resource List)::
 
     from resync.resource_list import ResourceList
     from resync.resource import Resource
@@ -38,6 +38,16 @@ Typical library usage in a source::
     rl.add( Resource('http://example.com/res1', lastmod='2013-01-01') )
     rl.add( Resource('http://example.com/res2', lastmod='2013-01-02') )
     print rl.as_xml()
+
+Typical library use in a destination (get and examine a Capability List):: 
+
+    from resync.capability_list import CapabilityList
+
+    # Read Capability List and show supported capabilities
+    cl = CapabilityList()
+    cl.read("https://raw.github.com/resync/resync/0.6/resync/test/testdata/examples_from_spec/resourcesync_ex_2_6.xml")
+    for resource in cl:
+        print "supports %s (at %s)" % (resource.capability,resource.uri)
 
 Installation
 ------------
