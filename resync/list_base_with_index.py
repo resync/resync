@@ -5,10 +5,12 @@ Extends ListBase to add support for sitemapindexes.
 """
 
 import collections
+import math 
 import os
 from datetime import datetime
 import re
 import sys
+import itertools
 from urllib import URLopener
 
 from list_base import ListBase
@@ -23,9 +25,33 @@ class ListBaseIndexError(Exception):
     pass
 
 class ListBaseWithIndex(ListBase):
+    """Class that add handling of sitemapindexes to ListBase
 
-    def __init__(self, resources=None, md=None, ln=None, allow_multifile=None, mapper=None):
-        super(ListBaseWithIndex, self).__init__(resources=resources, md=md, ln=ln)
+    Splitting of a list into multiple sitemaps with a sitemapindex is currently
+    handled based solely on the number of entries in the list. The configurable
+    self.max_sitemap_entries controls the number of entries that will be written
+    in a single sitemap or a component sitemap that has a sitemapindex. Support
+    for sitemapindexes can be disabled by setting allow_multifile False.
+
+    resources - an iterable of resources
+
+    count - add optional explicit setting of the number of items in
+        resources which is useful when this is an iterator/generator.
+        Is used instead of trying len(resources)
+
+    md - metadata information for the list (<rs:md>)
+
+    ln - link information for the list (<rs:ln>)
+
+    allow_multifile - set False to disable support for indexes. Defaults to True
+
+    mapper - Mapper instance used to map between file names and URIs so that
+        the correct URIs can be written into a sitemapindex which correspond
+        to those that the component sitemap files will be exposed as
+    """
+
+    def __init__(self, resources=None, count=None, md=None, ln=None, allow_multifile=None, mapper=None):
+        super(ListBaseWithIndex, self).__init__(resources=resources, count=count, md=md, ln=ln)
         # specific to lists with indexes
         self.resources_class=dict
         self.max_sitemap_entries=50000
@@ -127,17 +153,79 @@ class ListBaseWithIndex(ListBase):
 
     ##### OUTPUT #####
 
-    def as_xml(self):
+    def requires_multifile(self):
+        """Returns False or the number of component sitemaps required"""
+        if (self.max_sitemap_entries is None or
+            len(self)<=self.max_sitemap_entries):
+            return(False)
+        return( int( math.ceil( len(self) / float(self.max_sitemap_entries) ) ) )
+
+    def as_xml(self, allow_multifile=False, basename="/tmp/sitemap.xml"):
         """Return XML serialization of this list
 
-        A single XML serailization does not make sense in the case that the list
-        resources is more than is allowed in a single sitemap so will raise an
-        exception if that is the case. Otherwise passes to superclass method.
+        If this list can be serialized as a single sitemap then the 
+        superclass method is used.
+
+        There is no single XML serailization sense in the case that the 
+        number of list resources is more than is allowed in a single sitemap
+        so will raise an exception unless allow_multifile is set True.
+        If allow_multifile is set true then will return the sitemapindex
+        for the set of component sitemaps.
         """
-        if (self.max_sitemap_entries is not None):
-            if (len(self)>self.max_sitemap_entries):
-                raise ListBaseIndexError("Attempt to write single XLM string for list with %d entries when max_sitemap_entries is set to %d" % (len(self),self.max_sitemap_entries))
-        return super(ListBaseWithIndex, self).as_xml()
+        if (not self.requires_multifile()):
+            return super(ListBaseWithIndex, self).as_xml()
+        elif (allow_multifile):
+            return self.as_xml_index(basename)
+        else:
+            raise ListBaseIndexError("Attempt to write single XML string for list with %d entries when max_sitemap_entries is set to %d" % (len(self),self.max_sitemap_entries))
+
+    def as_xml_index(self, basename="/tmp/sitemap.xml"):
+        """Return a string of the index for a large list that is split
+        
+        All we need to do is determine the number of component sitemaps will
+        be is and generate their URIs based on a pattern.
+
+        Q - should there be a flag to select generation of each component sitemap
+        in order to calculate the md5sum?
+        
+        Q - what timestamp should be used?
+        """
+        num_parts = self.requires_multifile()
+        if (not num_parts):
+            raise ListBaseIndexError("Request for sitemapindex for list with only %d entries when max_sitemap_entries is set to %s" % (len(self),str(self.max_sitemap_entries)))
+        index=ListBase()
+        index.capability_name = self.capability_name
+        index.capability_md = self.capability_md
+        index.default_capability_and_modified()
+        for n in range(num_parts):
+            r = Resource( uri = self.part_name(basename,n) )
+            index.add(r)
+        # Serialize as a sitemapindex
+        s = self.new_sitemap()
+        return( s.resources_as_xml(index,sitemapindex=True) )
+
+    def as_xml_part(self, basename="/tmp/sitemap.xml", part_number=0):
+        """Return a string of component sitemap part_number for a large list that is split
+        
+        basename is used to create "up" links to the sitemapindex
+        
+        Q - what timestamp should be used?
+        """
+        if (not self.requires_multifile()):
+            raise ListBaseIndexError("Request for component sitemap for list with only %d entries when max_sitemap_entries is set to %s" % (len(self),str(self.max_sitemap_entries)))
+        start = part_number * self.max_sitemap_entries
+        if (start>len(self)):
+            raise ListBaseIndexError("Request for component sitemap with part_number too high, would start at entry %d yet the list has only %d entries" % (start,len(self)))
+        stop = start + self.max_sitemap_entries
+        if (stop>len(self)):
+            stop=len(self)
+        part = ListBase( itertools.islice(self.resources,start,stop) )
+        part.capability_name = self.capability_name
+        part.capability_md = self.capability_md
+        part.default_capability_and_modified()
+        part.ln.append({'rel': 'up', 'href': basename})
+        s = self.new_sitemap()
+        return( s.resources_as_xml(part) )
 
     def write(self, basename='/tmp/sitemap.xml'):
         """Write one or a set of sitemap files to disk
@@ -162,11 +250,6 @@ class ListBaseWithIndex(ListBase):
             # Have more than self.max_sitemap_entries => sitemapindex
             if (not self.allow_multifile):
                 raise ListBaseIndexError("Too many entries for a single sitemap but multifile disabled")
-            # Work out how to name the sitemaps, attempt to add %05d before ".xml$", else append
-            sitemap_prefix = basename
-            sitemap_suffix = '.xml'
-            if (basename[-4:] == '.xml'):
-                sitemap_prefix = basename[:-4]
             # Work out URI of sitemapindex so that we can link up to
             # it from the individual sitemap files
             try:
@@ -181,7 +264,7 @@ class ListBaseWithIndex(ListBase):
             index.capability_md = self.capability_md
             index.default_capability_and_modified()
             while (len(chunk)>0):
-                file = sitemap_prefix + ( "%05d" % (len(index)) ) + sitemap_suffix
+                file = self.part_name(basename,len(index))
                 # Check that we can map the filename of this sitemap into
                 # URI space for the sitemapindex
                 try:
@@ -250,6 +333,24 @@ class ListBaseWithIndex(ListBase):
         except StopIteration:
             next = None
         return(chunk,next)
+
+    def part_name(self, basename='/tmp/sitemap.xml', part_number=0):
+        """Name (file or URI) for one component sitemap
+        
+        Works for both filenames and URIs because manipulates only the end
+        of the string.
+        
+        Abstracting this into a function that starts from the basename to get
+        prefix and suffix each time seems a bit wasteful but perhaps not worth
+        worrying about. Allows same code to be used for the write() and 
+        as_xml_index() cases.
+        """
+        # Work out how to name the sitemaps, attempt to add %05d before ".xml$", else append
+        sitemap_prefix = basename
+        sitemap_suffix = '.xml'
+        if (basename[-4:] == '.xml'):
+            sitemap_prefix = basename[:-4]
+        return( sitemap_prefix + ( "%05d" % (part_number) ) + sitemap_suffix )
  
     def is_file_uri(self, uri):
         """Return true if uri looks like a local file URI, false otherwise
