@@ -15,40 +15,104 @@ class TestResourceListBuilder(unittest.TestCase):
         os.utime( "resync/test/testdata/dir1/file_a", (0, 1343236426 ) )
         os.utime( "resync/test/testdata/dir1/file_b", (0, 1000000000 ) )
 
-    def test1_simple_output(self):
+    def test01_simple_scan(self):
         rlb = ResourceListBuilder()
         rlb.mapper = Mapper(['http://example.org/t','resync/test/testdata/dir1'])
         rl = rlb.from_disk()
-        rl.md['modified']=None #don't write so we can test output easily
-        self.assertEqual(rl.as_xml(),'<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/"><rs:md capability="resourcelist" /><url><loc>http://example.org/t/file_a</loc><lastmod>2012-07-25T17:13:46Z</lastmod><rs:md length=\"20\" /></url><url><loc>http://example.org/t/file_b</loc><lastmod>2001-09-09T01:46:40Z</lastmod><rs:md length=\"45\" /></url></urlset>' )
+        self.assertEqual( len(rl), 2 )
+        rli = iter(rl)
+        r = rli.next()
+        self.assertEqual( r.uri, 'http://example.org/t/file_a' )
+        self.assertEqual( r.lastmod, '2012-07-25T17:13:46Z' )
+        self.assertEqual( r.md5, None )
+        self.assertEqual( r.length, 20 )
+        self.assertEqual( r.path, None )
+        r = rli.next()
+        self.assertEqual( r.uri, 'http://example.org/t/file_b' )
+        self.assertEqual( r.lastmod, '2001-09-09T01:46:40Z' )
+        self.assertEqual( r.md5, None )
+        self.assertEqual( r.length, 45 )
+        self.assertEqual( r.path, None )
 
-    def test2_pretty_output(self):
-        rlb = ResourceListBuilder()
+    def test02_no_length(self):
+        rlb = ResourceListBuilder(set_length=False)
         rlb.mapper = Mapper(['http://example.org/t','resync/test/testdata/dir1'])
         rl = rlb.from_disk()
-        rl.md['modified']=None #don't write so we can test output easily
-        rl.pretty_xml=True
-        self.assertEqual(rl.as_xml(),'<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\n<rs:md capability="resourcelist" />\n<url><loc>http://example.org/t/file_a</loc><lastmod>2012-07-25T17:13:46Z</lastmod><rs:md length=\"20\" /></url>\n<url><loc>http://example.org/t/file_b</loc><lastmod>2001-09-09T01:46:40Z</lastmod><rs:md length=\"45\" /></url>\n</urlset>' )
+        self.assertEqual( len(rl), 2 )
+        rli = iter(rl)
+        r = rli.next()
+        self.assertEqual( r.uri, 'http://example.org/t/file_a' )
+        self.assertEqual( r.lastmod, '2012-07-25T17:13:46Z' )
+        self.assertEqual( r.md5, None )
+        self.assertEqual( r.length, None )
+        self.assertEqual( r.path, None )
+        r = rli.next()
+        self.assertEqual( r.uri, 'http://example.org/t/file_b' )
+        self.assertEqual( r.lastmod, '2001-09-09T01:46:40Z' )
+        self.assertEqual( r.md5, None )
+        self.assertEqual( r.length, None )
+        self.assertEqual( r.path, None )
 
-    def test3_with_md5(self):
-        rlb = ResourceListBuilder(do_md5=True)
+    def test03_set_md5(self):
+        rlb = ResourceListBuilder(set_md5=True)
         rlb.mapper = Mapper(['http://example.org/t','resync/test/testdata/dir1'])
         rl = rlb.from_disk()
-        xml = rl.as_xml()
-        self.assertNotEqual( None, re.search('<loc>http://example.org/t/file_a</loc><lastmod>[\w\:\-]+Z</lastmod><rs:md hash=\"md5:a/Jv1mYBtSjS4LR\+qoft/Q==\" length=\"20\" />',xml) ) #must escape + in md5
-        self.assertNotEqual( None, re.search('<loc>http://example.org/t/file_b</loc><lastmod>[\w\:\-]+Z</lastmod><rs:md hash=\"md5:RS5Uva4WJqxdbnvoGzneIQ==\" length=\"45\" />',xml) )
+        self.assertEqual( len(rl), 2 )
+        rli = iter(rl)
+        r = rli.next()
+        self.assertEqual( r.uri, 'http://example.org/t/file_a' )
+        self.assertEqual( r.lastmod, '2012-07-25T17:13:46Z' )
+        self.assertEqual( r.md5, 'a/Jv1mYBtSjS4LR+qoft/Q==' )
+        self.assertEqual( r.length, 20 )
+        self.assertEqual( r.path, None )
+        r = rli.next()
+        self.assertEqual( r.uri, 'http://example.org/t/file_b' )
+        self.assertEqual( r.lastmod, '2001-09-09T01:46:40Z' )
+        self.assertEqual( r.md5, 'RS5Uva4WJqxdbnvoGzneIQ==' )
+        self.assertEqual( r.length, 45 )
+        self.assertEqual( r.path, None )
 
-    def test4_data(self):
-        rlb = ResourceListBuilder(do_md5=True)
+    def test04_data(self):
+        rlb = ResourceListBuilder(set_path=True,set_md5=True)
         rlb.mapper = Mapper(['http://example.org/t','resync/test/testdata/dir1'])
-        rl = rlb.from_disk(set_path=True)
+        rl = rlb.from_disk()
         self.assertEqual( len(rl), 2)
-        r1 = rl.resources.get('http://example.org/t/file_a')
-        self.assertTrue( r1 is not None )
-        self.assertEqual( r1.uri, 'http://example.org/t/file_a' )
-        self.assertEqual( r1.lastmod, '2012-07-25T17:13:46Z' )
-        self.assertEqual( r1.md5, 'a/Jv1mYBtSjS4LR+qoft/Q==' )
-        self.assertEqual( r1.path, 'resync/test/testdata/dir1/file_a' ) 
+        r = rl.resources.get('http://example.org/t/file_a')
+        self.assertTrue( r is not None )
+        self.assertEqual( r.uri, 'http://example.org/t/file_a' )
+        self.assertEqual( r.lastmod, '2012-07-25T17:13:46Z' )
+        self.assertEqual( r.md5, 'a/Jv1mYBtSjS4LR+qoft/Q==' )
+        self.assertEqual( r.path, 'resync/test/testdata/dir1/file_a' ) 
+
+    def test05_from_disk_paths(self):
+        rlb = ResourceListBuilder()
+        rlb.mapper = Mapper(['http://example.org/t','resync/test/testdata/dir1'])
+        # no path, should get no resources
+        rl = rlb.from_disk(paths=[])
+        self.assertEqual( len(rl), 0)
+        # full path, 2 resources
+        rl = rlb.from_disk(paths=['resync/test/testdata/dir1'])
+        self.assertEqual( len(rl), 2)
+        # new object with mapper covering larger space of disk
+        rlb = ResourceListBuilder(set_path=True)
+        rlb.mapper = Mapper(['http://example.org/t','resync/test/testdata'])
+        # same path with 2 resources
+        rl = rlb.from_disk(paths=['resync/test/testdata/dir1'])
+        self.assertEqual( len(rl), 2)
+        # same path with 2 resources
+        rl = rlb.from_disk(paths=['resync/test/testdata/dir1','resync/test/testdata/dir2'])
+        self.assertEqual( len(rl), 3)
+        # path that is just a single file
+        rl = rlb.from_disk(paths=['resync/test/testdata/dir1/file_a'])
+        self.assertEqual( len(rl), 1)
+        rli = iter(rl)
+        r = rli.next()
+        self.assertTrue( r is not None )
+        self.assertEqual( r.uri, 'http://example.org/t/dir1/file_a' )
+        self.assertEqual( r.lastmod, '2012-07-25T17:13:46Z' )
+        self.assertEqual( r.md5, None )
+        self.assertEqual( r.length, 20 )
+        self.assertEqual( r.path, 'resync/test/testdata/dir1/file_a' ) 
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestResourceListBuilder)

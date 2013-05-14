@@ -2,7 +2,19 @@
 """
 resync: The ResourceSync command line client
 
-Created by Simeon Warner on 2012-04...
+Copyright 2012,2013 Simeon Warner
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License
 """
 
 import logging
@@ -122,8 +134,7 @@ def main():
     # Options and arguments
     p = optparse.OptionParser(description='ResourceSync command line client',
                               usage='usage: %prog [options] uri_path local_path  (-h for help)',
-                              version='%prog '+__version__,
-                              add_help_option=False)
+                              version='%prog '+__version__ )
 
     # Modes
     # a. modes using remote sitemap/resources
@@ -146,8 +157,10 @@ def main():
         'These modes act on files on the local disk')
     loc.add_option('--resourcelist', '--resource-list', '-r', action='store_true',
                    help="write a resource list based on files on disk using uri=path mappings "
-                        "in reverse to calculate URIs from the local paths. To STDOUT by "
-                        "default, override with --outfile")
+                        "in reverse to calculate URIs from the local paths. Scans local disk "
+                        "based either on explicit --paths setting, else starting from all local "
+                        "paths specified in the mappings. Writes to STDOUT by default, override "
+                        "with --outfile")
     loc.add_option('--changelist', '--change-list', '-c', action='store_true',
                    help="write a change list based on comparison of a reference sitemap "
                         "(specify file with --reference) and either files on disk (using "
@@ -167,19 +180,22 @@ def main():
     # Specification of map between remote URI and local file paths, and remote sitemap
     nam = p.add_option_group('FILE/URI NAMING OPTIONS')
     nam.add_option('--outfile', type=str, action='store',
-                   help='write sitemap to specified file rather than STDOUT')
+                   help="write sitemap to specified file rather than STDOUT")
+    nam.add_option('--paths', type=str, action='store',
+                   help="explicit set of paths for disk scan --resourceslist or --changelist "
+                        "generation")
     nam.add_option('--sitemap', type=str, action='store',
-                   help='explicitly set sitemap name, overriding default sitemap.xml '
-                        'appended to first source URI specified in the mappings')
+                   help="explicitly set sitemap name, overriding default sitemap.xml "
+                        "appended to first source URI specified in the mappings")
     nam.add_option('--reference', type=str, action='store',
-                   help='reference sitemap name for --changelist calculation')
+                   help="reference sitemap name for --changelist calculation")
     nam.add_option('--newreference', type=str, action='store',
-                   help='updated reference sitemap name for --changelist calculation')
-    nam.add_option('--dump', metavar="DUMPFILE", type=str, action='store',
-                   help='write dump to specified file for --resourcelist or --changelist')
+                   help="updated reference sitemap name for --changelist calculation")
+    nam.add_option('--dump', metavar='DUMPFILE', type=str, action='store',
+                   help="write dump to specified file for --resourcelist or --changelist")
     nam.add_option('--changelist-uri','--change-list-uri', type=str, action='store',
-                   help='explicitly set the changelist URI that will be use in --inc mode, '
-                        'overrides process of getting this from the sitemap')
+                   help="explicitly set the changelist URI that will be use in --inc mode, "
+                        "overrides process of getting this from the sitemap")
 
     # Options that apply to multiple modes
     opt = p.add_option_group('MISCELANEOUS OPTIONS')
@@ -228,8 +244,6 @@ def main():
     opt.add_option('--eval', '-e', action='store_true',
                    help="output evaluation of source/client synchronization performance... "
                         "be warned, this is very verbose")
-    opt.add_option('--help', '-h', action='help',
-                   help="this help")
 
     (args, map) = p.parse_args()
 
@@ -296,7 +310,8 @@ def main():
         elif (args.explore):
             c.explore()
         elif (args.resourcelist):
-            c.write_resource_list(outfile=args.outfile,
+            c.write_resource_list(paths.args.paths,
+                                  outfile=args.outfile,
                                   links=links,
                                   dump=args.dump)
         elif (args.changelist):
@@ -305,6 +320,7 @@ def main():
             c.write_change_list(ref_sitemap=args.reference,
                                 newref_sitemap=( args.newreference if (args.newreference) else None ),
                                 empty=args.empty,
+                                paths=args.paths,
                                 outfile=args.outfile,
                                 links=links,
                                 dump=args.dump)
