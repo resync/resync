@@ -428,27 +428,60 @@ class Client(object):
             acceptable_capabilities = [ 'capabilitylist', 'capabilitylistindex' ]
         else:
             raise FatalError("Neither explicit sitemap nor mapping specified")
+        history = []
         inp = None
         while (inp!='q'):
             print
-            (uri, acceptable_capabilities, inp) = self.explore_uri(uri,acceptable_capabilities)
+            if (inp=='u'):
+                if (len(history)<2):
+                    break #can't do this, exit
+                history.pop() #throw away current
+                uri=history.pop()
+                acceptable_capabilities=None
+            history.append(uri)
+            (uri, acceptable_capabilities, inp) = self.explore_uri(uri,acceptable_capabilities,len(history)>1)
+        print "--explore done, bye..."
 
-    def explore_uri(self, uri, caps):
+    def explore_uri(self, uri, caps, show_up=True):
         """Interactive exploration of document at uri
 
         Will flag warnings if the document is not of type listed in caps
         """
         s=Sitemap()
         print "Reading %s" % (uri)
+        options={}
+        capability=None
         try:
             list = s.parse_xml(urllib.urlopen(uri))
+            (options,capability)=self.explore_show_summary(list,s.parsed_index,caps)
         except IOError as e:
-            raise ClientFatalError("Cannot read %s (%s)" % (uri,str(e)))
+            print "Cannot read %s (%s)\nGoing back up" % (uri,str(e))
+            return('','','u')
+        except Exception as e:
+            print "Cannot parse %s (%s)\nGoing back up" % (uri,str(e))
+            return('','','u')
+        while (True):
+            # don't offer number option for no resources/capabilities
+            num_prompt = '' if (len(options)==0) else 'number, '
+            up_prompt = 'u(p), ' if (show_up) else ''
+            inp = raw_input( "Follow [%s%sq(uit)]?" % (num_prompt,up_prompt) )
+            if (inp in options.keys()):
+                break
+            if (inp == 'q' or inp == 'u'):
+                return('','',inp)
+        caps = [ options[inp].capability ]
+        if (capability == 'capabilitylistindex'):
+            # all links should be to capabilitylist documents
+            if (caps is None):
+                caps = ['capabilitylist']
+        return( options[inp].uri, caps, inp )
+
+    def explore_show_summary(self,list,parsed_index,caps):
         num_entries = len(list.resources)
         capability = '(unknown capability)'
         if ('capability' in list.md):
             capability = list.md['capability']
-        if (s.parsed_index):
+        if (parsed_index):
             capability += 'index'
         print "Parsed %s document with %d entries:" % (capability,num_entries)
         if (caps is not None and capability not in caps):
@@ -458,18 +491,19 @@ class Client(object):
             to_show = 20
         # What entries are allowed? 
         # FIXME - not complete
+        entry_caps = []
         if (capability == 'capabilitylistindex'):
             entry_caps = ['capabilitylist']
         elif (capability == 'capabilitylist'):
             entry_caps = ['resourcelist','changelist','resourcedump','changedump','changelistindex']
         elif (capability == 'changelistindex'):
             entry_caps = ['changelist']
-        n = 0
         options = {}
+        n=0
         for r in list.resources:
             if (n>=to_show):
                 print "(not showing remaining %d entries)" % (num_entries-n)
-                last
+                break
             n+=1
             options[str(n)]=r
             print "[%d] %s" % (n,r.uri)
@@ -481,18 +515,7 @@ class Client(object):
             elif (len(entry_caps)==1):
                 r.capability=entry_caps[0]
                 print "  capability not specified, should be %s" % (r.capability)
-        while (True):
-            inp = raw_input( "Follow [number or q(uit)]?" )
-            if (inp in options.keys()):
-                break
-            if (inp == 'q'):
-                return('','',inp)
-        caps = [ options[inp].capability ]
-        if (capability == 'capabilitylistindex'):
-            # all links should be to capabilitylist documents
-            if (caps is None):
-                caps = ['capabilitylist']
-        return( options[inp].uri, caps, inp )
+        return(options,capability)
 
     def write_resource_list(self,paths=None,outfile=None,links=None,dump=None):
         """Write a resource list sitemap for files on local disk
