@@ -9,6 +9,7 @@ import distutils.dir_util
 import re
 import time
 import logging
+import requests
 import ConfigParser
 
 from resync.resource_list_builder import ResourceListBuilder
@@ -432,7 +433,7 @@ class Client(object):
         inp = None
         while (inp!='q'):
             print
-            if (inp=='u'):
+            if (inp=='b'):
                 if (len(history)<2):
                     break #can't do this, exit
                 history.pop() #throw away current
@@ -442,7 +443,7 @@ class Client(object):
             (uri, acceptable_capabilities, inp) = self.explore_uri(uri,acceptable_capabilities,len(history)>1)
         print "--explore done, bye..."
 
-    def explore_uri(self, uri, caps, show_up=True):
+    def explore_uri(self, uri, caps, show_back=True):
         """Interactive exploration of document at uri
 
         Will flag warnings if the document is not of type listed in caps
@@ -452,31 +453,44 @@ class Client(object):
         options={}
         capability=None
         try:
-            list = s.parse_xml(urllib.urlopen(uri))
-            (options,capability)=self.explore_show_summary(list,s.parsed_index,caps)
+            if (caps=='resource'):
+                self.explore_show_head(uri)
+            else: 
+                list = s.parse_xml(urllib.urlopen(uri))
+                (options,capability)=self.explore_show_summary(list,s.parsed_index,caps)
         except IOError as e:
-            print "Cannot read %s (%s)\nGoing back up" % (uri,str(e))
-            return('','','u')
+            print "Cannot read %s (%s)\nGoing back" % (uri,str(e))
+            return('','','b')
         except Exception as e:
-            print "Cannot parse %s (%s)\nGoing back up" % (uri,str(e))
-            return('','','u')
+            print "Cannot parse %s (%s)\nGoing back" % (uri,str(e))
+            return('','','b')
         while (True):
             # don't offer number option for no resources/capabilities
             num_prompt = '' if (len(options)==0) else 'number, '
-            up_prompt = 'u(p), ' if (show_up) else ''
+            up_prompt = 'b(ack), ' if (show_back) else ''
             inp = raw_input( "Follow [%s%sq(uit)]?" % (num_prompt,up_prompt) )
             if (inp in options.keys()):
                 break
-            if (inp == 'q' or inp == 'u'):
+            if (inp == 'q' or inp == 'b'):
                 return('','',inp)
-        caps = [ options[inp].capability ]
-        if (capability == 'capabilitylistindex'):
-            # all links should be to capabilitylist documents
-            if (caps is None):
+        if ( options[inp].capability is None ):
+            if (capability == 'capabilitylistindex'):
+                # all links should be to capabilitylist documents
                 caps = ['capabilitylist']
+            elif (capability in ['resourcelist','changelist',
+                                 'resourcedump','changedump']):
+                caps = 'resource'
+        else:
+            caps = [options[inp].capability]
+            # FIXME - could do sanity check here and issue warnings if odd
         return( options[inp].uri, caps, inp )
 
     def explore_show_summary(self,list,parsed_index,caps):
+        """Show summary of one capability document
+
+        Used as part of --explore.
+        FIXME - should look for <rs:ln rel="up"...> link and show that
+        """
         num_entries = len(list.resources)
         capability = '(unknown capability)'
         if ('capability' in list.md):
@@ -516,6 +530,15 @@ class Client(object):
                 r.capability=entry_caps[0]
                 print "  capability not specified, should be %s" % (r.capability)
         return(options,capability)
+
+    def explore_show_head(self,uri):
+        print "HEAD %s" % (uri)
+        response = requests.head(uri)
+        print "  status: %s" % (response.status_code)
+        # print some of the headers
+        for header in ['content-length','last-modified','content-type','etag']:
+            if header in response.headers:
+                print "  %s: %s" % (header, response.headers[header])
 
     def write_resource_list(self,paths=None,outfile=None,links=None,dump=None):
         """Write a resource list sitemap for files on local disk
