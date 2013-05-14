@@ -81,19 +81,24 @@ class Client(object):
             return(self.sitemap_name)
         return(self.sitemap_uri(self.resource_list_name))
 
-    @property
-    def resource_list(self):
-        """Return a resource list for files on disk based on current mappings
+    def build_resource_list(self, paths=None):
+        """Return a resource list for files on local disk
+
+        The set of files is taken by disk scan from the paths specified or
+        else defaults to the paths specified in the current mappings
 
         Return resource_list. Uses existing self.mapper settings.
         """
-        # 0. Sanity checks
+        # 0. Sanity checks, parse paths is specified
         if (len(self.mapper)<1):
             raise ClientFatalError("No source to destination mapping specified")
+        if (paths is not None):
+            # Expect comma separated list of paths
+            paths=paths.split(',')
         # 1. Build from disk
-        rlb = ResourceListBuilder(do_md5=self.checksum,mapper=self.mapper)
+        rlb = ResourceListBuilder(set_md5=self.checksum,mapper=self.mapper)
         rlb.add_exclude_files(self.exclude_patterns)
-        rl = rlb.from_disk()
+        rl = rlb.from_disk(paths=paths)
         # 2. Set defaults and overrides
         rl.allow_multifile = self.allow_multifile
         rl.pretty_xml = self.pretty_xml
@@ -136,8 +141,7 @@ class Client(object):
             self.checksum=False
             self.logger.info("Not calculating checksums on destination as not present in source resource_list")
         # 1.b destination resource_list mapped back to source URIs
-        rlb = ResourceListBuilder(mapper=self.mapper)
-        rlb.do_md5=self.checksum
+        rlb = ResourceListBuilder(set_md5=self.checksum, mapper=self.mapper)
         dst_resource_list = rlb.from_disk()
         ### 2. Compare these resource_lists respecting any comparison options
         (same,updated,deleted,created)=dst_resource_list.compare(src_resource_list)   
@@ -490,23 +494,31 @@ class Client(object):
                 caps = ['capabilitylist']
         return( options[inp].uri, caps, inp )
 
-    def write_resource_list(self,outfile=None,links=None,dump=None):
+    def write_resource_list(self,paths=None,outfile=None,links=None,dump=None):
         """Write a resource list sitemap for files on local disk
 
-        Set of resources included is based on the mappings. Optionally
-        links can be added. Output will be to stdout unless outfile
+        Set of resources included is based on paths setting or else the mappings. 
+        Optionally links can be added. Output will be to stdout unless outfile
         is specified.
         """
-        rl = self.resource_list
-        rl.ln = links
+        rl = self.build_resource_list(paths=paths)
+        if (links is not None):
+            rl.ln = links
         if (outfile is None):
             print rl.as_xml()
         else:
             rl.write(basename=outfile)
         self.write_dump_if_requested(rl,dump)
 
-    def write_change_list(self,outfile=None,ref_sitemap=None,newref_sitemap=None,
+    def write_change_list(self,paths=None,outfile=None,ref_sitemap=None,newref_sitemap=None,
                           empty=None,links=None,dump=None):
+        """Write a change list
+        
+        Unless the both ref_sitemap and newref_sitemap are specified then the Change 
+        List is calculated between the reference an the current state of files on
+        disk. The files on disk are scanned based either on the paths setting or
+        else on the mappings.
+        """
         cl = ChangeList(ln=links)
         if (not empty):
             # 1. Get and parse reference sitemap
@@ -515,7 +527,7 @@ class Client(object):
             # or build resource_list from files on disk
             if (newref_sitemap is None):
                 # Get resource list from disk
-                new_rl = self.resource_list
+                new_rl = self.build_resource_list(paths=paths)
             else:
                 new_rl = self.read_reference_resource_list(newref_sitemap,name='new reference')
             # 3. Calculate change list

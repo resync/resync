@@ -59,3 +59,17 @@ class CapabilityList(ListBase):
         if (capability is not None):
             name = capability.capability_md
         self.add( Resource(uri=uri,capability=name) )
+
+    def has_capability(self,name=None):
+        """True if the Capability List includes the named capability"""
+        return( self.capability(name) is not None )
+
+    def capability(self,name=None):
+        """Return information about the requested capability from this list
+
+        Will return None if there is no information about the requested capability
+        """
+        for r in self.resources:
+            if (r.capability == name):
+                return(r)
+        return(None)

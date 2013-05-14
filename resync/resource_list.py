@@ -79,10 +79,10 @@ class ResourceList(ListBaseWithIndex):
     which is currently alphabetical by URI.
     """
 
-    def __init__(self, resources=None, md=None, ln=None, allow_multifile=None, mapper=None):
+    def __init__(self, resources=None, count=None, md=None, ln=None, allow_multifile=None, mapper=None):
         if (resources is None):
             resources = ResourceListDict()
-        super(ResourceList, self).__init__(resources=resources, md=md, ln=ln, mapper=mapper)
+        super(ResourceList, self).__init__(resources=resources, count=count, md=md, ln=ln, allow_multifile=allow_multifile, mapper=mapper)
         self.capability_name = 'resourcelist'
         self.capability_md = 'resourcelist'
         self.resources_class = ResourceListDict

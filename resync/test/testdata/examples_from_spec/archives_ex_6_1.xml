@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="describedby"
+         href="http://example.com/dataset1/info_about_source.xml"/>
+  <rs:md capability="capabilitylist"
+         modified="2013-01-02T14:00:00Z"/>
+  <url>
+      <loc>http://example.com/dataset1/resourcelist.xml</loc>
+      <rs:md capability="resourcelist"/>
+  </url>
+  <url>
+      <loc>http://example.com/dataset1/resourcedump.xml</loc>
+      <rs:md capability="resourcedump"/>
+  </url>
+  <url>
+      <loc>http://example.com/dataset1/changelist.xml</loc>
+      <rs:md capability="changelist"/>
+  </url>
+  <url>
+      <loc>http://example.com/dataset1/changedump.xml</loc>
+      <rs:md capability="changedump"/>
+  </url>
+  <url>
+      <loc>http://example.com/dataset1/resourcelist-archive.xml</loc>
+      <rs:md capability="resourcelist-archive"/>
+  </url>
+  <url>
+      <loc>http://example.com/dataset1/resourcedump-archive.xml</loc>
+      <rs:md capability="resourcedump-archive"/>
+  </url>
+  <url>
+      <loc>http://example.com/dataset1/changelist-archive.xml</loc>
+      <rs:md capability="changelist-archive"/>
+  </url>
+  <url>
+      <loc>http://example.com/dataset1/changedump-archive.xml</loc>
+      <rs:md capability="changedump-archive"/>
+  </url>
+</urlset>

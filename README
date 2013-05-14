@@ -1,0 +1,105 @@
+======
+resync
+======
+
+**resync** is a ResourceSync client and library in python. `ResourceSync 
+<http://www.openarchives.org/rs/>`_ is a synchronization framework for 
+the web consisting of various capabilities that allow third party 
+systems to remain synchronized with a server's evolving resources. 
+The capabilities can be combined in a modular manner to meet local 
+or community requirements.
+
+Client usage
+------------
+
+Typical client usage to synchronize from a source at 
+``http://source.example.com/`` to a set of local files would be::
+
+    resync http://source.example.com/
+
+which will create or update a local directory ``./source.example.com``. 
+Alternatively, the destination directory may be specified explicitly::
+
+    resync http://source.example.com/ /tmp/my_copy
+
+Option details and a number of different modes are described with::
+
+    resync -h
+
+Library usage
+-------------
+
+Typical library use in a source (create and output a Resource List)::
+
+    from resync.resource_list import ResourceList
+    from resync.resource import Resource
+
+    rl = ResourceList()
+    rl.add( Resource('http://example.com/res1', lastmod='2013-01-01') )
+    rl.add( Resource('http://example.com/res2', lastmod='2013-01-02') )
+    print rl.as_xml()
+
+Typical library use in a destination (get and examine a Capability List):: 
+
+    from resync.capability_list import CapabilityList
+
+    # Read Capability List and show supported capabilities
+    cl = CapabilityList()
+    cl.read("https://raw.github.com/resync/resync/0.6/resync/test/testdata/examples_from_spec/resourcesync_ex_2_6.xml")
+    for resource in cl:
+        print "supports %s (at %s)" % (resource.capability,resource.uri)
+
+Installation
+------------
+
+The client and library are designed to work with Python 2.6 or 2.7.
+
+**Automatic installation**::
+
+    easy_install resync
+
+rsync is listed in `PyPI
+<http://pypi.python.org/pypi/resync>`_ and can be installed with 
+``pip`` or ``easy_install``. 
+
+**Manual installation from github**::
+
+    cd /tmp
+    git clone git://github.com/resync/resync.git
+    cd resync/
+    python setup.py build
+    sudo python setup.py install
+
+This will install the library code in the appropriate place within 
+your python setup, and the client ``resync`` in an appropriate system 
+path (perhaps ``/usr/local/bin`` or ``/usr/bin`` depending on your system).
+
+The source code is maintained on `Github
+<https://github.com/resync/resync>`_
+and there may be branches/versions available there that are not 
+yet packaged for `PyPI
+<http://pypi.python.org/pypi/resync>`_.
+
+See also
+--------
+
+http://github.com/resync/simulator
+
+Copyright and License
+---------------------
+
+Copyright 2012,2013 Simeon Warner
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+   
+See LICENSE.txt

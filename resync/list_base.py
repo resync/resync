@@ -19,10 +19,21 @@ from sitemap import Sitemap
 
 class ListBase(ResourceContainer):
     """Class that adds Sitemap based IO to ResourceContainer
+
+    resources - an iterable of resources
+
+    count - add optional explicit setting of the number of items in 
+        resources which is useful when this is an iterator/generator.
+        Is used instead of trying len(resources)
+
+    md - metadata information for the list (<rs:md>)
+     
+    ln - link information for the list (<rs:ln>)
     """
 
-    def __init__(self, resources=None, md=None, ln=None):
+    def __init__(self, resources=None, count=None, md=None, ln=None):
         super(ListBase, self).__init__(resources=resources, md=md, ln=ln)
+        self.count = count
         self.capability_name = 'unknown'
         self.capability_md = 'unknown'
         self.sitemapindex = False
@@ -37,7 +48,18 @@ class ListBase(ResourceContainer):
         return(iter(self.resources))
 
     def __len__(self):
-        """Number of entries in this list"""
+        """Number of entries in this list
+
+        To handle the case where self.resources is a generator or an iterator and
+        thus cannot provide len(...) we first check to see whether an explicit
+        self.count is set and return that, otherwise just do len(...).
+
+        Typical usage would be to set this on instantiation:
+           list = ListBase( resources=my_generator, count=count)
+           print list.as_xml()
+        """
+        if (self.count is not None):
+            return(self.count)
         return(len(self.resources))
 
     ##### INPUT #####
