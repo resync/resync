@@ -310,7 +310,7 @@ def main():
         elif (args.explore):
             c.explore()
         elif (args.resourcelist):
-            c.write_resource_list(paths.args.paths,
+            c.write_resource_list(paths=args.paths,
                                   outfile=args.outfile,
                                   links=links,
                                   dump=args.dump)
