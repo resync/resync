@@ -197,6 +197,21 @@ def main():
                    help="explicitly set the changelist URI that will be use in --inc mode, "
                         "overrides process of getting this from the sitemap")
 
+    lks = p.add_option_group("LINK GENERATION")
+    lks.add_option('--link', type=str, action='append',
+                   help="add discovery links to the output sitemap, "
+                        "format: rel,href[,att1=val1,att2=val2] "
+                        "(repeat option for multiple links)")
+    lks.add_option('--describedby-link', type=str, action='store',
+                   help="add an <rs:md rel=\"describedby\" link to "
+                        "a description of the feed at the URI given") 
+    lks.add_option('--capabilities-link', type=str, action='store',
+                   help="add an <rs:md rel=\"resourcesync\" link to the "
+                        "capabilities at the URI given") 
+    lks.add_option('--up-link', type=str, action='store',
+                   help="add an <rs:md rel=\"up\" link to the "
+                        "parent sitemapindex at the URI given") 
+
     # Options that apply to multiple modes
     opt = p.add_option_group('MISCELANEOUS OPTIONS')
     opt.add_option('--checksum', action='store_true',
@@ -211,13 +226,6 @@ def main():
                         "(repeat option for multiple excludes)")
     opt.add_option('--empty', action='store_true',
                    help="combine with --changelist to write and empty changelist, perhaps with links")
-    opt.add_option('--link', type=str, action='append',
-                   help="add discovery links to the output sitemap, "
-                        "format: rel,href[,att1=val1,att2=val2] "
-                        "(repeat option for multiple links)")
-    opt.add_option('--describedby', type=str, action='store',
-                   help="add an <rs:md rel=\"describedby\" link to the "
-                        "URI given") 
     opt.add_option('--multifile', '-m', action='store_true',
                    help="disable reading and output of sitemapindex for multifile sitemap")
     opt.add_option('--noauth', action='store_true',
@@ -293,9 +301,13 @@ def main():
 
         # Links apply to anything that writes sitemaps
         links = parse_links(args.link)
-        # expand --describedby shorthand for a link, prepend
-        if (args.describedby):
-            links.insert(0,{'rel':'describedby','href':args.describedby})
+        # expand shorthands for specific links, prepend
+        if (args.up_link):
+            links.insert(0,{'rel':'up','href':args.up_link})
+        if (args.capabilities_link):
+            links.insert(0,{'rel':'resourcesync','href':args.capabilities_link})
+        if (args.describedby_link):
+            links.insert(0,{'rel':'describedby','href':args.describedby_link})
 
         # Finally, do something...
         if (args.baseline or args.audit):

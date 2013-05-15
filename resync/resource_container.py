@@ -66,6 +66,14 @@ class ResourceContainer(object):
         self.md['modified']=modified
 
 
+    def link(self,rel):
+        """Look for link with specified rel, return else None"""
+        for link in self.ln:
+            if ('rel' in link and
+                link['rel']==rel):
+                return(link)
+        return(None)
+
     def default_capability_and_modified(self):
         """Set capability name and modified time in md
 
