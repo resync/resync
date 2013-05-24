@@ -10,7 +10,6 @@ import re
 import time
 import logging
 import requests
-import ConfigParser
 
 from resync.resource_list_builder import ResourceListBuilder
 from resync.resource_list import ResourceList
@@ -428,9 +427,10 @@ class Client(object):
             print "Will look for discovery information based on mappings"
             acceptable_capabilities = [ 'capabilitylist', 'capabilitylistindex' ]
         else:
-            raise FatalError("Neither explicit sitemap nor mapping specified")
+            raise ClientFatalError("Neither explicit sitemap nor mapping specified")
         history = []
         inp = None
+        checks = None
         while (inp!='q'):
             print
             if (inp=='b'):
@@ -440,10 +440,10 @@ class Client(object):
                 uri=history.pop()
                 acceptable_capabilities=None
             history.append(uri)
-            (uri, acceptable_capabilities, inp) = self.explore_uri(uri,acceptable_capabilities,len(history)>1)
+            (uri,checks,acceptable_capabilities,inp) = self.explore_uri(uri,checks,acceptable_capabilities,len(history)>1)
         print "--explore done, bye..."
 
-    def explore_uri(self, uri, caps, show_back=True):
+    def explore_uri(self, uri, checks, caps, show_back=True):
         """Interactive exploration of document at uri
 
         Will flag warnings if the document is not of type listed in caps
@@ -454,16 +454,16 @@ class Client(object):
         capability=None
         try:
             if (caps=='resource'):
-                self.explore_show_head(uri)
+                self.explore_show_head(uri,check_headers=checks)
             else: 
                 list = s.parse_xml(urllib.urlopen(uri))
                 (options,capability)=self.explore_show_summary(list,s.parsed_index,caps)
         except IOError as e:
             print "Cannot read %s (%s)\nGoing back" % (uri,str(e))
-            return('','','b')
+            return('','','','b')
         except Exception as e:
             print "Cannot parse %s (%s)\nGoing back" % (uri,str(e))
-            return('','','b')
+            return('','','','b')
         while (True):
             # don't offer number option for no resources/capabilities
             num_prompt = '' if (len(options)==0) else 'number, '
@@ -472,7 +472,8 @@ class Client(object):
             if (inp in options.keys()):
                 break
             if (inp == 'q' or inp == 'b'):
-                return('','',inp)
+                return('','','',inp)
+        checks = {}
         if ( options[inp].capability is None ):
             if (capability == 'capabilitylistindex'):
                 # all links should be to capabilitylist documents
@@ -481,9 +482,14 @@ class Client(object):
                                  'resourcedump','changedump']):
                 caps = 'resource'
         else:
-            caps = [options[inp].capability]
+            r = options[inp]
+            caps = [r.capability]
+            if (r.length is not None):
+                checks['content-length']=r.length
+            if (r.lastmod is not None):
+                checks['last-modified']=r.lastmod
             # FIXME - could do sanity check here and issue warnings if odd
-        return( options[inp].uri, caps, inp )
+        return( options[inp].uri, checks, caps, inp )
 
     def explore_show_summary(self,list,parsed_index,caps):
         """Show summary of one capability document
@@ -514,6 +520,9 @@ class Client(object):
             entry_caps = ['changelist']
         options = {}
         n=0
+        if ('up' in list.ln):
+            options['up']=list.ln['up']
+            print "[%s] %s" % ('up',list.ln['up'].uri)
         for r in list.resources:
             if (n>=to_show):
                 print "(not showing remaining %d entries)" % (num_entries-n)
@@ -531,14 +540,29 @@ class Client(object):
                 print "  capability not specified, should be %s" % (r.capability)
         return(options,capability)
 
-    def explore_show_head(self,uri):
+    def explore_show_head(self,uri,check_headers=None):
+        """Do HEAD on uri and show infomation
+
+        Will also check headers against any values specified in 
+        check_headers.
+        """
         print "HEAD %s" % (uri)
         response = requests.head(uri)
         print "  status: %s" % (response.status_code)
+        # generate normalized lastmod
+#        if ('last-modified' in response.headers):
+#            response.headers.add['lastmod'] = datetime_to_str(str_to_datetime(response.headers['last-modified']))
         # print some of the headers
-        for header in ['content-length','last-modified','content-type','etag']:
+        for header in ['content-length','last-modified','lastmod','content-type','etag']:
             if header in response.headers:
-                print "  %s: %s" % (header, response.headers[header])
+                check_str=''
+                if (check_headers is not None and
+                    header in check_headers):
+                    if (response.headers[header] == check_headers[header]):
+                        check_str=' MATCHES EXPECTED VALUE'
+                    else:
+                        check_STR=' EXPECTED %s' % (check_headers[header])
+                print "  %s: %s%s" % (header, response.headers[header], check_str)
 
     def write_resource_list(self,paths=None,outfile=None,links=None,dump=None):
         """Write a resource list sitemap for files on local disk
