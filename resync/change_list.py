@@ -35,7 +35,7 @@ class ChangeList(ListBase):
     def add(self, resource):
         """Add a resource_change or an iterable collection to this ChangeList
       
-        Allows multiple resourec_change objects for the same resource (ie. URI) and
+        Allows multiple resource_change objects for the same resource (ie. URI) and
         preserves the order of addition.
         """
         if isinstance(resource, collections.Iterable):
