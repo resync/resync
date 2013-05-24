@@ -29,6 +29,8 @@ class ListBase(ResourceContainer):
     md - metadata information for the list (<rs:md>)
      
     ln - link information for the list (<rs:ln>)
+
+    sitemapindex - defaults to False, set True if this is an index object
     """
 
     def __init__(self, resources=None, count=None, md=None, ln=None):
