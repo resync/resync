@@ -77,13 +77,13 @@ class Sitemap(object):
         root = Element(root_element, namespaces)
         if (self.pretty_xml):
             root.text="\n"
-        # <rs:md>
-        if (hasattr(resources,'md')):
-            self.add_md_to_etree(root,resources.md)
         # <rs:ln>
         if (hasattr(resources,'ln')):
             for ln in resources.ln:
                 self.add_ln_to_etree(root,ln)
+        # <rs:md>
+        if (hasattr(resources,'md')):
+            self.add_md_to_etree(root,resources.md)
         # <url> entries from either an iterable or an iterator
         for r in resources:
             e=self.resource_etree_element(r, element_name=item_element)
