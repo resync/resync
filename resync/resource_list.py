@@ -62,6 +62,40 @@ class ResourceListDict(dict):
             raise ResourceListDupeError("Attempt to add resource already in resource_list") 
         self[uri]=resource
 
+class ResourceListOrdered(list):
+    """Alternative implementation of class to store resources in ResourceList
+
+    FIXME - This is a rather inefficient implementation which involves 
+    scanning all resources to check for duplicates. Designed just to enable
+    re-creation of examples in the spec. Something dictionary based would
+    likely be better. Might be best to use OrderedDict but that is available
+    natively only in python >= 2.7 and this library is designed for 2.6,2.7.
+
+    Key properties of this class are:
+    - has add(resource) method
+    - is iterable and results given in order added (not the usual one!)
+    """
+
+    def uris(self):
+        """Extract list of all resource URIs (in the order added)"""
+        uris = []
+        for r in self:
+            uris.append(r.uri)
+        return(uris)
+
+    def add(self, resource, replace=False):
+        """Add a single resource, check for dupes"""
+        uri = resource.uri
+        for r in self:
+            if (uri == r.uri):
+                if (replace):
+                    r=resource
+                    return
+                else:
+                    raise ResourceListDupeError("Attempt to add resource already in resource_list") 
+        # didn't find it in list, add to end
+        self.append(resource)
+
 class ResourceListDupeError(Exception):
     pass
 
@@ -79,13 +113,14 @@ class ResourceList(ListBaseWithIndex):
     which is currently alphabetical by URI.
     """
 
-    def __init__(self, resources=None, count=None, md=None, ln=None, allow_multifile=None, mapper=None):
+    def __init__(self, resources=None, count=None, md=None, ln=None, allow_multifile=None, mapper=None,
+                 resources_class=None):
+        self.resources_class = ResourceListDict if resources_class is None else resources_class
         if (resources is None):
-            resources = ResourceListDict()
+            resources = self.resources_class()
         super(ResourceList, self).__init__(resources=resources, count=count, md=md, ln=ln, allow_multifile=allow_multifile, mapper=mapper)
         self.capability_name = 'resourcelist'
         self.capability_md = 'resourcelist'
-        self.resources_class = ResourceListDict
 
     def add(self, resource, replace=False):
         """Add a resource or an iterable collection of resources
