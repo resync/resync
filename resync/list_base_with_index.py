@@ -53,7 +53,6 @@ class ListBaseWithIndex(ListBase):
     def __init__(self, resources=None, count=None, md=None, ln=None, allow_multifile=None, mapper=None):
         super(ListBaseWithIndex, self).__init__(resources=resources, count=count, md=md, ln=ln)
         # specific to lists with indexes
-        self.resources_class=dict
         self.max_sitemap_entries=50000
         self.mapper = mapper
         self.allow_multifile = (True if (allow_multifile is None) else allow_multifile)
@@ -194,15 +193,14 @@ class ListBaseWithIndex(ListBase):
         if (not num_parts):
             raise ListBaseIndexError("Request for sitemapindex for list with only %d entries when max_sitemap_entries is set to %s" % (len(self),str(self.max_sitemap_entries)))
         index=ListBase()
+        index.sitemapindex=True
         index.capability_name = self.capability_name
         index.capability_md = self.capability_md
         index.default_capability_and_modified()
         for n in range(num_parts):
             r = Resource( uri = self.part_name(basename,n) )
             index.add(r)
-        # Serialize as a sitemapindex
-        s = self.new_sitemap()
-        return( s.resources_as_xml(index,sitemapindex=True) )
+        return( index.as_xml() )
 
     def as_xml_part(self, basename="/tmp/sitemap.xml", part_number=0):
         """Return a string of component sitemap part_number for a large list that is split
