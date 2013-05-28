@@ -17,7 +17,7 @@ setup(
     name='resync',
     version=version,
     packages=['resync'],
-    scripts=['bin/resync'],
+    scripts=['bin/resync','bin/resync-explorer'],
     classifiers=["Development Status :: 3 - Alpha",
                  "Intended Audience :: Developers",
                  "License :: OSI Approved :: Apache Software License",

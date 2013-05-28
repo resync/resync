@@ -1,0 +1,237 @@
+#!/usr/bin/python
+"""
+resync: The ResourceSync command line client
+
+Copyright 2012,2013 Simeon Warner
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License
+"""
+
+import logging
+import logging.config
+import optparse
+import sys
+
+from resync import __version__
+from resync.client import ClientFatalError
+from resync.explorer import Explorer
+from resync.utils import UTCFormatter
+
+DEFAULT_CLIENT_LOGFILE = 'resync-explorer.log'
+
+def init_logging(to_file=False, logfile=None, human=True, 
+                 verbose=False, eval_mode=False):
+    """Initialize logging
+
+    Use of log levels:
+    DEBUG - very verbose, for evaluation of output (-e)
+    INFO - verbose, only seen by users if they ask for it (-v)
+    WARNING - messages output messages to console
+    """
+    
+    fmt = '%(asctime)s | %(name)s | %(levelname)s | %(message)s'
+    formatter = UTCFormatter(fmt)
+    
+    if human:
+        # Create a special handler designed just for human readable output
+        hh = logging.StreamHandler()
+        hh.setLevel( logging.INFO if (verbose) else logging.WARNING )
+        hh.setFormatter(logging.Formatter(fmt='%(message)s'))
+    if to_file:
+        if (logfile is None):
+            logfile = DEFAULT_CLIENT_LOGFILE
+        fh = logging.FileHandler(filename=logfile, mode='a')
+        fh.setFormatter(formatter)
+        fh.setLevel( logging.DEBUG if (eval_mode) else logging.INFO )
+
+    loggers = ['client','resourcelist_builder','sitemap']
+    for logger in loggers:
+        log = logging.getLogger(logger)
+        log.setLevel(logging.DEBUG) #control at handler instead
+        if human:
+            log.addHandler(hh)
+        if to_file:
+            log.addHandler(fh)
+
+    log=logging.getLogger('client')
+    if (to_file):
+        log.info("Writing detailed log to %s" % (logfile))
+
+
+def count_true_args(*args):
+    """Count number of list of arguments that evaluate True"""
+    count=0
+    for arg in args:
+        if (arg):
+            count+=1
+    return(count)
+
+def parse_links(args_link):
+    links=[]
+    if (args_link is not None):
+        for link_str in args_link:
+            try:
+                links.append(parse_link(link_str))
+            except ValueError as e:
+                raise ClientFatalError("Bad --link option '%s' (%s)"%(link_str,str(e)))
+    return(links)
+
+def parse_link(link_str):
+    """Parse --link option to add to <rs:ln> links
+
+    Input string of the form: rel,href,att1=val1,att2=val2
+    """
+    atts={}
+    try:
+        segs = link_str.split(',')
+        # First segments are relation and subject
+        atts['rel'] = segs.pop(0)
+        atts['href'] = segs.pop(0)
+        # Remaining segments are attributes
+        for term in segs:
+            (k,v)=term.split('=')
+            atts[k]=v
+    except ValueError as e:
+        raise ClientFatalError("Bad component of --link option '%s' (%s)"%(link_str,str(e)))
+    return(atts)
+
+def parse_capabilities(caps_str):
+    """Parse list of capabilities in --capabilitylist option
+
+    Input string of the form: cap_name=uri,cap_name=uri
+    """
+    capabilities={}
+    try:
+        segs = caps_str.split(',')
+        for term in segs:
+            (k,v)=term.split('=')
+            capabilities[k]=v
+    except ValueError as e:
+        raise ClientFatalError("Bad component of --capabilitylist option '%s' (%s)"%(link_str,str(e)))
+    return(capabilities)
+
+def parse_capability_lists(cls_str):
+    """Parse list of capability lists in --capabilitylistindex option
+
+    Input string of the form: uri,uri
+    """
+    return(cls_str.split(','))
+
+def main():
+
+    if (sys.version_info < (2,6)):
+        sys.exit("This program requires python version 2.6 or later")
+    
+    # Options and arguments
+    p = optparse.OptionParser(description='ResourceSync explorer',
+                              usage='usage: %prog [options] uri_path local_path  (-h for help)',
+                              version='%prog '+__version__ )
+
+    # Specification of map between remote URI and local file paths, and remote sitemap
+    nam = p.add_option_group('FILE/URI NAMING OPTIONS')
+    nam.add_option('--outfile', type=str, action='store',
+                   help="write sitemap to specified file rather than STDOUT")
+    nam.add_option('--paths', type=str, action='store',
+                   help="explicit set of paths for disk scan --resourceslist or --changelist "
+                        "generation")
+    nam.add_option('--sitemap', type=str, action='store',
+                   help="explicitly set sitemap name, overriding default sitemap.xml "
+                        "appended to first source URI specified in the mappings")
+    nam.add_option('--reference', type=str, action='store',
+                   help="reference sitemap name for --changelist calculation")
+    nam.add_option('--newreference', type=str, action='store',
+                   help="updated reference sitemap name for --changelist calculation")
+    nam.add_option('--dump', metavar='DUMPFILE', type=str, action='store',
+                   help="write dump to specified file for --resourcelist or --changelist")
+    nam.add_option('--changelist-uri','--change-list-uri', type=str, action='store',
+                   help="explicitly set the changelist URI that will be use in --inc mode, "
+                        "overrides process of getting this from the sitemap")
+
+    # Options that apply to multiple modes
+    opt = p.add_option_group('MISCELANEOUS OPTIONS')
+    opt.add_option('--checksum', action='store_true',
+                   help="use checksum (md5) in addition to last modification time and size")
+    opt.add_option('--delete', action='store_true',
+                   help="allow files on destination to be deleted")
+    opt.add_option('--from', type=str, action='store', dest='from_datetime', metavar="DATETIME",
+                   help="explicit datetime value used to filter updates in change list for "
+                        "--incremental sync")
+    opt.add_option('--exclude', type=str, action='append',
+                   help="exclude resources with URI or filename matching pattern "
+                        "(repeat option for multiple excludes)")
+    opt.add_option('--empty', action='store_true',
+                   help="combine with --changelist to write and empty changelist, perhaps with links")
+    opt.add_option('--multifile', '-m', action='store_true',
+                   help="disable reading and output of sitemapindex for multifile sitemap")
+    opt.add_option('--noauth', action='store_true',
+                   help="disable checking of URL paths to ensure that the sitemaps refer "
+                        "only to resources on the same server/sub-path etc. Use with care.")
+    opt.add_option('--warc', action='store_true',
+                   help="write dumps in WARC format (instead of ZIP+Sitemap default)")
+    opt.add_option('--dryrun', '-n', action='store_true',
+                   help="don't update local resources, say what would be done")
+    opt.add_option('--ignore-failures', action='store_true',
+                   help="continue past download failures")
+    # These likely only useful for experimentation
+    opt.add_option('--max-sitemap-entries', type=int, action='store',
+                   help="override default size limits")
+    # Want these to show at the end
+    opt.add_option('--verbose', '-v', action='store_true',
+                   help="verbose")
+    opt.add_option('--logger', '-l', action='store_true',
+                   help="create detailed log of client actions (will write "
+                        "to %s unless specified with --logfile" %
+                        DEFAULT_CLIENT_LOGFILE)
+    opt.add_option('--logfile', type='str', action='store',
+                   help="create detailed log of client actions")
+    opt.add_option('--eval', '-e', action='store_true',
+                   help="output evaluation of source/client synchronization performance... "
+                        "be warned, this is very verbose")
+
+    (args, map) = p.parse_args()
+
+    init_logging( to_file=args.logger, logfile=args.logfile, 
+                  verbose=args.verbose, eval_mode=args.eval )
+
+    c = Explorer( checksum=args.checksum,
+                  verbose=args.verbose,
+                  dryrun=args.dryrun )
+
+    try:
+        if (map):
+            # Mappings apply to (almost) everything
+            c.set_mappings(map)
+        if (args.sitemap):
+            c.sitemap_name=args.sitemap
+        if (args.warc):
+            c.dump_format='warc'
+        if (args.exclude):
+            c.exclude_patterns=args.exclude
+        if (args.multifile):
+            c.allow_multifile=not args.multifile
+        if (args.noauth):
+            c.noauth=args.noauth
+        if (args.max_sitemap_entries):
+            c.max_sitemap_entries=args.max_sitemap_entries
+        if (args.ignore_failures):
+            c.ignore_failures=args.ignore_failures
+
+        c.explore()
+
+    # Any problem we expect will come as a ClientFatalError, anything else 
+    # is... an exception ;-)
+    except ClientFatalError as e:
+        sys.stderr.write("\nFatalError: " + str(e) + "\n")
+
+if __name__ == '__main__':
+    main()

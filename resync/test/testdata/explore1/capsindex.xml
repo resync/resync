@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+              xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="describedby"
+         href="http://resync.library.cornell.edu/"/>
+  <rs:md capability="capabilitylist"
+         modified="2013-03-20"/>
+  <sitemap>
+    <loc>resync/test/testdata/explore1/caps1.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>resync/test/testdata/explore1/caps2.xml</loc>
+    <rs:md capability="capabilitylist"/>
+  </sitemap>
+  <sitemap>
+    <loc>resync/test/testdata/explore1/caps3.xml</loc>
+    <rs:md capability="resourcelist"/>
+  </sitemap>
+</sitemapindex>

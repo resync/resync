@@ -17,114 +17,15 @@ Copyright 2012,2013 Simeon Warner
    limitations under the License
 """
 
-import logging
-import logging.config
 import optparse
 import sys
 
 from resync import __version__
 from resync.client import Client, ClientFatalError
+from resync.client_utils import init_logging,count_true_args,parse_links,parse_capabilities,parse_capability_lists
 from resync.utils import UTCFormatter
 
-DEFAULT_CLIENT_LOGFILE = 'resync-client.log'
-
-def init_logging(to_file=False, logfile=None, human=True, 
-                 verbose=False, eval_mode=False):
-    """Initialize logging
-
-    Use of log levels:
-    DEBUG - very verbose, for evaluation of output (-e)
-    INFO - verbose, only seen by users if they ask for it (-v)
-    WARNING - messages output messages to console
-    """
-    
-    fmt = '%(asctime)s | %(name)s | %(levelname)s | %(message)s'
-    formatter = UTCFormatter(fmt)
-    
-    if human:
-        # Create a special handler designed just for human readable output
-        hh = logging.StreamHandler()
-        hh.setLevel( logging.INFO if (verbose) else logging.WARNING )
-        hh.setFormatter(logging.Formatter(fmt='%(message)s'))
-    if to_file:
-        if (logfile is None):
-            logfile = DEFAULT_CLIENT_LOGFILE
-        fh = logging.FileHandler(filename=logfile, mode='a')
-        fh.setFormatter(formatter)
-        fh.setLevel( logging.DEBUG if (eval_mode) else logging.INFO )
-
-    loggers = ['client','resourcelist_builder','sitemap']
-    for logger in loggers:
-        log = logging.getLogger(logger)
-        log.setLevel(logging.DEBUG) #control at handler instead
-        if human:
-            log.addHandler(hh)
-        if to_file:
-            log.addHandler(fh)
-
-    log=logging.getLogger('client')
-    if (to_file):
-        log.info("Writing detailed log to %s" % (logfile))
-
-
-def count_true_args(*args):
-    """Count number of list of arguments that evaluate True"""
-    count=0
-    for arg in args:
-        if (arg):
-            count+=1
-    return(count)
-
-def parse_links(args_link):
-    links=[]
-    if (args_link is not None):
-        for link_str in args_link:
-            try:
-                links.append(parse_link(link_str))
-            except ValueError as e:
-                raise ClientFatalError("Bad --link option '%s' (%s)"%(link_str,str(e)))
-    return(links)
-
-def parse_link(link_str):
-    """Parse --link option to add to <rs:ln> links
-
-    Input string of the form: rel,href,att1=val1,att2=val2
-    """
-    atts={}
-    try:
-        segs = link_str.split(',')
-        # First segments are relation and subject
-        atts['rel'] = segs.pop(0)
-        atts['href'] = segs.pop(0)
-        # Remaining segments are attributes
-        for term in segs:
-            (k,v)=term.split('=')
-            atts[k]=v
-    except ValueError as e:
-        raise ClientFatalError("Bad component of --link option '%s' (%s)"%(link_str,str(e)))
-    return(atts)
-
-def parse_capabilities(caps_str):
-    """Parse list of capabilities in --capabilitylist option
-
-    Input string of the form: cap_name=uri,cap_name=uri
-    """
-    capabilities={}
-    try:
-        segs = caps_str.split(',')
-        for term in segs:
-            (k,v)=term.split('=')
-            capabilities[k]=v
-    except ValueError as e:
-        raise ClientFatalError("Bad component of --capabilitylist option '%s' (%s)"%(link_str,str(e)))
-    return(capabilities)
-
-def parse_capability_lists(cls_str):
-    """Parse list of capability lists in --capabilitylistindex option
-
-    Input string of the form: uri,uri
-    """
-    return(cls_str.split(','))
+DEFAULT_LOGFILE = 'resync-client.log'
 
 def main():
 
@@ -246,7 +147,7 @@ def main():
     opt.add_option('--logger', '-l', action='store_true',
                    help="create detailed log of client actions (will write "
                         "to %s unless specified with --logfile" %
-                        DEFAULT_CLIENT_LOGFILE)
+                        DEFAULT_LOGFILE)
     opt.add_option('--logfile', type='str', action='store',
                    help="create detailed log of client actions")
     opt.add_option('--eval', '-e', action='store_true',
@@ -273,7 +174,7 @@ def main():
         p.error("Only one of --baseline, --inc, --audit, --parse, --explore, --resourcelist, --changelist, --capabilitylist, --capabilitylistindex modes allowed")
 
     # Configure logging module and create logger instance
-    init_logging( to_file=args.logger, logfile=args.logfile, 
+    init_logging( to_file=args.logger, logfile=args.logfile, default_logfile=DEFAULT_LOGFILE, 
                   verbose=args.verbose, eval_mode=args.eval )
 
     c = Client( checksum=args.checksum,
