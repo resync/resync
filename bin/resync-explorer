@@ -90,6 +90,7 @@ def main():
     init_logging( to_file=args.logger, logfile=args.logfile, default_logfile=DEFAULT_LOGFILE,
                   verbose=args.verbose )
 
+    print "----- ResourceSync Explorer -----"
     c = Explorer( checksum=args.checksum,
                   verbose=args.verbose )
 
@@ -99,8 +100,6 @@ def main():
             c.set_mappings(map)
         if (args.sitemap):
             c.sitemap_name=args.sitemap
-        if (args.warc):
-            c.dump_format='warc'
         if (args.exclude):
             c.exclude_patterns=args.exclude
         if (args.multifile):
