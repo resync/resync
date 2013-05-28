@@ -98,17 +98,25 @@ def parse_link(link_str):
     Input string of the form: rel,href,att1=val1,att2=val2
     """
     atts={}
+    help_str = "--link option '%s' (format rel,href,att1=val1...)"%(link_str)
     try:
         segs = link_str.split(',')
         # First segments are relation and subject
         atts['rel'] = segs.pop(0)
         atts['href'] = segs.pop(0)
+        if (atts['href']==''):
+            raise ClientFatalError("Missing uri in " + help_str)
         # Remaining segments are attributes
         for term in segs:
             (k,v)=term.split('=')
+            if (k=='' or v==''):
+                raise ClientFatalError("Bad attribute (%s) in " % (term) + help_str)
             atts[k]=v
     except ValueError as e:
-        raise ClientFatalError("Bad component of --link option '%s' (%s)"%(link_str,str(e)))
+        raise ClientFatalError("Bad component of " + help_str)
+    except IndexError as e:
+        raise ClientFatalError("Incomplete component of " + help_str)
+    
     return(atts)
 
 def parse_capabilities(caps_str):
@@ -123,7 +131,7 @@ def parse_capabilities(caps_str):
             (k,v)=term.split('=')
             capabilities[k]=v
     except ValueError as e:
-        raise ClientFatalError("Bad component of --capabilitylist option '%s' (%s)"%(link_str,str(e)))
+        raise ClientFatalError("Bad component of --capabilitylist option '%s' (%s)"%(caps_str,str(e)))
     return(capabilities)
 
 def parse_capability_lists(cls_str):
