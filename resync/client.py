@@ -55,8 +55,12 @@ class Client(object):
         self.noauth = False
         self.max_sitemap_entries = None
         self.ignore_failures = False
-        self.status_file = '.resync-client-status.cfg'
         self.pretty_xml = True
+        # Default file names
+        self.status_file = '.resync-client-status.cfg'
+        self.default_resource_dump = 'resourcedump.zip'
+        self.default_change_dump = 'changedump.zip'
+
 
     def set_mappings(self,mappings):
         """Build and set Mapper object based on input mappings"""
@@ -81,11 +85,17 @@ class Client(object):
             return(self.sitemap_name)
         return(self.sitemap_uri(self.resource_list_name))
 
-    def build_resource_list(self, paths=None):
+    def build_resource_list(self, paths=None, set_path=False):
         """Return a resource list for files on local disk
 
         The set of files is taken by disk scan from the paths specified or
         else defaults to the paths specified in the current mappings
+
+        paths - override paths from mappings if specified
+
+        set_path - set true to set the path information for each resource 
+            included. This is used to build a resource list as the basis
+            for creating a dump.
 
         Return resource_list. Uses existing self.mapper settings.
         """
@@ -97,6 +107,7 @@ class Client(object):
             paths=paths.split(',')
         # 1. Build from disk
         rlb = ResourceListBuilder(set_md5=self.checksum,mapper=self.mapper)
+        rlb.set_path=set_path
         rlb.add_exclude_files(self.exclude_patterns)
         rl = rlb.from_disk(paths=paths)
         # 2. Set defaults and overrides
@@ -565,20 +576,29 @@ class Client(object):
                 print "  %s: %s%s" % (header, response.headers[header], check_str)
 
     def write_resource_list(self,paths=None,outfile=None,links=None,dump=None):
-        """Write a resource list sitemap for files on local disk
+        """Write a Resource List or a Resource Dump for files on local disk
 
         Set of resources included is based on paths setting or else the mappings. 
         Optionally links can be added. Output will be to stdout unless outfile
         is specified.
+        
+        If dump is true then a Resource Dump is written instead of a Resource
+        List. If outfile is not set then self.default_resource_dump will be used.
         """
-        rl = self.build_resource_list(paths=paths)
+        rl = self.build_resource_list(paths=paths,set_path=dump)
         if (links is not None):
             rl.ln = links
-        if (outfile is None):
-            print rl.as_xml()
+        if (dump):
+            if (outfile is None):
+                outfile = self.default_resource_dump
+            self.logger.info("Writing resource dump to %s..." % (dump))
+            d = Dump(format=self.dump_format)
+            d.write(resource_list=rl,dumpfile=outfile)
         else:
-            rl.write(basename=outfile)
-        self.write_dump_if_requested(rl,dump)
+            if (outfile is None):
+                print rl.as_xml()
+            else:
+                rl.write(basename=outfile)
 
     def write_change_list(self,paths=None,outfile=None,ref_sitemap=None,newref_sitemap=None,
                           empty=None,links=None,dump=None):
@@ -597,7 +617,7 @@ class Client(object):
             # or build resource_list from files on disk
             if (newref_sitemap is None):
                 # Get resource list from disk
-                new_rl = self.build_resource_list(paths=paths)
+                new_rl = self.build_resource_list(paths=paths,set_path=dump)
             else:
                 new_rl = self.read_reference_resource_list(newref_sitemap,name='new reference')
             # 3. Calculate change list
@@ -641,11 +661,9 @@ class Client(object):
             capli.write(basename=outfile)
 
     def write_dump_if_requested(self,resource_list,dump):
+        """Write a dump to the file dump"""
         if (dump is None):
             return
-        self.logger.info("Writing dump to %s..." % (dump))
-        d = Dump(format=self.dump_format)
-        d.write(resource_list=resource_list,dumpfile=dump)
 
     def read_reference_resource_list(self,ref_sitemap,name='reference'):
         """Read reference resource list and return the ResourceList object

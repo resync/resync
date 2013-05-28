@@ -45,7 +45,7 @@ def main():
         '--baseline')
     rem.add_option('--baseline', '-b', action='store_true',
                    help='baseline sync of resources from remote source (src) to local filesystem (dst)')
-    rem.add_option('--inc', '-i', action='store_true',
+    rem.add_option('--incremental', '--inc', '-i', action='store_true',
                    help='incremental sync of resources from remote source (src) to local filesystem (dst). Uses either timestamp recorded from last baseline or incremental sync for this source, or explicit --from parameter, to determine the earlier update timestamp to act on.')
     rem.add_option('--audit', '-a', action='store_true',
                    help="audit sync state of destination wrt source")
@@ -73,15 +73,20 @@ def main():
                         "URIs supplied in cap_name=URI,cap_name=URI format. Otherwise "
                         "follows --resourcelist options.")
     loc.add_option('--capabilitylistindex', '--capability-list-index', type=str, action='store',
-                   help="write a capability list index based on the set of capabilitie "
+                   help="write a capability list index based on the set of capability "
                         "list URIs supplied as a comma separated list. Otherwise "
                         "follows --resourcelist options.")
-
+    loc.add_option('--resourcedump', '--resource-dump', '-d', action='store_true',
+                   help="write a Resource Dump. Specify output file with --outfile and use other "
+                        "options as for --resourcelist")
+    loc.add_option('--changedump', '--change-dump', action='store_true',
+                   help="write a Resource Dump. Specify output file with --outfile and use other "
+                        "options as for --changelist")
 
     # Specification of map between remote URI and local file paths, and remote sitemap
     nam = p.add_option_group('FILE/URI NAMING OPTIONS')
     nam.add_option('--outfile', type=str, action='store',
-                   help="write sitemap to specified file rather than STDOUT")
+                   help="write output to specified file rather than STDOUT or default")
     nam.add_option('--paths', type=str, action='store',
                    help="explicit set of paths for disk scan --resourceslist or --changelist "
                         "generation")
@@ -92,8 +97,6 @@ def main():
                    help="reference sitemap name for --changelist calculation")
     nam.add_option('--newreference', type=str, action='store',
                    help="updated reference sitemap name for --changelist calculation")
-    nam.add_option('--dump', metavar='DUMPFILE', type=str, action='store',
-                   help="write dump to specified file for --resourcelist or --changelist")
     nam.add_option('--changelist-uri','--change-list-uri', type=str, action='store',
                    help="explicitly set the changelist URI that will be use in --inc mode, "
                         "overrides process of getting this from the sitemap")
@@ -158,20 +161,21 @@ def main():
 
     # Implement exclusive arguments and default --baseline (support for exclusive
     # groups in argparse is incomplete is python2.6)
-    if (not args.baseline and not args.inc and not args.audit and 
+    if (not args.baseline and not args.incremental and not args.audit and 
         not args.parse and not args.explore and
         not args.resourcelist and not args.changelist and
-        not args.capabilitylist and not args.capabilitylistindex):
+        not args.capabilitylist and not args.capabilitylistindex and
+        not args.resourcedump and not args.changedump):
         if (len(map)==0):
             # No args at all, show help
             p.print_help()
             return
         else:
             args.baseline=True
-    elif (count_true_args(args.baseline,args.inc,args.audit,args.parse,args.explore,
+    elif (count_true_args(args.baseline,args.incremental,args.audit,args.parse,args.explore,
                           args.resourcelist,args.changelist,args.capabilitylist,
-                          args.capabilitylistindex)>1):
-        p.error("Only one of --baseline, --inc, --audit, --parse, --explore, --resourcelist, --changelist, --capabilitylist, --capabilitylistindex modes allowed")
+                          args.capabilitylistindex,args.resourcedump,args.changedump)>1):
+        p.error("Only one of --baseline, --incremental, --audit, --parse, --explore, --resourcelist, --changelist, --capabilitylist, --capabilitylistindex, --resourcedump, --changedump modes allowed")
 
     # Configure logging module and create logger instance
     init_logging( to_file=args.logger, logfile=args.logfile, default_logfile=DEFAULT_LOGFILE, 
@@ -214,7 +218,7 @@ def main():
         if (args.baseline or args.audit):
             c.baseline_or_audit(allow_deletion=args.delete,
                                 audit_only=args.audit)
-        elif (args.inc):
+        elif (args.incremental):
             c.incremental(allow_deletion=args.delete,
                           change_list_uri=args.changelist_uri,
                           from_datetime=args.from_datetime)
@@ -222,12 +226,12 @@ def main():
             c.parse_document()
         elif (args.explore):
             c.explore()
-        elif (args.resourcelist):
+        elif (args.resourcelist or args.resourcedump):
             c.write_resource_list(paths=args.paths,
                                   outfile=args.outfile,
                                   links=links,
-                                  dump=args.dump)
-        elif (args.changelist):
+                                  dump=args.resourcedump)
+        elif (args.changelist or args.changedump):
             if (not args.reference and not args.empty):
                 p.error("Must supply --reference sitemap for --changelist, or --empty")
             c.write_change_list(ref_sitemap=args.reference,
@@ -236,7 +240,7 @@ def main():
                                 paths=args.paths,
                                 outfile=args.outfile,
                                 links=links,
-                                dump=args.dump)
+                                dump=args.changedump)
         elif (args.capabilitylist):
             c.write_capability_list(capabilities=parse_capabilities(args.capabilitylist),
                                     outfile=args.outfile,
