@@ -11,9 +11,9 @@ class TestCapabilityList(unittest.TestCase):
         rl = ResourceList()
         caps = CapabilityList()
         caps.add_capability( rl, "http://example.org/resourcelist.xml" )
-        caps.md['modified'] = "2013-02-07T22:39:00"
+        caps.md['from'] = "2013-02-07T22:39:00"
         self.assertEqual( len(caps), 1 )
-        self.assertEqual( caps.as_xml(), '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/"><rs:md capability="capabilitylist" modified="2013-02-07T22:39:00" /><url><loc>http://example.org/resourcelist.xml</loc><rs:md capability="resourcelist" /></url></urlset>' )
+        self.assertEqual( caps.as_xml(), '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/"><rs:md capability="capabilitylist" from="2013-02-07T22:39:00" /><url><loc>http://example.org/resourcelist.xml</loc><rs:md capability="resourcelist" /></url></urlset>' )
 
     def test02_multiple(self):
         caps = CapabilityList()

@@ -296,7 +296,7 @@ class Sitemap(object):
         """
         md = {}
         # grab all understood attributes into md dict
-        for att in ('capability','change','hash','length','modified','path','type'):
+        for att in ('capability','change','hash','length','from','until','path','type'):
             val = md_element.attrib.get(att,None)
             if (val is not None):
                 md[att] = val

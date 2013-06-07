@@ -133,13 +133,13 @@ class TestResourceList(unittest.TestCase):
         xml = rl.as_xml()
         print xml
         self.assertTrue( re.search(r'<rs:md .*capability="resourcelist"', xml), 'XML has capability' )
-        self.assertTrue( re.search(r'<rs:md .*modified="\d\d\d\d\-\d\d\-\d\dT\d\d:\d\d:\d\dZ"', xml), 'XML has modified to seconds precision (and not more)' )
+        self.assertTrue( re.search(r'<rs:md .*from="\d\d\d\d\-\d\d\-\d\dT\d\d:\d\d:\d\dZ"', xml), 'XML has from to seconds precision (and not more)' )
         self.assertTrue( re.search(r'<url><loc>a</loc><lastmod>1970-01-01T00:00:01Z</lastmod></url>', xml), 'XML has resource a' ) 
 
     def test30_parse(self):
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
-<rs:md capability="resourcelist" modified="2013-01-01"/>\
+<rs:md capability="resourcelist" from="2013-01-01"/>\
 <url><loc>/tmp/rs_test/src/file_a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md change="updated" length="12" /></url>\
 <url><loc>/tmp/rs_test/src/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length="32" /></url>\
 </urlset>'
@@ -147,7 +147,7 @@ class TestResourceList(unittest.TestCase):
         rl.parse(fh=StringIO.StringIO(xml))
         self.assertEqual( len(rl.resources), 2, 'got 2 resources')
         self.assertEqual( rl.md['capability'], 'resourcelist', 'capability set' )
-        self.assertEqual( rl.md['modified'], '2013-01-01' )
+        self.assertEqual( rl.md['from'], '2013-01-01' )
 
     def test31_parse_no_capability(self):
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
@@ -158,13 +158,13 @@ class TestResourceList(unittest.TestCase):
         rl.parse(fh=StringIO.StringIO(xml))
         self.assertEqual( len(rl.resources), 1, 'got 1 resource')
         self.assertEqual( rl.md['capability'], 'resourcelist', 'capability set by reading routine' )
-        self.assertFalse( 'modified' in rl.md )
+        self.assertFalse( 'from' in rl.md )
 
     def test32_parse_bad_capability(self):
         # the <rs:md capability="bad_capability".. should give error
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
-<rs:md capability="bad_capability" modified="2013-01-01"/>\
+<rs:md capability="bad_capability" from="2013-01-01"/>\
 <url><loc>http://example.com/bad_res_1</loc><lastmod>2012-03-14T18:37:36Z</lastmod></url>\
 </urlset>'
         rl=ResourceList()

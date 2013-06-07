@@ -113,10 +113,10 @@ class TestExamplesFromSpec(unittest.TestCase):
         self.assertFalse( capl.has_capability('bogus') )
         self.assertFalse( capl.has_capability('capabilitylist') )
 
-    def test_ex_2_7(self):
-        """resourcesync_ex2_7 is a simple Resource List Index with 2 Resource Lists"""
+    def test_ex_2_8(self):
+        """resourcesync_ex2_8 is a simple Resource List Index with 2 Resource Lists"""
         rl=ResourceList()
-        rl.read(uri='resync/test/testdata/examples_from_spec/resourcesync_ex_2_7.xml',index_only=True)
+        rl.read(uri='resync/test/testdata/examples_from_spec/resourcesync_ex_2_8.xml',index_only=True)
         self.assertEqual( rl.capability, 'resourcelist' )
         self.assertEqual( len(rl.resources), 2, '2 resources')
         sms = sorted(rl.uris())
@@ -132,7 +132,7 @@ class TestExamplesFromSpec(unittest.TestCase):
     def test_build_ex_4_1(self):
         rl = ResourceList()
         rl.ln.append({'rel':'resourcesync','href':'http://example.com/dataset1/capabilitylist.xml'})
-        rl.modified="2013-01-03T09:00:00Z"
+        rl.md_from="2013-01-03T09:00:00Z"
         rl.add( Resource( uri='http://example.com/res1',
                              lastmod='2013-01-02T13:00:00Z',
                              md5='1584abdf8ebdc9802ac0c6a7402c03b6',
@@ -151,7 +151,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         rl = ResourceList(resources_class=ResourceListOrdered) #order in example is non-canonical
         rl.sitemapindex=True
         rl.ln.append({'rel':'resourcesync','href':'http://example.com/dataset1/capabilitylist.xml'})
-        rl.modified="2013-01-03T09:00:00Z"
+        rl.md_from="2013-01-03T09:00:00Z"
         rl.add( Resource( uri='http://example.com/resourcelist3.xml',
                           lastmod='2013-01-03T09:00:00Z' ))
         rl.add( Resource( uri='http://example.com/resourcelist2.xml',
@@ -165,7 +165,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         rl = ResourceList()
         rl.ln.append({'rel':'resourcesync','href':'http://example.com/dataset1/capabilitylist.xml'})
         rl.ln.append({'rel':'up','href':'http://example.com/dataset1/resourcelist-index.xml'})
-        rl.modified="2013-01-03T09:00:00Z"
+        rl.md_from="2013-01-03T09:00:00Z"
         rl.add( Resource( uri='http://example.com/res3',
                              lastmod='2013-01-03T09:00:00Z',
                              md5='1584abdf8ebdc9802ac0c6a7402c8753',

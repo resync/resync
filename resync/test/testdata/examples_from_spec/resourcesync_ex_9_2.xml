@@ -23,20 +23,4 @@
       <loc>http://example.com/dataset1/changedump.xml</loc>
       <rs:md capability="changedump"/>
   </url>
-  <url>
-      <loc>http://example.com/dataset1/resourcelist-archive.xml</loc>
-      <rs:md capability="resourcelist-archive"/>
-  </url>
-  <url>
-      <loc>http://example.com/dataset1/resourcedump-archive.xml</loc>
-      <rs:md capability="resourcedump-archive"/>
-  </url>
-  <url>
-      <loc>http://example.com/dataset1/changelist-archive.xml</loc>
-      <rs:md capability="changelist-archive"/>
-  </url>
-  <url>
-      <loc>http://example.com/dataset1/changedump-archive.xml</loc>
-      <rs:md capability="changedump-archive"/>
-  </url>
 </urlset>

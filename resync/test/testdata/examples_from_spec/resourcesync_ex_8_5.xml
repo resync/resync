@@ -4,7 +4,8 @@
   <rs:ln rel="resourcesync"
          href="http://example.com/dataset1/capabilitylist.xml"/>
   <rs:md capability="changelist"
-         modified="2013-01-03T11:00:00Z"/>
+         from="2013-01-01T11:00:00Z"
+         until="2013-01-03T11:00:00Z"/>
   <url>
       <loc>http://example.com/res2.pdf</loc>
       <lastmod>2013-01-02T18:00:00Z</lastmod>
@@ -25,8 +26,8 @@
       <rs:ln rel="describes"
              href="http://example.com/res2.pdf"
              modified="2013-01-02T19:00:00Z"
-             hash="md5:1e0d5cb8ef6ba40c99b14c0237be735e"
-             length="14599"
+             hash="md5:1584abdf8ebdc9802ac0c6a7402c03b6"
+             length="8876"
              type="application/pdf"/>
   </url>
 </urlset>

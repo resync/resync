@@ -42,7 +42,7 @@ class TestClient(unittest.TestCase):
         with capture_stdout() as capturer:
             c.write_capability_list( { 'a':'uri_a', 'b':'uri_b' } )
         self.assertTrue( re.search(r'<urlset ',capturer.result) )
-        self.assertTrue( re.search(r'<rs:md capability="capabilitylist" modified=',capturer.result) )
+        self.assertTrue( re.search(r'<rs:md capability="capabilitylist" from=',capturer.result) )
         self.assertTrue( re.search(r'<url><loc>uri_a</loc><rs:md capability="a"',capturer.result) )
         self.assertTrue( re.search(r'<url><loc>uri_b</loc><rs:md capability="b"',capturer.result) )
 
@@ -51,7 +51,7 @@ class TestClient(unittest.TestCase):
         with capture_stdout() as capturer:
             c.write_capability_list_index( [ 'a','b','c' ] )
         self.assertTrue( re.search(r'<sitemapindex ',capturer.result) )
-        self.assertTrue( re.search(r'<rs:md capability="capabilitylist" modified=',capturer.result) )
+        self.assertTrue( re.search(r'<rs:md capability="capabilitylist" from=',capturer.result) )
         #print capturer.result
         self.assertTrue( re.search(r'<sitemap><loc>a</loc></sitemap>',capturer.result) )
         self.assertTrue( re.search(r'<sitemap><loc>b</loc></sitemap>',capturer.result) )
@@ -84,14 +84,14 @@ class TestClient(unittest.TestCase):
 
         with capture_stdout() as capturer:
             c.write_resource_list()
-        self.assertTrue( re.search(r'<rs:md capability="resourcelist" modified="', capturer.result ) )
+        self.assertTrue( re.search(r'<rs:md capability="resourcelist" from="', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_a</loc>', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_b</loc>', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir2/file_x</loc>', capturer.result ) )
         # with an explicit paths setting only the specified paths will be included
         with capture_stdout() as capturer:
             c.write_resource_list(paths='resync/test/testdata/dir1')
-        self.assertTrue( re.search(r'<rs:md capability="resourcelist" modified="', capturer.result ) )
+        self.assertTrue( re.search(r'<rs:md capability="resourcelist" from="', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_a</loc><lastmod>2012-07-25T17:13:46Z</lastmod><rs:md length="20" /></url>', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_b</loc><lastmod>2001-09-09T01:46:40Z</lastmod><rs:md length="45" /></url>', capturer.result ) )
         self.assertFalse( re.search(r'dir2', capturer.result ) )

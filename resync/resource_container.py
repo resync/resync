@@ -54,16 +54,16 @@ class ResourceContainer(object):
         self.md['capability']=capability
 
     @property
-    def modified(self):
-        if ('modified' in self.md):
-            return(self.md['modified'])
+    def md_from(self):
+        if ('from' in self.md):
+            return(self.md['from'])
         else:
             return(None)
 
-    @modified.setter
-    def modified(self,modified):
-        """Get/set the modified attribute of this resource container"""
-        self.md['modified']=modified
+    @md_from.setter
+    def md_from(self,md_from):
+        """Get/set the from attribute of this resource container"""
+        self.md['from']=md_from
 
 
     def link(self,rel):
@@ -82,8 +82,8 @@ class ResourceContainer(object):
         """
         if ('capability' not in self.md and self.capability_md is not None):
             self.md['capability']=self.capability_md
-        if ('modified' not in self.md):
-            self.md['modified']=datetime_to_str(no_fractions=True)
+        if ('from' not in self.md):
+            self.md['from']=datetime_to_str(no_fractions=True)
 
     def add(self, resource):
         """Add a resource or an iterable collection of resources to this container

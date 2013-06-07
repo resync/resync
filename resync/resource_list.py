@@ -13,8 +13,7 @@ http://www.openarchives.org/rs/resourcesync#DescResources
 
 - mandatory <rs:md> element:
 -- must have capability="resourcelist"
--- should have modified=".." attribute also, which should match the 
-   mtime of a file written.
+-- should have from=".." and/or until=".." attributes also
 - one <url> element for each resource
 
 """

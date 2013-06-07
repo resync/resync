@@ -2,23 +2,25 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:rs="http://www.openarchives.org/rs/terms/">
   <rs:ln rel="describedby"
-         href="http://example.com/dataset1/info_about_source.xml"/>
-  <rs:md capability="capabilitylist"
-         modified="2013-01-02T14:00:00Z"/>
+         href="http://example.com/info_about_source.xml"
+         type="application/xml"/>
+  <rs:md capability="resourcesync"/>
   <url>
-      <loc>http://example.com/dataset1/resourcelist.xml</loc>
-      <rs:md capability="resourcelist"/>
+      <loc>http://example.com/capabilitylist1.xml</loc>
+      <rs:md capability="capabilitylist"/>
+      <rs:ln href="http://example.com/info_about_set1_of_resources.xml"
+             rel="describedby"/>
   </url>
   <url>
-      <loc>http://example.com/dataset1/resourcedump.xml</loc>
-      <rs:md capability="resourcedump"/>
+      <loc>http://example.com/capabilitylist2.xml</loc>
+      <rs:md capability="capabilitylist"/>
+      <rs:ln href="http://example.com/info_about_set2_of_resources.xml"
+             rel="describedby"/>
   </url>
   <url>
-      <loc>http://example.com/dataset1/changelist.xml</loc>
-      <rs:md capability="changelist"/>
-  </url>
-  <url>
-      <loc>http://example.com/dataset1/changedump.xml</loc>
-      <rs:md capability="changedump"/>
+      <loc>http://example.com/capabilitylist3.xml</loc>
+      <rs:md capability="capabilitylist"/>
+      <rs:ln href="http://example.com/info_about_set3_of_resources.xml"
+             rel="describedby"/>
   </url>
 </urlset>

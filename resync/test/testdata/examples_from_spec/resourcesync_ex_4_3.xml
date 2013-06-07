@@ -6,7 +6,7 @@
   <rs:ln rel="up"
          href="http://example.com/dataset1/resourcelist-index.xml"/>
   <rs:md capability="resourcelist"
-         modified="2013-01-03T09:00:00Z"/>
+         from="2013-01-03T09:00:00Z"/>
   <url>
       <loc>http://example.com/res3</loc>
       <lastmod>2013-01-03T09:00:00Z</lastmod>

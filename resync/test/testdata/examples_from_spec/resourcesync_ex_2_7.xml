@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-              xmlns:rs="http://www.openarchives.org/rs/terms/">
-  <rs:md capability="resourcelist"
-         modified="2013-01-03T09:00:00Z"/>
-  <sitemap>
-      <loc>http://example.com/resourcelist-part2.xml</loc>
-      <lastmod>2013-01-03T09:00:00Z</lastmod>
-  </sitemap>
-  <sitemap>
-      <loc>http://example.com/resourcelist-part1.xml</loc>
-      <lastmod>2013-01-03T09:00:00Z</lastmod>
-  </sitemap>
-</sitemapindex>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln href="http://example.com/info-about-source.xml"
+         rel="describedby"
+         type="application/xml"/>
+  <rs:md capability="resourcesync"/>
+  <url>
+      <loc>http://example.com/dataset1/capabilitylist.xml</loc>
+      <rs:md capability="capabilitylist"/>
+      <rs:ln href="http://example.com/info_about_set1_of_resources.xml"
+             rel="describedby"/>
+  </url>
+</urlset>

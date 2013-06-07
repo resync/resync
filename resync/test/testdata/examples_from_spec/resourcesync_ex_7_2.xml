@@ -4,10 +4,11 @@
   <rs:ln rel="resourcesync"
          href="http://example.com/dataset1/capabilitylist.xml"/>
   <rs:md capability="changedump-manifest"
-         modified="2013-01-03T21:00:00Z"/>
+         from="2013-01-01T11:00:00Z"
+         until="2013-01-03T11:00:00Z"/>
   <url>
       <loc>http://example.com/res1.html</loc>
-      <lastmod>2013-01-01T05:00:00Z</lastmod>
+      <lastmod>2013-01-01T15:00:00Z</lastmod>
       <rs:md change="created"
              hash="md5:1c1b0e264fa9b7e1e9aa6f9db8d6362b"
              length="4339"
@@ -16,7 +17,7 @@
   </url>
   <url>
       <loc>http://example.com/res2.pdf</loc>
-      <lastmod>2013-01-01T09:00:00Z</lastmod>
+      <lastmod>2013-01-01T19:00:00Z</lastmod>
       <rs:md change="updated"
              hash="md5:f906610c3d4aa745cb2b986f25b37c5a
                    sha-256:f138185cddef488264a0323aee56e7647e89cd7a4d6e45ba28b3be26234a6d09"
