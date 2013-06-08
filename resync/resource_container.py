@@ -55,6 +55,7 @@ class ResourceContainer(object):
 
     @property
     def md_from(self):
+        """ Convenient access to <rs:md from="" .../> """
         if ('from' in self.md):
             return(self.md['from'])
         else:
@@ -65,6 +66,19 @@ class ResourceContainer(object):
         """Get/set the from attribute of this resource container"""
         self.md['from']=md_from
 
+    @property
+    def md_until(self):
+        """ Convenient access to <rs:md until="" .../> """
+        if ('until' in self.md):
+            return(self.md['until'])
+        else:
+            return(None)
+
+    @md_until.setter
+    def md_until(self,md_until):
+        """Get/set the until attribute of this resource container"""
+        self.md['until']=md_until
+
 
     def link(self,rel):
         """Look for link with specified rel, return else None"""
@@ -73,6 +87,53 @@ class ResourceContainer(object):
                 link['rel']==rel):
                 return(link)
         return(None)
+
+    def link_href(self,rel):
+        """Look for link with specified rel, return href from it or None"""
+        link = self.link(rel)
+        if (link is not None):
+            link = link['href']
+        return(link)
+
+    def link_set(self,rel,uri):
+        """Set/create link with specified rel, and set href to uri"""
+        link = self.link(rel)
+        if (link is not None):
+            # overwrite current value
+            link['href'] = uri
+        else:
+            # create new link
+            self.ln.append({'rel':rel,'href':uri})
+
+    @property
+    def description(self):
+        """Convenient access to <rs:ln rel="resourcesync" href="uri">"""
+        return(self.link_href('resourcesync'))
+
+    @description.setter
+    def description(self,uri):
+        """Set ResourceSync Description link to given URI"""
+        self.link_set('resourcesync',uri)
+
+    @property
+    def describedby(self):
+        """Convenient access to <rs:ln rel="describedby" href="uri">"""
+        return(self.link_href('describedby'))
+
+    @describedby.setter
+    def describedby(self,uri):
+        """Set ResourceSync Description link to given URI"""
+        self.link_set('describedby',uri)
+
+    @property
+    def up(self):
+        """Convenient access to <rs:ln rel="resourcesync" href="uri">"""
+        return(self.link_href('up'))
+
+    @up.setter
+    def up(self,uri):
+        """Set ResourceSync Up link to given URI"""
+        self.link_set('up',uri)
 
     def default_capability_and_modified(self):
         """Set capability name and modified time in md

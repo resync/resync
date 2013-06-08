@@ -24,7 +24,7 @@ class TestExamplesFromSpec(unittest.TestCase):
                    "resourcesync_ex_2_1", "resourcesync_ex_2_2",
                    "resourcesync_ex_2_3", "resourcesync_ex_2_4",
                    "resourcesync_ex_2_5", "resourcesync_ex_2_6",
-                   "resourcesync_ex_2_7",
+                   "resourcesync_ex_2_7", "resourcesync_ex_2_8",
                    "resourcesync_ex_4_1", "resourcesync_ex_4_2",
                    "resourcesync_ex_4_3",
                    "resourcesync_ex_5_1", "resourcesync_ex_5_2",
@@ -35,7 +35,7 @@ class TestExamplesFromSpec(unittest.TestCase):
                    "resourcesync_ex_8_5", "resourcesync_ex_8_6",
                    "resourcesync_ex_8_7", "resourcesync_ex_8_8",
                    "resourcesync_ex_8_9", "resourcesync_ex_8_10",
-                   "resourcesync_ex_9_1" ):
+                   "resourcesync_ex_9_1", "resourcesync_ex_9_2" ):
             s=Sitemap()
             fh = self._open_ex(ex)
             si = s.parse_xml( fh=fh )
@@ -131,7 +131,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_4_1(self):
         rl = ResourceList()
-        rl.ln.append({'rel':'resourcesync','href':'http://example.com/dataset1/capabilitylist.xml'})
+        rl.description='http://example.com/dataset1/capabilitylist.xml'
         rl.md_from="2013-01-03T09:00:00Z"
         rl.add( Resource( uri='http://example.com/res1',
                              lastmod='2013-01-02T13:00:00Z',
@@ -150,7 +150,7 @@ class TestExamplesFromSpec(unittest.TestCase):
     def test_build_ex_4_2(self):
         rl = ResourceList(resources_class=ResourceListOrdered) #order in example is non-canonical
         rl.sitemapindex=True
-        rl.ln.append({'rel':'resourcesync','href':'http://example.com/dataset1/capabilitylist.xml'})
+        rl.description='http://example.com/dataset1/capabilitylist.xml'
         rl.md_from="2013-01-03T09:00:00Z"
         rl.add( Resource( uri='http://example.com/resourcelist3.xml',
                           lastmod='2013-01-03T09:00:00Z' ))
@@ -163,8 +163,8 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_4_3(self):
         rl = ResourceList()
-        rl.ln.append({'rel':'resourcesync','href':'http://example.com/dataset1/capabilitylist.xml'})
-        rl.ln.append({'rel':'up','href':'http://example.com/dataset1/resourcelist-index.xml'})
+        rl.description = 'http://example.com/dataset1/capabilitylist.xml'
+        rl.up = 'http://example.com/dataset1/resourcelist-index.xml'
         rl.md_from="2013-01-03T09:00:00Z"
         rl.add( Resource( uri='http://example.com/res3',
                              lastmod='2013-01-03T09:00:00Z',

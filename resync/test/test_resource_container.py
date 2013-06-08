@@ -4,14 +4,14 @@ from resync.resource_container import ResourceContainer
 
 class TestResourceContainer(unittest.TestCase):
 
-    def test1_create_and_add(self):
+    def test01_create_and_add(self):
         rc = ResourceContainer( resources=[] )
         self.assertEqual( len(rc.resources), 0, "empty" )
         rc.resources.append( Resource('a',timestamp=1) )
         rc.resources.append( Resource('b',timestamp=2) )
         self.assertEqual( len(rc.resources), 2, "two resources" )
 
-    def test2_iter(self):
+    def test02_iter(self):
         rc = ResourceContainer( resources=[] )
         rc.resources.append( Resource('a',timestamp=1) )
         rc.resources.append( Resource('b',timestamp=2) )
@@ -24,7 +24,7 @@ class TestResourceContainer(unittest.TestCase):
         self.assertEqual( resources[0].uri, 'a')
         self.assertEqual( resources[3].uri, 'd')
 
-    def test3_prune_before(self):
+    def test03_prune_before(self):
         rc = ResourceContainer()
         rc.resources.append( Resource('a',timestamp=1) )
         rc.resources.append( Resource('b',timestamp=2) )
@@ -45,7 +45,7 @@ class TestResourceContainer(unittest.TestCase):
         self.assertEqual( i.next().uri, 'd' )
         self.assertEqual( i.next().uri, 'e' )
 
-    def test4_prune_dupes(self):
+    def test04_prune_dupes(self):
         rc = ResourceContainer()
         rc.resources.append( Resource('a',timestamp=1, change='created') )
         rc.resources.append( Resource('b',timestamp=2, change='created') )
@@ -69,6 +69,49 @@ class TestResourceContainer(unittest.TestCase):
         i3 = i.next()
         self.assertEqual( i3.uri, 'd' )
         self.assertEqual( i3.change, 'created' )
+
+    def test05_from_until(self):
+        rc = ResourceContainer()
+        # via convenience methods
+        self.assertEqual( rc.md_from, None )
+        self.assertEqual( rc.md_until, None )
+        rc.md_from = "ftime"
+        rc.md_until = "utime"
+        self.assertEqual( rc.md_from, "ftime" )
+        self.assertEqual( rc.md_until, "utime" )
+        # via underlying dict
+        rc.md['from'] = "ftime2"
+        rc.md['until'] = "utime2too"
+        self.assertEqual( rc.md_from, "ftime2" )
+        self.assertEqual( rc.md_until, "utime2too" )
+
+    def test06_resourcesync_description(self):
+        rc = ResourceContainer()
+        # via convenience methods                                  
+        self.assertEqual( rc.description, None )
+        rc.description = "well-known"
+        self.assertEqual( rc.description, "well-known" )
+        rc.description = "well-known2"
+        self.assertEqual( rc.description, "well-known2" )
+        # via link
+        link = rc.link("resourcesync")
+        self.assertEqual( link['href'], "well-known2" )
+        link['href'] = "wk3"
+        self.assertEqual( rc.description, "wk3" )
+
+    def test07_describedby(self):
+        rc = ResourceContainer()
+        # via convenience methods                                  
+        self.assertEqual( rc.describedby, None )
+        rc.describedby = "db_uri"
+        self.assertEqual( rc.describedby, "db_uri" )
+
+    def test08_up(self):
+        rc = ResourceContainer()
+        # via convenience methods                                  
+        self.assertEqual( rc.up, None )
+        rc.up = "up_uri"
+        self.assertEqual( rc.up, "up_uri" )
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestResourceContainer)
