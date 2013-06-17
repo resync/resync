@@ -10,6 +10,7 @@ from resync.change_list import ChangeList
 from resync.resource_dump import ResourceDump
 from resync.resource_dump_manifest import ResourceDumpManifest
 from resync.capability_list import CapabilityList
+from resync.resourcesync_description import ResourceSyncDescription
 from resync.sitemap import Sitemap
 
 class TestExamplesFromSpec(unittest.TestCase):
@@ -128,6 +129,22 @@ class TestExamplesFromSpec(unittest.TestCase):
                           '2013-01-03T09:00:00Z' )
 
 ##### BUILD EXAMPLES #####
+
+    def test_build_ex_2_7(self):
+        """ A ResourceSync Description document """
+        rsd = ResourceSyncDescription()
+        rsd.describedby='http://example.com/info-about-source.xml'
+        ## this is only example in spec with content-type on top-level ln
+        rsd.link('describedby')['type']='application/xml'
+        rsd.md_from=None
+        r = Resource( uri='http://example.com/dataset1/capabilitylist.xml',
+                      capability='capabilitylist' )
+        r.ln = []
+        r.ln.append({'rel':'describedby',
+                     'href':'http://example.com/info_about_set1_of_resources.xml'})
+        rsd.add( r )
+        ex_xml = self._open_ex('resourcesync_ex_2_7').read()
+        self._assert_xml_equal( rsd.as_xml(), ex_xml )
 
     def test_build_ex_4_1(self):
         rl = ResourceList()
