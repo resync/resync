@@ -110,7 +110,11 @@ class Resource(object):
 
     @property
     def hash(self):
-        """Provide access to the total hash string"""
+        """Provide access to the complete hash string
+
+        The hash string may have zero or more hash values with
+        appropriate prefixes
+        """
         hashvals = []
         if (self.md5 is not None):
             hashvals.append('md5:'+self.md5)
@@ -126,8 +130,10 @@ class Resource(object):
     def hash(self, hash):
         """Parse space separated set of values
 
+        See specification at:
         http://tools.ietf.org/html/draft-snell-atompub-link-extensions-09
-        defines many types, we implement md5, sha-1, sha-256"""
+        which defines many types. We implement md5, sha-1, sha-256
+        """
         self.md5 = None
         self.sha1 = None
         self.sha256 = None
@@ -152,6 +158,45 @@ class Resource(object):
         if (len(errors)>0):
             raise ValueError(". ".join(errors))
 
+    def link(self,rel):
+        """Look for link with specified rel, return else None
+
+        Searches through dicts in self.ln looking for one with the
+        specified rel value. If there are multiple links with the 
+        same rel then just the first will be returned
+        """
+        if (self.ln is None):
+            return(None)
+        for link in self.ln:
+            if ('rel' in link and
+                link['rel']==rel):
+                return(link)
+        return(None)
+
+    def link_add(self,**atts):
+        """Add a link (ln) with specified attributes
+        
+        Simply appends to the set of ln links associated with this 
+        object. In all cases the arguments should include rel and 
+        href values and an exception will be thrown if that is not 
+        the case. Other attributes are descibed in 
+        http://www.openarchives.org/rs/resourcesync.html#DocumentFormats
+
+        Be aware that adding links to a Resource object will 
+        significantly increase the size of the object.
+        """
+        # sanity check
+        if ('rel' not in atts or
+            'href' not in atts):
+            raise ValueError("Resource link must have at least rel and href attributes")
+        if (self.ln is None):
+            # automagically create a self.ln list
+            self.ln = []
+        link = {} #FIXME - what is a good/pythonic way to copy dict?
+        for k in atts:
+            link[k] = atts[k] 
+        self.ln.append(link)
+
     @property
     def basename(self):
         """The resource basename (http://example.com/resource/1 -> 1)"""
@@ -159,7 +204,10 @@ class Resource(object):
         return basename(parse_object.path)
 
     def __eq__(self,other):
-        """Equality test for resources allowing <1s difference in timestamp"""
+        """Equality test for resources allowing <1s difference in timestamp
+        
+        See equal(...) for more details of equality test
+        """
         return( self.equal(other,delta=1.0) )
 
     def equal(self,other,delta=0.0):
