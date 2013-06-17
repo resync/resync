@@ -95,15 +95,22 @@ class ResourceContainer(object):
             link = link['href']
         return(link)
 
-    def link_set(self,rel,uri):
-        """Set/create link with specified rel, and set href to uri"""
+    def link_set(self,rel,href,**atts):
+        """Set/create link with specified rel, set href and any other attributes
+
+        Any link element must have both rel and href values, the specification
+        also defines the type attributes and others are permitted also
+        """
         link = self.link(rel)
         if (link is not None):
             # overwrite current value
-            link['href'] = uri
+            link['href'] = href
         else:
             # create new link
-            self.ln.append({'rel':rel,'href':uri})
+            link = {'rel':rel,'href':href}
+            self.ln.append(link)
+        for k in atts:
+            link[k] = atts[k]
 
     @property
     def description(self):

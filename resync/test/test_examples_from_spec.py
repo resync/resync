@@ -133,15 +133,14 @@ class TestExamplesFromSpec(unittest.TestCase):
     def test_build_ex_2_7(self):
         """ A ResourceSync Description document """
         rsd = ResourceSyncDescription()
-        rsd.describedby='http://example.com/info-about-source.xml'
-        ## this is only example in spec with content-type on top-level ln
-        rsd.link('describedby')['type']='application/xml'
+        rsd.link_set( rel='describedby',
+                      href='http://example.com/info-about-source.xml',
+                      type='application/xml' )
         rsd.md_from=None
         r = Resource( uri='http://example.com/dataset1/capabilitylist.xml',
                       capability='capabilitylist' )
-        r.ln = []
-        r.ln.append({'rel':'describedby',
-                     'href':'http://example.com/info_about_set1_of_resources.xml'})
+        r.link_add( rel='describedby',
+                    href='http://example.com/info_about_set1_of_resources.xml' )
         rsd.add( r )
         ex_xml = self._open_ex('resourcesync_ex_2_7').read()
         self._assert_xml_equal( rsd.as_xml(), ex_xml )
