@@ -1,17 +1,22 @@
 """Information about a web resource
 
-Each web resource is identified by a URI and may optionally have
-other metadata such as timestamp, length, md5. The lastmod property
-provides ISO8601 format string access to the timestamp.
+Each web resource is identified by a URI and may optionally 
+have other metadata such as timestamp, length, md5, etc..
 
-The timestamp is assumed to be stored in UTC.
+The lastmod property provides ISO8601 format string access 
+to the timestamp. The timestamp is stored internally as a 
+unix timestamp value in UTC. This limits the range of 
+possible lastmod values but covers all web-era values for
+a good way into the future.
 
-This object is optimized for size in the case whether there is not large
-data in the attributes. This is done using __slots__ for the attributes
-so that there is no __dict__ defined. The 'ln' attribute is used if
-necessary to add links or other information in a hash which is convenient
-but will significantly increase the size of each object with such
-information.
+This object is optimized for size in the case whether there 
+is not large a large amount of data in the attributes. This 
+is done using __slots__ for the attributes so that there is 
+no __dict__ defined for a Resource object. The 'ln' attribute 
+is used when it is necessary to add links or other information
+to the object. Such links are stored in a hash which is 
+convenient but will significantly increase the size of each 
+Resource object that contains such information.
 """
 
 import re
