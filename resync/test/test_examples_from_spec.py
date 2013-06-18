@@ -130,13 +130,23 @@ class TestExamplesFromSpec(unittest.TestCase):
 
 ##### BUILD EXAMPLES #####
 
+    def test_build_ex_2_6(self):
+        """ Simple Capability List document """
+        cl = CapabilityList()
+        cl.link_set( rel='describedby',
+                     href='http://example.com/info_about_set1_of_resources.xml' )
+        cl.add_capability( uri='http://example.com/dataset1/resourcelist.xml', name='resourcelist' )
+        cl.add_capability( uri='http://example.com/dataset1/resourcedump.xml', name='resourcedump' )
+        cl.add_capability( uri='http://example.com/dataset1/changelist.xml', name='changelist' )
+        ex_xml = self._open_ex('resourcesync_ex_2_6').read()
+        self._assert_xml_equal( cl.as_xml(), ex_xml )
+
     def test_build_ex_2_7(self):
         """ A ResourceSync Description document """
         rsd = ResourceSyncDescription()
         rsd.link_set( rel='describedby',
                       href='http://example.com/info-about-source.xml',
                       type='application/xml' )
-        rsd.md_from=None
         r = Resource( uri='http://example.com/dataset1/capabilitylist.xml',
                       capability='capabilitylist' )
         r.link_add( rel='describedby',
