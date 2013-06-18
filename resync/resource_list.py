@@ -1,21 +1,17 @@
-"""ResourceSync resource_list object
+"""ResourceSync Resource List object
 
-An resource_list is a set of resources with some metadata for 
+An Resource List is a set of resources with some metadata for 
 each resource. Comparison of resource lists from a source and 
 a destination allows understanding of whether the two are in
 sync or whether some resources need to be updated at the
 destination.
 
-The resource_list object may also contain metadata and links.
+The Resource List object may also contain metadata and links
+at the top level. These include a creation timestamp (from) 
+and links to the Capability List.
 
 Described in specification at:
 http://www.openarchives.org/rs/resourcesync#DescResources
-
-- mandatory <rs:md> element:
--- must have capability="resourcelist"
--- should have from=".." and/or until=".." attributes also
-- one <url> element for each resource
-
 """
 
 import collections
@@ -106,10 +102,31 @@ class ResourceList(ListBaseWithIndex):
     are in sync or what needs to be copied to bring the destinaton
     into sync.
 
-    An resource_list will admit only one resource with any given URI.
+    A Resource List will admit only one resource with any given URI.
 
-    Storage is unordered but the iterator imposes a canonical order
-    which is currently alphabetical by URI.
+    Typical usage for a small Resource List is:
+    
+    rl = ResourceList()
+    rl.add( Resource(...) )
+    rl.add( Resource(...) )
+    print rl.as_xml()
+
+    The default storage is unordered but the iterator imposes a canonical 
+    order which is alphabetical by URI. If it is desired to have 
+    resources listed in the order they are added then the ResourceDictOrdered
+    class may be specified on creation:
+
+    rl = ResourceList( resources_class=ResourceDictOrdered )
+    
+    In normal use it is expected that any Resource List Inex will be
+    created automatically when writing out a large Resource List in
+    multiple sitemap files. However, should it be necessary to 
+    explicitly create an index then this may be specified with:
+
+    rli = ResourceList( resources_class=ResourceDictOrdered )
+    rli.sitemapindex=True
+
+    See additional descriptions in ListBaseWithIndex and ListBase.
     """
 
     def __init__(self, resources=None, count=None, md=None, ln=None, allow_multifile=None, mapper=None,
