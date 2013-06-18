@@ -42,7 +42,7 @@ class TestClient(unittest.TestCase):
         with capture_stdout() as capturer:
             c.write_capability_list( { 'a':'uri_a', 'b':'uri_b' } )
         self.assertTrue( re.search(r'<urlset ',capturer.result) )
-        self.assertTrue( re.search(r'<rs:md capability="capabilitylist" from=',capturer.result) )
+        self.assertTrue( re.search(r'<rs:md capability="capabilitylist" />',capturer.result) )
         self.assertTrue( re.search(r'<url><loc>uri_a</loc><rs:md capability="a"',capturer.result) )
         self.assertTrue( re.search(r'<url><loc>uri_b</loc><rs:md capability="b"',capturer.result) )
 
@@ -51,7 +51,7 @@ class TestClient(unittest.TestCase):
         with capture_stdout() as capturer:
             c.write_capability_list_index( [ 'a','b','c' ] )
         self.assertTrue( re.search(r'<sitemapindex ',capturer.result) )
-        self.assertTrue( re.search(r'<rs:md capability="capabilitylist" from=',capturer.result) )
+        self.assertTrue( re.search(r'<rs:md capability="capabilitylist" />',capturer.result) )
         #print capturer.result
         self.assertTrue( re.search(r'<sitemap><loc>a</loc></sitemap>',capturer.result) )
         self.assertTrue( re.search(r'<sitemap><loc>b</loc></sitemap>',capturer.result) )
