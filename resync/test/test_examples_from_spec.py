@@ -130,6 +130,68 @@ class TestExamplesFromSpec(unittest.TestCase):
 
 ##### BUILD EXAMPLES #####
 
+    def test_build_ex_2_1(self):
+        """ Simple Resource List document """
+        rl = ResourceList()
+        rl.md_from = '2013-01-03T09:00:00Z'
+        rl.add( Resource('http://example.com/res1') )
+        rl.add( Resource('http://example.com/res2') )
+        ex_xml = self._open_ex('resourcesync_ex_2_1').read()
+        self._assert_xml_equal( rl.as_xml(), ex_xml )
+
+    def test_build_ex_2_2(self):
+        """ Slightly more complex Resource List document """
+        rl = ResourceList()
+        rl.md_from = '2013-01-03T09:00:00Z'
+        rl.add( Resource(uri='http://example.com/res1',
+                         lastmod='2013-01-02T13:00:00Z',
+                         md5='1584abdf8ebdc9802ac0c6a7402c03b6') )
+        rl.add( Resource(uri='http://example.com/res2',
+                         lastmod='2013-01-02T14:00:00Z',
+                         md5='1e0d5cb8ef6ba40c99b14c0237be735e') )
+        ex_xml = self._open_ex('resourcesync_ex_2_2').read()
+        self._assert_xml_equal( rl.as_xml(), ex_xml )
+
+    def test_build_ex_2_3(self):
+        """ Simple Change List document """
+        cl = ChangeList()
+        cl.md_from = '2013-01-01T11:00:00Z'
+        cl.md_until= '2013-01-03T11:00:00Z'
+        cl.add( Resource(uri='http://example.com/res2.pdf',
+                         lastmod='2013-01-02T13:00:00Z',
+                         change="updated") )
+        cl.add( Resource(uri='http://example.com/res3.tiff',
+                         lastmod='2013-01-02T18:00:00Z',
+                         change='deleted') )
+        ex_xml = self._open_ex('resourcesync_ex_2_3').read()
+        self._assert_xml_equal( cl.as_xml(), ex_xml )
+
+    def test_build_ex_2_4(self):
+        """ Simple Resource Dump document """
+        rd = ResourceDump()
+        rd.md_from = '2013-01-03T09:00:00Z'
+        rd.add( Resource(uri='http://example.com/resourcedump.zip',
+                         lastmod='2013-01-03T09:00:00Z') )
+        ex_xml = self._open_ex('resourcesync_ex_2_4').read()
+        self._assert_xml_equal( rd.as_xml(), ex_xml )
+
+
+    def test_build_ex_2_5(self):
+        """ Simple Resource Dump Manifest document """
+        rdm = ResourceDumpManifest()
+        rdm.md_from = '2013-01-03T09:00:00Z'
+        rdm.add( Resource(uri='http://example.com/res1',
+                          lastmod='2013-01-03T03:00:00Z',
+                          md5='1584abdf8ebdc9802ac0c6a7402c03b6',
+                          path='/resources/res1') )
+        rdm.add( Resource(uri='http://example.com/res2',
+                          lastmod='2013-01-03T04:00:00Z',
+                          md5='1e0d5cb8ef6ba40c99b14c0237be735e',
+                          path='/resources/res2') )
+        ex_xml = self._open_ex('resourcesync_ex_2_5').read()
+        self._assert_xml_equal( rdm.as_xml(), ex_xml )
+
+
     def test_build_ex_2_6(self):
         """ Simple Capability List document """
         cl = CapabilityList()
