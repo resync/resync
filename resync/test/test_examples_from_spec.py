@@ -217,6 +217,25 @@ class TestExamplesFromSpec(unittest.TestCase):
         ex_xml = self._open_ex('resourcesync_ex_2_7').read()
         self._assert_xml_equal( rsd.as_xml(), ex_xml )
 
+    def test_build_ex_2_8(self):
+        """ Simple Resource List Index document
+        
+        This is not something that would usually be created directly 
+        but instead would be created as part of the process of 
+        writing a large Resource List in multiple files. However,
+        it is possible to create manually.
+        """
+        rli = ResourceList()
+        rli.resources = [] # fudge to get order to match spec
+        rli.sitemapindex=True
+        rli.md_from = '2013-01-03T09:00:00Z'
+        rli.resources.append( Resource(uri='http://example.com/resourcelist-part2.xml',
+                                       lastmod='2013-01-03T09:00:00Z') )
+        rli.resources.append( Resource(uri='http://example.com/resourcelist-part1.xml',
+                                       lastmod='2013-01-03T09:00:00Z') )
+        ex_xml = self._open_ex('resourcesync_ex_2_8').read()
+        self._assert_xml_equal( rli.as_xml(), ex_xml )
+
     def test_build_ex_4_1(self):
         rl = ResourceList()
         rl.description='http://example.com/dataset1/capabilitylist.xml'

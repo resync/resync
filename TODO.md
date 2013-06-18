@@ -18,6 +18,11 @@ Example 2.7
 
 - I am not sure the rel="describedby" within the <url> block for the capability list has the correct meaning. Doesn't it mean in that context that the capability list if descibedby the giev resource? That seems not quite the same as our usual interpretation of top level rel="describedby" which we take to be a description of the set of resources rather than the capability document.
 
+Example 2.8
+-----------
+
+- why is part2 before part1? In other documents we write them so that the are read in a forward/chronological direction, this seems backwards.
+
 Section 3
 ---------
 
