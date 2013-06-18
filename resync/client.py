@@ -15,7 +15,7 @@ from resync.resource_list_builder import ResourceListBuilder
 from resync.resource_list import ResourceList
 from resync.change_list import ChangeList
 from resync.capability_list import CapabilityList
-from resync.capability_list_index import CapabilityListIndex
+from resync.resourcesync_description import ResourceSyncDescription
 from resync.mapper import Mapper
 from resync.sitemap import Sitemap
 from resync.dump import Dump
@@ -648,17 +648,17 @@ class Client(object):
         else:
             capl.write(basename=outfile)
 
-    def write_capability_list_index(self,capability_lists=None,outfile=None,links=None):
-        """Write a Capability List to outfile or STDOUT"""
-        capli = CapabilityListIndex(ln=links)
-        capli.pretty_xml = self.pretty_xml
+    def write_resourcesync_description(self,capability_lists=None,outfile=None,links=None):
+        """Write a ResourceSync Description document to outfile or STDOUT"""
+        rsd = ResourceSyncDescription(ln=links)
+        rsd.pretty_xml = self.pretty_xml
         if (capability_lists is not None):
             for uri in capability_lists:
-                capli.add_capability_list(uri)
+                rsd.add_capability_list(uri)
         if (outfile is None):
-            print capli.as_xml()
+            print rsd.as_xml()
         else:
-            capli.write(basename=outfile)
+            rsd.write(basename=outfile)
 
     def write_dump_if_requested(self,resource_list,dump):
         """Write a dump to the file dump"""

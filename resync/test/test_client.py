@@ -46,15 +46,16 @@ class TestClient(unittest.TestCase):
         self.assertTrue( re.search(r'<url><loc>uri_a</loc><rs:md capability="a"',capturer.result) )
         self.assertTrue( re.search(r'<url><loc>uri_b</loc><rs:md capability="b"',capturer.result) )
 
-    def test07_write_capability_list_index(self):
+    def test07_write_resourcesync_description(self):
         c = Client()
         with capture_stdout() as capturer:
-            c.write_capability_list_index( [ 'a','b','c' ] )
-        self.assertTrue( re.search(r'<sitemapindex ',capturer.result) )
-        self.assertTrue( re.search(r'<rs:md capability="capabilitylist" />',capturer.result) )
+            c.write_resourcesync_description( [ 'a','b','c' ] )
+        print capturer.result
+        self.assertTrue( re.search(r'<urlset ',capturer.result) )
+        self.assertTrue( re.search(r'<rs:md capability="resourcesync" />',capturer.result) )
         #print capturer.result
-        self.assertTrue( re.search(r'<sitemap><loc>a</loc></sitemap>',capturer.result) )
-        self.assertTrue( re.search(r'<sitemap><loc>b</loc></sitemap>',capturer.result) )
+        self.assertTrue( re.search(r'<url><loc>a</loc><rs:md capability="capabilitylist" /></url>',capturer.result) )
+        self.assertTrue( re.search(r'<url><loc>b</loc><rs:md capability="capabilitylist" /></url>',capturer.result) )
 
     def test20_parse_document(self):
         # Key property of the parse_document() method is that it parses the
