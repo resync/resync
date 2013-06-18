@@ -1,9 +1,12 @@
-"""A set of Resource objects
+"""A set of Resource objects used for Capability List
+Indexes and ResourceSync Description documents.
 
+FIXME - what should the ordering be?
 """
 
 class ResourceSet(dict):
-    """Default implementation of class to store resources in ResourceList
+    """Implementation of class to store resources in Capability List
+    Indexes and ResourceSync Description documents.
 
     Key properties of this class are:
     - has add(resource) method
