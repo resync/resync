@@ -36,6 +36,7 @@ class ResourceSyncDescription(ListBase):
         super(ResourceSyncDescription, self).__init__(resources=resources, md=md, ln=ln)
         self.capability_name='resourcesync'
         self.capability_md='resourcesync'
+        self.md['from']=None #usually don't want a from date
 
     def add(self, resource, replace=False):
         """Add a resource or an iterable collection of resources
