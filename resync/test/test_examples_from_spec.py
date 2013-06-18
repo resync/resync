@@ -131,7 +131,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 ##### BUILD EXAMPLES #####
 
     def test_build_ex_2_1(self):
-        """ Simple Resource List document """
+        """Simple Resource List document """
         rl = ResourceList()
         rl.md_from = '2013-01-03T09:00:00Z'
         rl.add( Resource('http://example.com/res1') )
@@ -140,7 +140,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal( rl.as_xml(), ex_xml )
 
     def test_build_ex_2_2(self):
-        """ Slightly more complex Resource List document """
+        """Slightly more complex Resource List document """
         rl = ResourceList()
         rl.md_from = '2013-01-03T09:00:00Z'
         rl.add( Resource(uri='http://example.com/res1',
@@ -153,7 +153,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal( rl.as_xml(), ex_xml )
 
     def test_build_ex_2_3(self):
-        """ Simple Change List document """
+        """Simple Change List document """
         cl = ChangeList()
         cl.md_from = '2013-01-01T11:00:00Z'
         cl.md_until= '2013-01-03T11:00:00Z'
@@ -167,7 +167,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal( cl.as_xml(), ex_xml )
 
     def test_build_ex_2_4(self):
-        """ Simple Resource Dump document """
+        """Simple Resource Dump document """
         rd = ResourceDump()
         rd.md_from = '2013-01-03T09:00:00Z'
         rd.add( Resource(uri='http://example.com/resourcedump.zip',
@@ -177,7 +177,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
 
     def test_build_ex_2_5(self):
-        """ Simple Resource Dump Manifest document """
+        """Simple Resource Dump Manifest document """
         rdm = ResourceDumpManifest()
         rdm.md_from = '2013-01-03T09:00:00Z'
         rdm.add( Resource(uri='http://example.com/res1',
@@ -193,7 +193,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
 
     def test_build_ex_2_6(self):
-        """ Simple Capability List document """
+        """Simple Capability List document """
         cl = CapabilityList()
         cl.link_set( rel='describedby',
                      href='http://example.com/info_about_set1_of_resources.xml' )
@@ -204,7 +204,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal( cl.as_xml(), ex_xml )
 
     def test_build_ex_2_7(self):
-        """ A ResourceSync Description document """
+        """A ResourceSync Description document """
         rsd = ResourceSyncDescription()
         rsd.link_set( rel='describedby',
                       href='http://example.com/info-about-source.xml',
@@ -218,25 +218,25 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal( rsd.as_xml(), ex_xml )
 
     def test_build_ex_2_8(self):
-        """ Simple Resource List Index document
+        """Simple Resource List Index document
         
         This is not something that would usually be created directly 
         but instead would be created as part of the process of 
         writing a large Resource List in multiple files. However,
         it is possible to create manually.
         """
-        rli = ResourceList()
-        rli.resources = [] # fudge to get order to match spec
+        rli = ResourceList(resources_class=ResourceListOrdered) #order in example is non-canonical)
         rli.sitemapindex=True
         rli.md_from = '2013-01-03T09:00:00Z'
-        rli.resources.append( Resource(uri='http://example.com/resourcelist-part2.xml',
-                                       lastmod='2013-01-03T09:00:00Z') )
-        rli.resources.append( Resource(uri='http://example.com/resourcelist-part1.xml',
-                                       lastmod='2013-01-03T09:00:00Z') )
+        rli.add( Resource(uri='http://example.com/resourcelist-part2.xml',
+                          lastmod='2013-01-03T09:00:00Z') )
+        rli.add( Resource(uri='http://example.com/resourcelist-part1.xml',
+                          lastmod='2013-01-03T09:00:00Z') )
         ex_xml = self._open_ex('resourcesync_ex_2_8').read()
         self._assert_xml_equal( rli.as_xml(), ex_xml )
 
     def test_build_ex_4_1(self):
+        """Resource List with metadata"""
         rl = ResourceList()
         rl.description='http://example.com/dataset1/capabilitylist.xml'
         rl.md_from="2013-01-03T09:00:00Z"
@@ -255,6 +255,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal( rl.as_xml(), ex_xml )
 
     def test_build_ex_4_2(self):
+        """Resource List Index with metadata"""
         rl = ResourceList(resources_class=ResourceListOrdered) #order in example is non-canonical
         rl.sitemapindex=True
         rl.description='http://example.com/dataset1/capabilitylist.xml'
