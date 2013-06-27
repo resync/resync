@@ -18,6 +18,17 @@ import re
 from urlparse import urlparse
 from posixpath import basename
 from w3c_datetime import str_to_datetime, datetime_to_str
+import _version
+
+class ChangeTypeError(Exception):
+    def __init__(self, val):
+        self.supplied = val
+
+    def __repr__(self):
+        return "<ChangeTypeError: got %s, expected one of [created, updated, deleted]>" % self.supplied
+
+    def __str__(self):
+        return repr(self)
 
 class Resource(object):
     __slots__=('uri', 'timestamp', 'length',
@@ -70,6 +81,7 @@ class Resource(object):
             self.sha1 = sha1
         if (sha256 is not None):
             self.sha256 = sha256
+        # FIXME: type is a builtin function, please use 'typ' for variable name
         if (type is not None):
             self.type = type
         if (change is not None):
@@ -85,6 +97,13 @@ class Resource(object):
         # Sanity check
         if (self.uri is None):
             raise ValueError("Cannot create resoure without a URI")
+
+
+    def __setattr__(self, prop, value):
+        if (prop == 'change' and not value in _version.CHANGE_TYPES):
+            raise ChangeTypeError(value)
+        else:
+            object.__setattr__(self, prop, value)
             
     @property
     def lastmod(self):
