@@ -94,7 +94,11 @@ class TestResource(unittest.TestCase):
         r1 = Resource('abc',lastmod='2012-01-01')
         self.assertTrue( re.match( r"\[ abc \| 2012-01-01T", str(r1) ) )
 
-    def test7_multiple_hashes(self):
+    def test7_repr(self):
+        r1 = Resource('def',lastmod='2012-01-01')
+        self.assertEqual( repr(r1), "{'uri': 'def', 'timestamp': 1325376000}" )
+
+    def test8_multiple_hashes(self):
         r1 = Resource('abcd')
         r1.md5 = "some_md5"
         r1.sha1 = "some_sha1"

@@ -240,7 +240,8 @@ class Resource(object):
     def __str__(self):
         """Return a human readable string for this resource
 
-        Includes only part necessary for synchronizaion
+        Includes only the parts necessary for synchronizaion and
+        designed to support logging.
         """
         s = [ str(self.uri), str(self.lastmod), str(self.length),
               str(self.md5 if self.md5 else self.sha1) ]
@@ -251,10 +252,15 @@ class Resource(object):
         return "[ " + " | ".join(s) + " ]"
                                          
     def __repr__(self):
-        """Return an unambigous representation"""
-        dict_repr = dict((name, getattr(self, name, None)) 
-                    for name in dir(self) if not (name.startswith('__') 
-                                                  or name == 'equal'
-                                                  or name == 'basename'
-                                                  or name == 'lastmod'))
-        return str(dict_repr)
+        """Return an unambigous representation of this resource
+
+        Uses format like Python's representation of a dict() for 
+        attributes. Includes only those attributes with values that 
+        are not None. Order defined by __slots__.
+        """
+        s = []
+        for attr in self.__slots__:
+            val = getattr(self, attr, None)
+            if (val is not None):
+                s.append( repr(attr) + ': ' + repr(val) )
+        return "{" + ", ".join(s) + "}"
