@@ -153,7 +153,11 @@ class ListBaseWithIndex(ListBase):
     ##### OUTPUT #####
 
     def requires_multifile(self):
-        """Returns False or the number of component sitemaps required"""
+        """Returns False or the number of component sitemaps required
+        
+        In the case that no len() is available for self.resources then
+        then self.count must be set beforehand to avoid an exception.
+        """
         if (self.max_sitemap_entries is None or
             len(self)<=self.max_sitemap_entries):
             return(False)
