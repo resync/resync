@@ -53,6 +53,7 @@ class Client(object):
         self.sitemap_name = None
         self.allow_multifile = True
         self.noauth = False
+        self.strictauth = False
         self.max_sitemap_entries = None
         self.ignore_failures = False
         self.pretty_xml = True
@@ -164,13 +165,10 @@ class Client(object):
             self.logger.debug("Completed "+action)
             return
         ### 4. Check that sitemap has authority over URIs listed
-        uauth = UrlAuthority(self.sitemap)
-        for resource in src_resource_list:
-            if (not uauth.has_authority_over(resource.uri)):
-                if (self.noauth):
-                    #self.logger.info("Sitemap (%s) mentions resource at a location it does not have authority over (%s)" % (self.sitemap,resource.uri))
-                    pass
-                else:
+        if (not self.noauth):
+            uauth = UrlAuthority(self.sitemap, strict=self.strictauth)
+            for resource in src_resource_list:
+                if (not uauth.has_authority_over(resource.uri)):
                     raise ClientFatalError("Aborting as sitemap (%s) mentions resource at a location it does not have authority over (%s), override with --noauth" % (self.sitemap,resource.uri))
         ### 5. Grab files to do sync
         delete_msg = (", and delete %d resources" % len(deleted)) if (allow_deletion) else ''
@@ -255,17 +253,14 @@ class Client(object):
         ### 4. Check that the change list has authority over URIs listed
         # FIXME - What does authority mean for change list? Here use both the
         # change list URI and, if we used it, the sitemap URI
-        uauth_cs = UrlAuthority(change_list)
-        if (not change_list_uri):
-            uauth_sm = UrlAuthority(self.sitemap)
-        for resource in src_change_list:
-            if (not uauth_cs.has_authority_over(resource.uri) and 
-                (change_list_uri or not uauth_sm.has_authority_over(resource.uri))):
-                if (self.noauth):
-                    #self.logger.info("Change list (%s) mentions resource at a location it does not have authority over (%s)" % (change_list,resource.uri))
-                    pass
-                else:
-                    raise ClientFatalError("Aborting as change list (%s) mentions resource at a location it does not have authority over (%s), override with --noauth" % (change_list,resource.uri))
+        if (not self.noauth):
+            uauth_cs = UrlAuthority(change_list, self.strict)
+            if (not change_list_uri):
+                uauth_sm = UrlAuthority(self.sitemap)
+                for resource in src_change_list:
+                    if (not uauth_cs.has_authority_over(resource.uri) and 
+                        (change_list_uri or not uauth_sm.has_authority_over(resource.uri))):
+                        raise ClientFatalError("Aborting as change list (%s) mentions resource at a location it does not have authority over (%s), override with --noauth" % (change_list,resource.uri))
         ### 5. Prune entries before starting timestamp and dupe changes for a resource
         num_skipped = src_change_list.prune_before(from_timestamp)
         if (num_skipped>0):

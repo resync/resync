@@ -133,8 +133,15 @@ def main():
     opt.add_option('--multifile', '-m', action='store_true',
                    help="disable reading and output of sitemapindex for multifile sitemap")
     opt.add_option('--noauth', action='store_true',
-                   help="disable checking of URL paths to ensure that the sitemaps refer "
-                        "only to resources on the same server/sub-path etc. Use with care.")
+                   help="disable all checking of URLs to ensure that the ResourceSync "
+                        "documents refer only to resources on the same server or sub-domains. "
+                        "Use with care.")
+    opt.add_option('--strictauth', action='store_true',
+                   help="use more strict checking of URLs to ensure that the ResourceSync "
+                        "documents refer only to resources on the same server or sub-domains, "
+                        "and on the same server to sub-paths. This is the authority model "
+                        "of Sitemaps but there are legitimate uses where these rules would "
+                        "not be followed.")
     opt.add_option('--warc', action='store_true',
                    help="write dumps in WARC format (instead of ZIP+Sitemap default)")
     opt.add_option('--dryrun', '-n', action='store_true',
@@ -199,6 +206,8 @@ def main():
             c.allow_multifile=not args.multifile
         if (args.noauth):
             c.noauth=args.noauth
+        if (args.strictauth):
+            c.strictauth=args.strictauth
         if (args.max_sitemap_entries):
             c.max_sitemap_entries=args.max_sitemap_entries
         if (args.ignore_failures):
