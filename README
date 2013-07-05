@@ -83,7 +83,17 @@ yet packaged for `PyPI
 See also
 --------
 
-http://github.com/resync/simulator
+`ResourceSync simulator
+<http://github.com/resync/simulator>`_
+
+Contributors
+------------
+
+Thanks to:
+`Bernhard Haslhofer
+<https://github.com/behas>`_,
+`Robert Sanderson
+<https://github.com/azaroth42>`_
 
 Copyright and License
 ---------------------
