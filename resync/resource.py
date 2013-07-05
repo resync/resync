@@ -224,9 +224,7 @@ class Resource(object):
         if (self.ln is None):
             # automagically create a self.ln list
             self.ln = []
-        link = {} #FIXME - what is a good/pythonic way to copy dict?
-        for k in atts:
-            link[k] = atts[k] 
+        link = atts.copy()
         self.ln.append(link)
 
     @property
