@@ -31,8 +31,7 @@ Library usage
 
 Typical library use in a source (create and output a Resource List)::
 
-    from resync.resource_list import ResourceList
-    from resync.resource import Resource
+    from resync import Resource,ResourceList
 
     rl = ResourceList()
     rl.add( Resource('http://example.com/res1', lastmod='2013-01-01') )
@@ -41,7 +40,7 @@ Typical library use in a source (create and output a Resource List)::
 
 Typical library use in a destination (get and examine a Capability List):: 
 
-    from resync.capability_list import CapabilityList
+    from resync import CapabilityList
 
     # Read Capability List and show supported capabilities
     cl = CapabilityList()

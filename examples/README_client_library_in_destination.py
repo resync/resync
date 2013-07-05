@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 if (True): #keep indentation of README
 
-    from resync.capability_list import CapabilityList
+    from resync import CapabilityList
 
     # Read Capability List and show supported capabilities
     cl = CapabilityList()
