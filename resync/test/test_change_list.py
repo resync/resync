@@ -10,40 +10,40 @@ class TestChangeList(unittest.TestCase):
 
     def test1_set_with_repeats(self):
         src = ChangeList()
-        src.add( Resource('a',timestamp=1) )
-        src.add( Resource('b',timestamp=1) )
-        src.add( Resource('c',timestamp=1) )
-        src.add( Resource('a',timestamp=2) )
-        src.add( Resource('b',timestamp=2) )
+        src.add( Resource('a',timestamp=1,change='updated') )
+        src.add( Resource('b',timestamp=1,change='created') )
+        src.add( Resource('c',timestamp=1,change='deleted') )
+        src.add( Resource('a',timestamp=2,change='deleted') )
+        src.add( Resource('b',timestamp=2,change='updated') )
         self.assertEqual(len(src), 5, "5 changes in change_list")
 
     def test2_with_repeats_again(self):
-        r1 = Resource(uri='a',length=1)
-        r2 = Resource(uri='b',length=2)
+        r1 = Resource(uri='a',length=1,change='created')
+        r2 = Resource(uri='b',length=2,change='created')
         i = ChangeList()
         i.add(r1)
         i.add(r2)
         self.assertEqual( len(i), 2 )
         # Can add another Resource with same URI
-        r1d = Resource(uri='a',length=10)
+        r1d = Resource(uri='a',length=10,change='created')
         i.add(r1d)
         self.assertEqual( len(i), 3 )
 
     def test3_change_list(self):
         src = ChangeList()
-        src.add( Resource('a',timestamp=1) )
-        src.add( Resource('b',timestamp=2) )
-        src.add( Resource('c',timestamp=3) )
-        src.add( Resource('d',timestamp=4)) 
-        src.add( Resource('e',timestamp=5) )
+        src.add( Resource('a',timestamp=1,change='created') )
+        src.add( Resource('b',timestamp=2,change='created') )
+        src.add( Resource('c',timestamp=3,change='created') )
+        src.add( Resource('d',timestamp=4,change='created') ) 
+        src.add( Resource('e',timestamp=5,change='created') )
         self.assertEqual(len(src), 5, "5 things in src")
 
     def test4_iter(self):
         i = ChangeList()
-        i.add( Resource('a',timestamp=1) )
-        i.add( Resource('b',timestamp=2) )
-        i.add( Resource('c',timestamp=3) )
-        i.add( Resource('d',timestamp=4) )
+        i.add( Resource('a',timestamp=1,change='created') )
+        i.add( Resource('b',timestamp=2,change='created') )
+        i.add( Resource('c',timestamp=3,change='created') )
+        i.add( Resource('d',timestamp=4,change='created') )
         resources=[]
         for r in i:
             resources.append(r)
@@ -53,8 +53,8 @@ class TestChangeList(unittest.TestCase):
 
     def test5_add_changed_resources(self):
         added = ResourceList()
-        added.add( Resource('a',timestamp=1) )
-        added.add( Resource('d',timestamp=4))
+        added.add( Resource('a',timestamp=1,change='created') )
+        added.add( Resource('d',timestamp=4,change='created') )
         self.assertEqual(len(added), 2, "2 things in added resource_list")
         changes = ChangeList()
         changes.add_changed_resources( added, change='created' )
@@ -63,14 +63,14 @@ class TestChangeList(unittest.TestCase):
         first = i.next()
         self.assertEqual(first.uri, 'a', "changes[0].uri=a")
         self.assertEqual(first.timestamp, 1, "changes[0].timestamp=1")
-        self.assertEqual(first.change, 'created') #, "changes[0].change=created")
+        self.assertEqual(first.change, 'created') #, "changes[0].change=createdd")
         second = i.next()
         self.assertEqual(second.timestamp, 4, "changes[1].timestamp=4")
-        self.assertEqual(second.change, 'created', "changes[1].change=created")
+        self.assertEqual(second.change, 'created', "changes[1].change=createdd")
         # Now add some with updated (one same, one diff)
         updated = ResourceList()
-        updated.add( Resource('a',timestamp=5) )
-        updated.add( Resource('b',timestamp=6))
+        updated.add( Resource('a',timestamp=5,change='created') )
+        updated.add( Resource('b',timestamp=6,change='created') )
         self.assertEqual(len(updated), 2, "2 things in updated resource_list")
         changes.add_changed_resources( updated, change='updated' )
         self.assertEqual(len(changes), 4, "4 = 2 old + 2 things updated")
@@ -100,7 +100,7 @@ class TestChangeList(unittest.TestCase):
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
 <rs:md capability="changelist" from="2013-01-01"/>\
 <url><loc>/tmp/rs_test/src/file_a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md change="updated" length="12" /></url>\
-<url><loc>/tmp/rs_test/src/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length="32" /></url>\
+<url><loc>/tmp/rs_test/src/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md change="deleted" length="32" /></url>\
 </urlset>'
         cl=ChangeList()
         cl.parse(fh=StringIO.StringIO(xml))
@@ -111,8 +111,8 @@ class TestChangeList(unittest.TestCase):
     def test31_parse_no_capability(self):
         # missing capability is an error for changelist
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\
-<url><loc>http://example.com/res1</loc><lastmod>2012-03-14T18:37:36Z</lastmod></url>\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<url><loc>http://example.com/res1</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md change="updated"/></url>\
 </urlset>'
         cl=ChangeList()
         self.assertRaises( SitemapParseError, cl.parse, fh=StringIO.StringIO(xml) )
@@ -122,7 +122,7 @@ class TestChangeList(unittest.TestCase):
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
 <rs:md capability="bad_capability" from="2013-01-01"/>\
-<url><loc>http://example.com/bad_res_1</loc><lastmod>2012-03-14T18:37:36Z</lastmod></url>\
+<url><loc>http://example.com/bad_res_1</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md change="updated"/></url>\
 </urlset>'
         cl=ChangeList()
         self.assertRaises( SitemapParseError, cl.parse, fh=StringIO.StringIO(xml) )

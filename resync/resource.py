@@ -24,11 +24,33 @@ from urlparse import urlparse
 from posixpath import basename
 from w3c_datetime import str_to_datetime, datetime_to_str
 
+
+class ChangeTypeError(Exception):
+    """Exception class raised by Resource for bad change attribute
+
+    The change attribute of a Resource object may be either None
+    or one of the values in Resource.CHANGE_TYPES. Checking is
+    disabled by setting Resource.CHANGE_TYPES False.
+    """
+    
+    def __init__(self, val):
+        self.supplied = val
+
+    def __repr__(self):
+        return "<ChangeTypeError: got %s, expected one of %s>" % (self.supplied,str(Resource.CHANGE_TYPES))
+
+    def __str__(self):
+        return repr(self)
+
+
 class Resource(object):
     __slots__=('uri', 'timestamp', 'length',
                'md5', 'sha1', 'sha256', 'type',
                'change', 'path',
                'capability', 'ln' )
+
+
+    CHANGE_TYPES = ['created', 'updated', 'deleted']
     
     def __init__(self, uri = None, timestamp = None, length = None, 
                  md5 = None, sha1 = None, sha256 = None, type = None,
@@ -75,6 +97,7 @@ class Resource(object):
             self.sha1 = sha1
         if (sha256 is not None):
             self.sha256 = sha256
+        # FIXME: type is a builtin function, should use something else
         if (type is not None):
             self.type = type
         if (change is not None):
@@ -90,6 +113,15 @@ class Resource(object):
         # Sanity check
         if (self.uri is None):
             raise ValueError("Cannot create resoure without a URI")
+
+
+    def __setattr__(self, prop, value):
+        # Add validity check for self.change
+        if (prop == 'change' and Resource.CHANGE_TYPES and
+            value is not None and not value in Resource.CHANGE_TYPES):
+            raise ChangeTypeError(value)
+        else:
+            object.__setattr__(self, prop, value)
             
     @property
     def lastmod(self):

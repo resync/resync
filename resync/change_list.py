@@ -19,7 +19,7 @@ import collections
 from urllib import URLopener
 
 from list_base import ListBase
-from resource import Resource
+from resource import Resource,ChangeTypeError
 from sitemap import Sitemap
 
 class ChangeList(ListBase):
@@ -32,17 +32,24 @@ class ChangeList(ListBase):
         self.capability_name='changelist'
         self.capability_md='changelist'
 
+    # FIXME: Should probably be inline in add, rather than a class method
+    def maybeAdd(self, resource):
+        if (resource.change is not None):
+            self.resources.append(resource)    
+        else:
+            raise ChangeTypeError(resource.change)
+
     def add(self, resource):
-        """Add a resource_change or an iterable collection to this ChangeList
+        """Add a resource change or an iterable collection of them to this ChangeList
       
         Allows multiple resource_change objects for the same resource (ie. URI) and
         preserves the order of addition.
         """
         if isinstance(resource, collections.Iterable):
             for r in resource:
-                self.resources.append(r)
+                self.maybeAdd(r)
         else:
-            self.resources.append(resource)
+            self.maybeAdd(resource)
 
     def add_changed_resources(self, resources, change=None):
         """Add items from a ResourceContainer resources to this ChangeList

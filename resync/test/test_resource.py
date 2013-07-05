@@ -1,6 +1,6 @@
 import unittest
 import re
-from resync.resource import Resource
+from resync.resource import Resource, ChangeTypeError
 
 class TestResource(unittest.TestCase):
 
@@ -118,6 +118,17 @@ class TestResource(unittest.TestCase):
         self.assertEqual( r2.md5, 'fff' )
         self.assertEqual( r2.sha1, 'eee' )
         self.assertEqual( r2.sha256, 'ggg' )
+
+    def test9_changetypeerror(self):
+        r1 = Resource('a')
+        self.assertEqual( r1.change, None )
+        r1.change = 'deleted'
+        self.assertEqual( r1.change, 'deleted' )
+        self.assertRaises( ChangeTypeError, Resource, 'a', change="bad" )
+        # disable checking
+        Resource.CHANGE_TYPES = False
+        r1 = Resource( 'a', change="bad" )
+        self.assertEqual( r1.change, 'bad' )
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestResource)
