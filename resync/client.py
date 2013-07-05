@@ -98,7 +98,7 @@ class Client(object):
             included. This is used to build a resource list as the basis
             for creating a dump.
 
-        Return resource_list. Uses existing self.mapper settings.
+        Return ResourceList. Uses existing self.mapper settings.
         """
         # 0. Sanity checks, parse paths is specified
         if (len(self.mapper)<1):
@@ -138,24 +138,24 @@ class Client(object):
         if (not audit_only and self.mapper.unsafe()):
             raise ClientFatalError("Source to destination mappings unsafe: %s" % str(self.mapper))
         ### 1. Get inventories from both src and dst 
-        # 1.a source resource_list
+        # 1.a source resource list
         try:
             self.logger.info("Reading sitemap %s" % (self.sitemap))
             src_resource_list = ResourceList(allow_multifile=self.allow_multifile, mapper=self.mapper)
             src_resource_list.read(uri=self.sitemap)
             self.logger.debug("Finished reading sitemap")
         except Exception as e:
-            raise ClientFatalError("Can't read source resource_list from %s (%s)" % (self.sitemap,str(e)))
-        self.logger.info("Read source resource_list, %d resources listed" % (len(src_resource_list)))
+            raise ClientFatalError("Can't read source resource list from %s (%s)" % (self.sitemap,str(e)))
+        self.logger.info("Read source resource list, %d resources listed" % (len(src_resource_list)))
         if (len(src_resource_list)==0):
             raise ClientFatalError("Aborting as there are no resources to sync")
         if (self.checksum and not src_resource_list.has_md5()):
             self.checksum=False
-            self.logger.info("Not calculating checksums on destination as not present in source resource_list")
-        # 1.b destination resource_list mapped back to source URIs
+            self.logger.info("Not calculating checksums on destination as not present in source resource list")
+        # 1.b destination resource list mapped back to source URIs
         rlb = ResourceListBuilder(set_md5=self.checksum, mapper=self.mapper)
         dst_resource_list = rlb.from_disk()
-        ### 2. Compare these resource_lists respecting any comparison options
+        ### 2. Compare these resource lists respecting any comparison options
         (same,updated,deleted,created)=dst_resource_list.compare(src_resource_list)   
         ### 3. Report status and planned actions
         self.log_status(in_sync=(len(updated)+len(deleted)+len(created)==0),
@@ -254,7 +254,7 @@ class Client(object):
         # FIXME - What does authority mean for change list? Here use both the
         # change list URI and, if we used it, the sitemap URI
         if (not self.noauth):
-            uauth_cs = UrlAuthority(change_list, self.strict)
+            uauth_cs = UrlAuthority(change_list, self.strictauth)
             if (not change_list_uri):
                 uauth_sm = UrlAuthority(self.sitemap)
                 for resource in src_change_list:
@@ -308,7 +308,7 @@ class Client(object):
         2. set mtime in local time to be equal to timestamp in UTC (should perhaps
         or at least warn if different from LastModified from the GET response instead 
         but maybe warn if different (or just earlier than) the lastmod we expected 
-        from the resource_list
+        from the resource list
         3. check that resource matches expected information
 
         Also update self.last_timestamp if the timestamp (in source frame) of this
@@ -609,7 +609,7 @@ class Client(object):
             # 1. Get and parse reference sitemap
             old_rl = self.read_reference_resource_list(ref_sitemap)
             # 2. Depending on whether a newref_sitemap was specified, either read that 
-            # or build resource_list from files on disk
+            # or build resource list from files on disk
             if (newref_sitemap is None):
                 # Get resource list from disk
                 new_rl = self.build_resource_list(paths=paths,set_path=dump)
