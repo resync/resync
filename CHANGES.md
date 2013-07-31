@@ -6,8 +6,8 @@ The first two components of the version tags are tied to the ResourceSync specif
 version. Versions 0.9.x are intended to implement the v0.9 ResourceSync specification
 (http://www.openarchives.org/rs/0.9/),
 
-v0.9.3 2013-07...
-- 
+v0.9.3 2013-07-31
+- Add dependencies and tests to setup, no code changes 
 
 v0.9.2 2013-07-04
 - Cosmetic only
