@@ -10,7 +10,7 @@ Putting up a new version
 ------------------------
 
 1. Check code is up-to-date with github version
-2. Check all tests good (py.test)
+2. Check all tests good (python setup.py test; py.test)
 3. Check branches as expected (git branch -a)
 4. Check version number if set correctly (more resync/_version.py)
 5. Check local build and version reported OK (python setup.py install; resync --version)
@@ -42,7 +42,7 @@ If all checks out OK, tag and push the new version:
     ```
     git tag -n1
     #...current tags
-    git tag -a -m "ResourceSync v0.6 specification, add --paths" v0.6.2
+    git tag -a -m "ResourceSync v0.9 specification, add --paths" v0.9.3
     git push --tags
 
     python setup.py sdist upload
