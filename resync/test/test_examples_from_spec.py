@@ -204,18 +204,18 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal( cl.as_xml(), ex_xml )
 
     def test_build_ex_2_7(self):
-        """A ResourceSync Description document """
-        rsd = SourceDescription()
-        rsd.link_set( rel='describedby',
+        """A Source Description document """
+        sd = SourceDescription()
+        sd.link_set( rel='describedby',
                       href='http://example.com/info-about-source.xml',
                       type='application/xml' )
         r = Resource( uri='http://example.com/dataset1/capabilitylist.xml',
                       capability='capabilitylist' )
         r.link_add( rel='describedby',
                     href='http://example.com/info_about_set1_of_resources.xml' )
-        rsd.add( r )
+        sd.add( r )
         ex_xml = self._open_ex('resourcesync_ex_2_7').read()
-        self._assert_xml_equal( rsd.as_xml(), ex_xml )
+        self._assert_xml_equal( sd.as_xml(), ex_xml )
 
     def test_build_ex_2_8(self):
         """Simple Resource List Index document
