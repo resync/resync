@@ -34,7 +34,7 @@ def datetime_to_str(dt='now',no_fractions=False):
         dt = int(dt)
     return datetime.utcfromtimestamp(dt).isoformat() + 'Z'
 
-def str_to_datetime(s):
+def str_to_datetime(s, context='datetime'):
     """Set timestamp from an W3C Datetime Last-Modified value
 
     The sitemaps.org specification says that <lastmod> values
@@ -72,7 +72,7 @@ def str_to_datetime(s):
     if (s is None):
         return(t)
     if (s == ''):
-        raise ValueError('Attempt to set empty datetime')
+        raise ValueError('Attempt to set empty %s' % (context))
     # Make a date into a full datetime
     m = re.match(r"\d\d\d\d(\-\d\d(\-\d\d)?)?$",s)
     if (m is not None):

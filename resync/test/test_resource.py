@@ -130,36 +130,40 @@ class TestResource(unittest.TestCase):
         r1 = Resource( 'a', change="bad" )
         self.assertEqual( r1.change, 'bad' )
 
-    def test10_at_roundtrips(self):
+    def test10_md_at_roundtrips(self):
         r = Resource('a')
-        r.at='2013-03-14'
-        self.assertEqual( r.at, '2013-03-14T00:00:00Z' )
-        r.at='2013-03-14T00:00:00+00:00'
-        self.assertEqual( r.at, '2013-03-14T00:00:00Z' )
-        r.at='2013-03-14T00:00:00-00:00'
-        self.assertEqual( r.at, '2013-03-14T00:00:00Z' )
-        r.at='2013-03-14T18:37:36Z'
-        self.assertEqual( r.at, '2013-03-14T18:37:36Z' )
+        r.md_at='2013-03-14'
+        self.assertEqual( r.md_at, '2013-03-14T00:00:00Z' )
+        r.md_at='2013-03-14T00:00:00+00:00'
+        self.assertEqual( r.md_at, '2013-03-14T00:00:00Z' )
+        r.md_at='2013-03-14T00:00:00-00:00'
+        self.assertEqual( r.md_at, '2013-03-14T00:00:00Z' )
+        r.md_at='2013-03-14T18:37:36Z'
+        self.assertEqual( r.md_at, '2013-03-14T18:37:36Z' )
 
-    def test11_completed_roundtrips(self):
+    def test11_md_completed_roundtrips(self):
         r = Resource('a')
-        r.completed='2013-04-14'
-        self.assertEqual( r.completed, '2013-04-14T00:00:00Z' )
-        r.completed='2013-04-14T00:00:00+00:00'
-        self.assertEqual( r.completed, '2013-04-14T00:00:00Z' )
-        r.completed='2013-04-14T00:00:00-00:00'
-        self.assertEqual( r.completed, '2013-04-14T00:00:00Z' )
-        r.completed='2013-04-14T18:37:36Z'
-        self.assertEqual( r.completed, '2013-04-14T18:37:36Z' )
+        r.md_completed='2013-04-14'
+        self.assertEqual( r.md_completed, '2013-04-14T00:00:00Z' )
+        r.md_completed='2013-04-14T00:00:00+00:00'
+        self.assertEqual( r.md_completed, '2013-04-14T00:00:00Z' )
+        r.md_completed='2013-04-14T00:00:00-00:00'
+        self.assertEqual( r.md_completed, '2013-04-14T00:00:00Z' )
+        r.md_completed='2013-04-14T18:37:36Z'
+        self.assertEqual( r.md_completed, '2013-04-14T18:37:36Z' )
 
     def test12_timevalues(self):
         r = Resource(uri='tv',
                      lastmod="2000-01-01",
-                     at="2000-01-02",
-                     completed="2000-01-03")
+                     md_at="2000-01-02",
+                     md_completed="2000-01-03",
+                     md_from="2000-01-04",
+                     md_until="2000-01-05")
         self.assertEqual( r.lastmod,   '2000-01-01T00:00:00Z' )
-        self.assertEqual( r.at,        '2000-01-02T00:00:00Z' )
-        self.assertEqual( r.completed, '2000-01-03T00:00:00Z' )
+        self.assertEqual( r.md_at,        '2000-01-02T00:00:00Z' )
+        self.assertEqual( r.md_completed, '2000-01-03T00:00:00Z' )
+        self.assertEqual( r.md_from,      '2000-01-04T00:00:00Z' )
+        self.assertEqual( r.md_until,     '2000-01-05T00:00:00Z' )
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestResource)

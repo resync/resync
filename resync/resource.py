@@ -24,11 +24,22 @@ are:
     path - path in dump
 
 If non-core attributes are needed then the '_extra' attribute 
-has a dict of values. The 'ln' attribute is used when it is 
-necessary to add links or other information to the object. Use 
-of non-core attributes or links results in dicts being created 
-which is convenient but will significantly increase the size of 
-each Resource object that contains such information.
+has a dict of values. The ones explicitly used here are:
+
+    capability - Capability name
+    ts_at - at time, has md_at accessor 
+    ts_completed - completed time, has md_completed accessor 
+    ts_from - from time, has md_from accessor 
+    ts_until - until time, has md_until accessor 
+
+The accessor names md_from etc. are used to avoid conflict 
+with Python built-in keywords from etc..
+
+The 'ln' attribute is used when it is necessary to add links 
+or other information to the object. Use of non-core attributes 
+or links results in dicts being created which is convenient 
+but will significantly increase the size of each Resource 
+object that contains such information.
 """
 
 import re
@@ -66,12 +77,12 @@ class Resource(object):
     def __init__(self, uri = None, timestamp = None, length = None, 
                  md5 = None, sha1 = None, sha256 = None, type = None,
                  change = None, path = None, lastmod = None, 
-                 at_timestamp = None, at = None,
-                 completed_timestamp = None, completed = None,
-                 frm_timestamp = None, frm = None,
-                 untl_timestamp = None, untl = None,
-                 resource = None,
-                 capability = None, ln = None):
+                 capability = None,
+                 ts_at = None, md_at = None,
+                 ts_completed = None, md_completed = None,
+                 ts_from = None, md_from = None,
+                 ts_until = None, md_until = None,
+                 resource = None, ln = None):
         """Initialize object either from parameters specified or
         from an existing Resource object. If explicit parameters
         are specified then they will override values copied from
@@ -92,10 +103,9 @@ class Resource(object):
         # Create from a Resource-like object? Copy any relevant attributes
         if (resource is not None):
             for att in ['uri','timestamp','length','md5','sha1','sha256',
-                        'change','path',
-                        'at_timestamp','completed_timstamp',
-                        'from_timestamp','until_timestamp',
-                        'capability','ln']:
+                        'change','path', 'capability',
+                        'ts_at','md_at', 'ts_completed', 'md_completed',
+                        'ts_from','md_from','ts_until','md_until','ln']:
                 if hasattr(resource,att):
                     setattr(self, att, getattr(resource, att))
         # Any arguments will then override
@@ -118,10 +128,14 @@ class Resource(object):
             self.change = change
         if (path is not None):
             self.path = path
-        if (at_timestamp is not None):
-            self.at_timestamp = at_timestamp
-        if (completed_timestamp is not None):
-            self.completed_timestamp = completed_timestamp
+        if (ts_at is not None):
+            self.ts_at = ts_at
+        if (ts_completed is not None):
+            self.ts_completed = ts_completed
+        if (ts_from is not None):
+            self.ts_from = ts_from
+        if (ts_until is not None):
+            self.ts_until = ts_until
         if (capability is not None):
             self.capability = capability
         if (ln is not None):
@@ -129,10 +143,14 @@ class Resource(object):
         # Timestamp setters
         if (lastmod is not None):
             self.lastmod=lastmod
-        if (at is not None):
-            self.at=at
-        if (completed is not None):
-            self.completed=completed
+        if (md_at is not None):
+            self.md_at=md_at
+        if (md_completed is not None):
+            self.md_completed=md_completed
+        if (md_from is not None):
+            self.md_from=md_from
+        if (md_until is not None):
+            self.md_until=md_until
         # Sanity check
         if (self.uri is None):
             raise ValueError("Cannot create resource without a URI")
@@ -173,44 +191,44 @@ class Resource(object):
         self.timestamp = str_to_datetime(lastmod, context='lastmod')
 
     @property
-    def at(self):
-        """at values in W3C Datetime syntax, Z notation"""
-        return datetime_to_str(self._get_extra('at_timestamp'))
+    def md_at(self):
+        """md_at values in W3C Datetime syntax, Z notation"""
+        return datetime_to_str(self._get_extra('ts_at'))
 
-    @at.setter
-    def at(self, at):
+    @md_at.setter
+    def md_at(self, md_at):
         """Set at value from a W3C Datetime value"""
-        self._set_extra( 'at_timestamp', str_to_datetime(at, context='at datetime') )
+        self._set_extra( 'ts_at', str_to_datetime(md_at, context='md_at datetime') )
 
     @property
-    def completed(self):
-        """completed value in W3C Datetime syntax, Z notation"""
-        return datetime_to_str(self._get_extra('completed_timestamp'))
+    def md_completed(self):
+        """md_completed value in W3C Datetime syntax, Z notation"""
+        return datetime_to_str(self._get_extra('ts_completed'))
 
-    @completed.setter
-    def completed(self, completed):
-        """Set completed value from a W3C Datetime value"""
-        self._set_extra( 'completed_timestamp', str_to_datetime(completed, context='completed datetime') )
-
-    @property
-    def frm(self):
-        """frm value in W3C Datetime syntax, Z notation"""
-        return datetime_to_str(self._get_extra('frm_timestamp'))
-
-    @frm.setter
-    def frm(self, frm):
-        """Set frm value from a W3C Datetime value"""
-        self._set_extra( 'frm_timestamp', str_to_datetime(frm, context='frm datetime') )
+    @md_completed.setter
+    def md_completed(self, md_completed):
+        """Set md_completed value from a W3C Datetime value"""
+        self._set_extra( 'ts_completed', str_to_datetime(md_completed, context='md_completed datetime') )
 
     @property
-    def untl(self):
-        """untl value in W3C Datetime syntax, Z notation"""
-        return datetime_to_str(self._get_extra('untl_timestamp'))
+    def md_from(self):
+        """md_from value in W3C Datetime syntax, Z notation"""
+        return datetime_to_str(self._get_extra('ts_from'))
 
-    @untl.setter
-    def untl(self, untl):
-        """Set untl value from a W3C Datetime value"""
-        self._set_extra( 'untl_timestamp', str_to_datetime(untl, context='untl datetime') )
+    @md_from.setter
+    def md_from(self, md_from):
+        """Set md_from value from a W3C Datetime value"""
+        self._set_extra( 'ts_from', str_to_datetime(md_from, context='md_from datetime') )
+
+    @property
+    def md_until(self):
+        """md_until value in W3C Datetime syntax, Z notation"""
+        return datetime_to_str(self._get_extra('ts_until'))
+
+    @md_until.setter
+    def md_until(self, md_until):
+        """Set md_until value from a W3C Datetime value"""
+        self._set_extra( 'ts_until', str_to_datetime(md_until, context='md_until datetime') )
 
     @property
     def capability(self):

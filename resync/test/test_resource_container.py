@@ -80,8 +80,8 @@ class TestResourceContainer(unittest.TestCase):
         self.assertEqual( rc.md_from, "ftime" )
         self.assertEqual( rc.md_until, "utime" )
         # via underlying dict
-        rc.md['from'] = "ftime2"
-        rc.md['until'] = "utime2too"
+        rc.md['md_from'] = "ftime2"
+        rc.md['md_until'] = "utime2too"
         self.assertEqual( rc.md_from, "ftime2" )
         self.assertEqual( rc.md_until, "utime2too" )
 

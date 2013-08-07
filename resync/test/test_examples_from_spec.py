@@ -283,11 +283,11 @@ class TestExamplesFromSpec(unittest.TestCase):
         rl.md_at="2013-01-03T09:00:00Z"
         rl.md_completed="2013-01-03T09:10:00Z"
         rl.add( Resource( uri='http://example.com/resourcelist1.xml',
-                          at='2013-01-03T09:00:00Z' ))
+                          md_at='2013-01-03T09:00:00Z' ))
         rl.add( Resource( uri='http://example.com/resourcelist2.xml',
-                          at='2013-01-03T09:03:00Z' ))
+                          md_at='2013-01-03T09:03:00Z' ))
         rl.add( Resource( uri='http://example.com/resourcelist3.xml',
-                          at='2013-01-03T09:07:00Z' ))
+                          md_at='2013-01-03T09:07:00Z' ))
         ex_xml = self._open_ex('resourcesync_ex_8_2').read()
         self._assert_xml_equal( rl.as_xml(), ex_xml )
 
@@ -318,10 +318,8 @@ class TestExamplesFromSpec(unittest.TestCase):
         z1 = Resource( uri='http://example.com/resourcedump-part1.zip',
                        type="application/zip",
                        length=4765,
-                       at="2013-01-03T09:00:00Z",
-                       completed="2013-01-03T09:02:00Z" )
-        print z1.at
-        print z1.completed
+                       md_at="2013-01-03T09:00:00Z",
+                       md_completed="2013-01-03T09:02:00Z" )
         z1.link_add( rel="contents",
                      href="http://example.com/resourcedump_manifest-part1.xml",
                      type="application/xml" )
@@ -329,9 +327,8 @@ class TestExamplesFromSpec(unittest.TestCase):
         z2 = Resource( uri='http://example.com/resourcedump-part2.zip',
                        type="application/zip",
                        length=9875,
-                       at="2013-01-03T09:01:00Z",
-                       completed="2013-01-03T09:03:00Z" )
-        print z2.completed
+                       md_at="2013-01-03T09:01:00Z",
+                       md_completed="2013-01-03T09:03:00Z" )
         z2.link_add( rel="contents",
                      href="http://example.com/resourcedump_manifest-part2.xml",
                      type="application/xml" )
@@ -339,8 +336,8 @@ class TestExamplesFromSpec(unittest.TestCase):
         z3 = Resource( uri='http://example.com/resourcedump-part3.zip',
                        type="application/zip",
                        length=2298,
-                       at="2013-01-03T09:03:00Z",
-                       completed="2013-01-03T09:04:00Z" )
+                       md_at="2013-01-03T09:03:00Z",
+                       md_completed="2013-01-03T09:04:00Z" )
         z3.link_add( rel="contents",
                      href="http://example.com/resourcedump_manifest-part3.xml",
                      type="application/xml" )
@@ -388,6 +385,26 @@ class TestExamplesFromSpec(unittest.TestCase):
                           lastmod='2013-01-03T21:00:00Z',
                           change='updated' ) )
         ex_xml = self._open_ex('resourcesync_ex_10_1').read()
+        self._assert_xml_equal( cl.as_xml(), ex_xml )
+
+    def test_build_ex_10_2(self):
+        """Change List Index listing 3 Change Lists, the last one 'open'"""
+        # FIXME - should make this work with a changelist!
+        cl = ResourceList(resources_class=ResourceListOrdered) #order in example is non-canonical   
+        cl.sitemapindex=True
+        cl.capability_name='changelist'
+        cl.capability_md='changelist'
+        cl.up = 'http://example.com/dataset1/capabilitylist.xml'
+        cl.md_from="2013-01-01T00:00:00Z"
+        cl.add( Resource( uri='http://example.com/20130101-changelist.xml',
+                          md_from='2013-01-01T00:00:00Z',
+                          md_until='2013-01-02T00:00:00Z') )
+        cl.add( Resource( uri='http://example.com/20130102-changelist.xml',
+                          md_from='2013-01-02T00:00:00Z',
+                          md_until='2013-01-03T00:00:00Z') )
+        cl.add( Resource( uri='http://example.com/20130103-changelist.xml',
+                          md_from='2013-01-03T00:00:00Z') )
+        ex_xml = self._open_ex('resourcesync_ex_10_2').read()
         self._assert_xml_equal( cl.as_xml(), ex_xml )
 
 ##### UTILITIES FOR (APPROX) COMPARISON OF XML IN EXAMPLES AND OUTPUT

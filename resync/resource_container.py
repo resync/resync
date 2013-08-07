@@ -58,54 +58,54 @@ class ResourceContainer(object):
     @property
     def md_from(self):
         """ Convenient access to <rs:md from="" .../> """
-        if ('from' in self.md):
-            return(self.md['from'])
+        if ('md_from' in self.md):
+            return(self.md['md_from'])
         else:
             return(None)
 
     @md_from.setter
     def md_from(self,md_from):
         """Get/set the from attribute of this resource container"""
-        self.md['from']=md_from
+        self.md['md_from']=md_from
 
     @property
     def md_until(self):
         """ Convenient access to <rs:md until="" .../> """
-        if ('until' in self.md):
-            return(self.md['until'])
+        if ('md_until' in self.md):
+            return(self.md['md_until'])
         else:
             return(None)
 
     @md_until.setter
     def md_until(self,md_until):
         """Get/set the until attribute of this resource container"""
-        self.md['until']=md_until
+        self.md['md_until']=md_until
 
     @property
     def md_at(self):
         """ Convenient access to <rs:md at="" .../> """
-        if ('at' in self.md):
-            return(self.md['at'])
+        if ('md_at' in self.md):
+            return(self.md['md_at'])
         else:
             return(None)
 
     @md_at.setter
     def md_at(self,md_at):
         """Get/set the at attribute of this resource container"""
-        self.md['at']=md_at
+        self.md['md_at']=md_at
 
     @property
     def md_completed(self):
         """ Convenient access to <rs:md completed="" .../> """
-        if ('completed' in self.md):
-            return(self.md['completed'])
+        if ('md_completed' in self.md):
+            return(self.md['md_completed'])
         else:
             return(None)
 
     @md_completed.setter
     def md_completed(self,md_completed):
         """Get/set the completed attribute of this resource container"""
-        self.md['completed']=md_completed
+        self.md['md_completed']=md_completed
 
     def link(self,rel):
         """Look for link with specified rel, return else None"""

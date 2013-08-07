@@ -118,7 +118,7 @@ class ResourceList(ListBaseWithIndex):
 
     rl = ResourceList( resources_class=ResourceDictOrdered )
     
-    In normal use it is expected that any Resource List Inex will be
+    In normal use it is expected that any Resource List Index will be
     created automatically when writing out a large Resource List in
     multiple sitemap files. However, should it be necessary to 
     explicitly create an index then this may be specified with:

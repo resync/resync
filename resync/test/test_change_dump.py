@@ -27,7 +27,7 @@ class TestChangeDump(unittest.TestCase):
         rd.parse(fh=StringIO.StringIO(xml))
         self.assertEqual( len(rd.resources), 2, 'got 2 resource dumps')
         self.assertEqual( rd.md['capability'], 'changedump', 'capability set' )
-        self.assertEqual( rd.md['from'], '2013-01-01' )
+        self.assertEqual( rd.md_from, '2013-01-01' )
         self.assertTrue( 'http://example.com/a.zip' in rd.resources )
         self.assertTrue( rd.resources['http://example.com/a.zip'].length, 12345 )
         self.assertTrue( 'http://example.com/b.zip' in rd.resources )

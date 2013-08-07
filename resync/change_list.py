@@ -18,16 +18,18 @@ particular resource.
 import collections
 from urllib import URLopener
 
-from list_base import ListBase
+from list_base_with_index import ListBaseWithIndex
 from resource import Resource,ChangeTypeError
 from sitemap import Sitemap
 
-class ChangeList(ListBase):
+class ChangeList(ListBaseWithIndex):
     """Class representing an Change List"""
 
-    def __init__(self, resources=None, md=None, ln=None, uri=None):
+    def __init__(self, resources=None, md=None, ln=None, uri=None,
+                 resources_class=None):
+        self.resources_class = list if resources_class is None else resources_class
         if (resources is None):
-            resources = list()
+            resources = self.resources_class()
         super(ChangeList, self).__init__(resources=resources, md=md, ln=ln, uri=uri)
         self.capability_name='changelist'
         self.capability_md='changelist'
@@ -60,3 +62,4 @@ class ChangeList(ListBase):
         for resource in resources:
             rc = Resource( resource=resource, change=change )
             self.add(rc)
+
