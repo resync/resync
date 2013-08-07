@@ -50,8 +50,8 @@ class ListBaseWithIndex(ListBase):
         to those that the component sitemap files will be exposed as
     """
 
-    def __init__(self, resources=None, count=None, md=None, ln=None, allow_multifile=None, mapper=None):
-        super(ListBaseWithIndex, self).__init__(resources=resources, count=count, md=md, ln=ln)
+    def __init__(self, resources=None, count=None, md=None, ln=None, uri=None, allow_multifile=None, mapper=None):
+        super(ListBaseWithIndex, self).__init__(resources=resources, count=count, md=md, ln=ln, uri=uri)
         # specific to lists with indexes
         self.max_sitemap_entries=50000
         self.mapper = mapper

@@ -21,16 +21,18 @@ class ResourceContainer(object):
     -- iter() to get iterator over self.resource in appropriate order
     - md property that is a dict of metadata
     - ln property that is a list of links
+    - uri is optional identifier of this container object
 
     Derived classes may add extra functionality such as len() etc..
     However, any code designed to work with any ResourceContainer
     should use only the core functionality.
     """
 
-    def __init__(self, resources=None, md=None, ln=None):
+    def __init__(self, resources=None, md=None, ln=None, uri=None):
         self.resources=(resources if (resources is not None) else [])
         self.md=(md if (md is not None) else {})
         self.ln=(ln if (ln is not None) else [])
+        self.uri=uri
         self.capability_name=None
         self.capability_md=None
 

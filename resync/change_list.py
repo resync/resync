@@ -25,10 +25,10 @@ from sitemap import Sitemap
 class ChangeList(ListBase):
     """Class representing an Change List"""
 
-    def __init__(self, resources=None, md=None, ln=None):
+    def __init__(self, resources=None, md=None, ln=None, uri=None):
         if (resources is None):
             resources = list()
-        super(ChangeList, self).__init__(resources=resources, md=md, ln=ln)
+        super(ChangeList, self).__init__(resources=resources, md=md, ln=ln, uri=uri)
         self.capability_name='changelist'
         self.capability_md='changelist'
 

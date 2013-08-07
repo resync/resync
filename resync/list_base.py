@@ -33,8 +33,8 @@ class ListBase(ResourceContainer):
     sitemapindex - defaults to False, set True if this is an index object
     """
 
-    def __init__(self, resources=None, count=None, md=None, ln=None):
-        super(ListBase, self).__init__(resources=resources, md=md, ln=ln)
+    def __init__(self, resources=None, count=None, md=None, ln=None, uri=None):
+        super(ListBase, self).__init__(resources=resources, md=md, ln=ln, uri=uri)
         self.count = count
         self.capability_name = 'unknown'
         self.capability_md = 'unknown'
