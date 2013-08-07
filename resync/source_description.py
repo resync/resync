@@ -50,6 +50,19 @@ class SourceDescription(ListBase):
         else:
             self.resources.add(resource,replace)
 
-    def add_capability_list(self,uri=None):
-        """Add a capability list"""
-        self.add( Resource(uri=uri,capability='capabilitylist') )
+    def add_capability_list(self,capability_list=None):
+        """Add a capability list
+
+        Adds either a CapabiltyList object specified in capability_list
+        or else creates a Resource with the URI given in capability_list
+        and adds that to the Source Description
+        """
+        if (hasattr(capability_list,'uri')):
+            r = Resource( uri=capability_list.uri,
+                          capability=capability_list.capability_name )
+            if (capability_list.describedby is not None):
+                r.link_add( rel='describedby', href=capability_list.describedby )
+        else:
+            r = Resource( uri=capability_list,
+                          capability='capabilitylist')
+        self.add( r )
