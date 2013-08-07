@@ -21,7 +21,7 @@ from resource import Resource
 from resource_set import ResourceSet
 from list_base import ListBase
 
-class ResourceSyncDescription(ListBase):
+class SourceDescription(ListBase):
     """Class representing the set of Capability Lists supported
 
     Will admit only one resource with any given URI.
@@ -33,7 +33,7 @@ class ResourceSyncDescription(ListBase):
     def __init__(self, resources=None, md=None, ln=None):
         if (resources is None):
             resources = ResourceSet()
-        super(ResourceSyncDescription, self).__init__(resources=resources, md=md, ln=ln)
+        super(SourceDescription, self).__init__(resources=resources, md=md, ln=ln)
         self.capability_name='resourcesync'
         self.capability_md='resourcesync'
         self.md['from']=None #usually don't want a from date

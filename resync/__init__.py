@@ -9,5 +9,5 @@ from change_list import ChangeList
 from resource_dump import ResourceDump
 from change_dump import ChangeDump
 from capability_list import CapabilityList
-from resourcesync_description import ResourceSyncDescription
+from source_description import SourceDescription
 

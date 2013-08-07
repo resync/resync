@@ -46,10 +46,10 @@ class TestClient(unittest.TestCase):
         self.assertTrue( re.search(r'<url><loc>uri_a</loc><rs:md capability="a"',capturer.result) )
         self.assertTrue( re.search(r'<url><loc>uri_b</loc><rs:md capability="b"',capturer.result) )
 
-    def test07_write_resourcesync_description(self):
+    def test07_write_source_description(self):
         c = Client()
         with capture_stdout() as capturer:
-            c.write_resourcesync_description( [ 'a','b','c' ] )
+            c.write_source_description( [ 'a','b','c' ] )
         print capturer.result
         self.assertTrue( re.search(r'<urlset ',capturer.result) )
         self.assertTrue( re.search(r'<rs:md capability="resourcesync" />',capturer.result) )

@@ -15,7 +15,7 @@ from resync.resource_list_builder import ResourceListBuilder
 from resync.resource_list import ResourceList
 from resync.change_list import ChangeList
 from resync.capability_list import CapabilityList
-from resync.resourcesync_description import ResourceSyncDescription
+from resync.source_description import SourceDescription
 from resync.mapper import Mapper
 from resync.sitemap import Sitemap
 from resync.dump import Dump
@@ -643,9 +643,9 @@ class Client(object):
         else:
             capl.write(basename=outfile)
 
-    def write_resourcesync_description(self,capability_lists=None,outfile=None,links=None):
+    def write_source_description(self,capability_lists=None,outfile=None,links=None):
         """Write a ResourceSync Description document to outfile or STDOUT"""
-        rsd = ResourceSyncDescription(ln=links)
+        rsd = SourceDescription(ln=links)
         rsd.pretty_xml = self.pretty_xml
         if (capability_lists is not None):
             for uri in capability_lists:

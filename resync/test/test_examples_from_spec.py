@@ -10,7 +10,7 @@ from resync.change_list import ChangeList
 from resync.resource_dump import ResourceDump
 from resync.resource_dump_manifest import ResourceDumpManifest
 from resync.capability_list import CapabilityList
-from resync.resourcesync_description import ResourceSyncDescription
+from resync.source_description import SourceDescription
 from resync.sitemap import Sitemap
 
 class TestExamplesFromSpec(unittest.TestCase):
@@ -205,7 +205,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_2_7(self):
         """A ResourceSync Description document """
-        rsd = ResourceSyncDescription()
+        rsd = SourceDescription()
         rsd.link_set( rel='describedby',
                       href='http://example.com/info-about-source.xml',
                       type='application/xml' )

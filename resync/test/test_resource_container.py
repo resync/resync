@@ -85,7 +85,7 @@ class TestResourceContainer(unittest.TestCase):
         self.assertEqual( rc.md_from, "ftime2" )
         self.assertEqual( rc.md_until, "utime2too" )
 
-    def test06_resourcesync_description(self):
+    def test06_source_description(self):
         rc = ResourceContainer()
         # via convenience methods                                  
         self.assertEqual( rc.description, None )
