@@ -6,9 +6,10 @@ import unittest
 import StringIO
 from resync.resource import Resource
 from resync.resource_list import ResourceList,ResourceListOrdered
-from resync.change_list import ChangeList
 from resync.resource_dump import ResourceDump
 from resync.resource_dump_manifest import ResourceDumpManifest
+from resync.change_list import ChangeList
+from resync.change_dump import ChangeDump
 from resync.capability_list import CapabilityList
 from resync.source_description import SourceDescription
 from resync.sitemap import Sitemap
@@ -172,7 +173,6 @@ class TestExamplesFromSpec(unittest.TestCase):
         ex_xml = self._open_ex('resourcesync_ex_2_4').read()
         self._assert_xml_equal( rd.as_xml(), ex_xml )
 
-
     def test_build_ex_2_5(self):
         """Simple Resource Dump Manifest document """
         rdm = ResourceDumpManifest()
@@ -187,7 +187,6 @@ class TestExamplesFromSpec(unittest.TestCase):
                           path='/resources/res2') )
         ex_xml = self._open_ex('resourcesync_ex_2_5').read()
         self._assert_xml_equal( rdm.as_xml(), ex_xml )
-
 
     def test_build_ex_2_6(self):
         """Simple Capability List document """
@@ -228,8 +227,36 @@ class TestExamplesFromSpec(unittest.TestCase):
         ex_xml = self._open_ex('resourcesync_ex_2_8').read()
         self._assert_xml_equal( rli.as_xml(), ex_xml )
 
+    def test_build_ex_6_1(self):
+        """Source Description document with describedby links"""
+        sd = SourceDescription()
+        sd.describedby = 'http://example.com/info_about_source.xml'
+        cl1 = CapabilityList( uri='http://example.com/capabilitylist1.xml' )
+        cl1.describedby = 'http://example.com/info_about_set1_of_resources.xml'
+        sd.add_capability_list( cl1 )
+        cl2 = CapabilityList( uri='http://example.com/capabilitylist2.xml' )
+        cl2.describedby = 'http://example.com/info_about_set2_of_resources.xml'
+        sd.add_capability_list( cl2 )
+        cl3 = CapabilityList( uri='http://example.com/capabilitylist3.xml' )
+        cl3.describedby = 'http://example.com/info_about_set3_of_resources.xml'
+        sd.add_capability_list( cl3 )
+        ex_xml = self._open_ex('resourcesync_ex_6_1').read()
+        self._assert_xml_equal( sd.as_xml(), ex_xml )
+
+    def test_build_ex_7_1(self):
+        """Capability List document with 4 entries"""
+        cl = CapabilityList()
+        cl.describedby = 'http://example.com/info_about_set1_of_resources.xml'
+        cl.up = 'http://example.com/resourcesync_description.xml'
+        cl.add_capability( capability=ResourceList( uri='http://example.com/dataset1/resourcelist.xml' ) )
+        cl.add_capability( capability=ResourceDump( uri='http://example.com/dataset1/resourcedump.xml' ) )
+        cl.add_capability( capability=ChangeList( uri='http://example.com/dataset1/changelist.xml' ) )
+        cl.add_capability( capability=ChangeDump( uri='http://example.com/dataset1/changedump.xml' ) )
+        ex_xml = self._open_ex('resourcesync_ex_7_1').read()
+        self._assert_xml_equal( cl.as_xml(), ex_xml )
+
     def test_build_ex_8_1(self):
-        """Resource List with metadata"""
+        """Resource List with 2 entries and some metadata"""
         rl = ResourceList()
         rl.up='http://example.com/dataset1/capabilitylist.xml'
         rl.md_at="2013-01-03T09:00:00Z"
@@ -270,17 +297,98 @@ class TestExamplesFromSpec(unittest.TestCase):
         rl.index = 'http://example.com/dataset1/resourcelist-index.xml'
         rl.md_at="2013-01-03T09:00:00Z"
         rl.add( Resource( uri='http://example.com/res3',
-                             lastmod='2013-01-02T13:00:00Z',
-                             md5='1584abdf8ebdc9802ac0c6a7402c8753',
-                             length=4385,
-                             type="application/pdf" ))
+                          lastmod='2013-01-02T13:00:00Z',
+                          md5='1584abdf8ebdc9802ac0c6a7402c8753',
+                          length=4385,
+                          type="application/pdf" ))
         rl.add( Resource( uri='http://example.com/res4',
-                             lastmod='2013-01-02T14:00:00Z',
-                             md5='4556abdf8ebdc9802ac0c6a7402c9881',
-                             length=883,
-                             type="image/png" ))
+                          lastmod='2013-01-02T14:00:00Z',
+                          md5='4556abdf8ebdc9802ac0c6a7402c9881',
+                          length=883,
+                          type="image/png" ))
         ex_xml = self._open_ex('resourcesync_ex_8_3').read()
         self._assert_xml_equal( rl.as_xml(), ex_xml )
+
+    def test_build_ex_9_1(self):
+        """Resource Dump with 3 entries and some metadata"""
+        rd = ResourceDump()
+        rd.up='http://example.com/dataset1/capabilitylist.xml'
+        rd.md_at="2013-01-03T09:00:00Z"
+        rd.md_completed="2013-01-03T09:04:00Z"
+        z1 = Resource( uri='http://example.com/resourcedump-part1.zip',
+                       type="application/zip",
+                       length=4765,
+                       at="2013-01-03T09:00:00Z",
+                       completed="2013-01-03T09:02:00Z" )
+        print z1.at
+        print z1.completed
+        z1.link_add( rel="contents",
+                     href="http://example.com/resourcedump_manifest-part1.xml",
+                     type="application/xml" )
+        rd.add( z1 )
+        z2 = Resource( uri='http://example.com/resourcedump-part2.zip',
+                       type="application/zip",
+                       length=9875,
+                       at="2013-01-03T09:01:00Z",
+                       completed="2013-01-03T09:03:00Z" )
+        print z2.completed
+        z2.link_add( rel="contents",
+                     href="http://example.com/resourcedump_manifest-part2.xml",
+                     type="application/xml" )
+        rd.add( z2 )
+        z3 = Resource( uri='http://example.com/resourcedump-part3.zip',
+                       type="application/zip",
+                       length=2298,
+                       at="2013-01-03T09:03:00Z",
+                       completed="2013-01-03T09:04:00Z" )
+        z3.link_add( rel="contents",
+                     href="http://example.com/resourcedump_manifest-part3.xml",
+                     type="application/xml" )
+        rd.add( z3 )
+        ex_xml = self._open_ex('resourcesync_ex_9_1').read()
+        self._assert_xml_equal( rd.as_xml(), ex_xml )
+
+    def test_build_ex_9_2(self):
+        """Resource Dump Manifest with 2 entries and some metadata"""
+        rdm = ResourceDumpManifest()
+        rdm.up='http://example.com/dataset1/capabilitylist.xml'
+        rdm.md_at="2013-01-03T09:00:00Z"
+        rdm.md_completed="2013-01-03T09:02:00Z"
+        rdm.add( Resource( uri='http://example.com/res1',
+                           lastmod='2013-01-02T13:00:00Z',
+                           md5='1584abdf8ebdc9802ac0c6a7402c03b6',
+                           length=8876,
+                           type='text/html',
+                           path='/resources/res1') )
+        rdm.add( Resource( uri='http://example.com/res2',
+                           lastmod='2013-01-02T14:00:00Z',
+                           md5='1e0d5cb8ef6ba40c99b14c0237be735e',
+                           sha256='854f61290e2e197a11bc91063afce22e43f8ccc655237050ace766adc68dc784',
+                           length=14599,
+                           type='application/pdf',
+                           path='/resources/res2') )
+        ex_xml = self._open_ex('resourcesync_ex_9_2').read()
+        self._assert_xml_equal( rdm.as_xml(), ex_xml )
+
+    def test_build_ex_10_1(self):
+        """Change List with 4 changes, 'open' as no until"""
+        cl = ChangeList()
+        cl.up = 'http://example.com/dataset1/capabilitylist.xml'
+        cl.md_from="2013-01-03T00:00:00Z"
+        cl.add( Resource( uri='http://example.com/res1.html',
+                          lastmod='2013-01-03T11:00:00Z',
+                          change='created' ) )
+        cl.add( Resource( uri='http://example.com/res2.pdf',
+                          lastmod='2013-01-03T13:00:00Z',
+                          change='updated' ) )
+        cl.add( Resource( uri='http://example.com/res3.tiff',
+                          lastmod='2013-01-03T18:00:00Z',
+                          change='deleted' ) )
+        cl.add( Resource( uri='http://example.com/res2.pdf',
+                          lastmod='2013-01-03T21:00:00Z',
+                          change='updated' ) )
+        ex_xml = self._open_ex('resourcesync_ex_10_1').read()
+        self._assert_xml_equal( cl.as_xml(), ex_xml )
 
 ##### UTILITIES FOR (APPROX) COMPARISON OF XML IN EXAMPLES AND OUTPUT
 
