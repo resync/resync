@@ -4,19 +4,19 @@ from resync.resource import Resource, ChangeTypeError
 
 class TestResource(unittest.TestCase):
 
-    def test1a_same(self):
+    def test01a_same(self):
         r1 = Resource('a')
         r2 = Resource('a')
         self.assertEqual( r1, r1 )
         self.assertEqual( r1, r2 )
 
-    def test1b_same(self):
+    def test01b_same(self):
         r1 = Resource(uri='a',timestamp=1234.0)
         r2 = Resource(uri='a',timestamp=1234.0)
         self.assertEqual( r1, r1 )
         self.assertEqual( r1, r2 )
 
-    def test1c_same(self):
+    def test01c_same(self):
         """Same with lastmod instead of direct timestamp"""
         r1 = Resource('a')
         r1lm = '2012-01-01T00:00:00Z'
@@ -39,7 +39,7 @@ class TestResource(unittest.TestCase):
             self.assertEqual( r1.timestamp, r2.timestamp, ('%s (%f) == %s (%f)' % (r1lm,r1.timestamp,r2lm,r2.timestamp)) )
             self.assertEqual( r1, r2 )
 
-    def test1d_same(self):
+    def test01d_same(self):
         """Same with slight timestamp diff"""
         r1 = Resource('a')
         r1.lastmod='2012-01-02T01:02:03Z'
@@ -48,18 +48,18 @@ class TestResource(unittest.TestCase):
         self.assertNotEqual( r1.timestamp, r2.timestamp )
         self.assertEqual( r1, r2 )
 
-    def test2a_diff(self):
+    def test02a_diff(self):
         r1 = Resource('a')
         r2 = Resource('b')
         self.assertNotEqual(r1,r2)
 
-    def test2b_diff(self):
+    def test02b_diff(self):
         r1 = Resource('a',lastmod='2012-01-11')
         r2 = Resource('a',lastmod='2012-01-22')
         #print 'r1 == r2 : '+str(r1==r2)
         self.assertNotEqual( r1, r2 )
 
-    def test4_bad_lastmod(self):
+    def test04_bad_lastmod(self):
         def setlastmod(r,v):
             r.lastmod=v
         r = Resource('4')
@@ -76,29 +76,29 @@ class TestResource(unittest.TestCase):
         self.assertRaises( ValueError, setlastmod, r, "2012-11-01T01:01:01+0000" )
         self.assertRaises( ValueError, setlastmod, r, "2012-11-01T01:01:01-1000" )
    
-    def test5_lastmod_roundtrips(self):
+    def test05_lastmod_roundtrips(self):
         r = Resource('a')
         r.lastmod='2012-03-14'
         self.assertEqual( r.lastmod, '2012-03-14T00:00:00Z' )
         r.lastmod='2012-03-14T00:00:00+00:00'
-        print r.timestamp
+        #print r.timestamp
         self.assertEqual( r.lastmod, '2012-03-14T00:00:00Z' )
         r.lastmod='2012-03-14T00:00:00-00:00'
-        print r.timestamp
+        #print r.timestamp
         self.assertEqual( r.lastmod, '2012-03-14T00:00:00Z' )
         r.lastmod='2012-03-14T18:37:36Z'
-        print r.timestamp
+        #print r.timestamp
         self.assertEqual( r.lastmod, '2012-03-14T18:37:36Z' )
 
-    def test6_str(self):
+    def test06_str(self):
         r1 = Resource('abc',lastmod='2012-01-01')
         self.assertTrue( re.match( r"\[ abc \| 2012-01-01T", str(r1) ) )
 
-    def test7_repr(self):
+    def test07_repr(self):
         r1 = Resource('def',lastmod='2012-01-01')
         self.assertEqual( repr(r1), "{'uri': 'def', 'timestamp': 1325376000}" )
 
-    def test8_multiple_hashes(self):
+    def test08_multiple_hashes(self):
         r1 = Resource('abcd')
         r1.md5 = "some_md5"
         r1.sha1 = "some_sha1"
@@ -119,7 +119,7 @@ class TestResource(unittest.TestCase):
         self.assertEqual( r2.sha1, 'eee' )
         self.assertEqual( r2.sha256, 'ggg' )
 
-    def test9_changetypeerror(self):
+    def test09_changetypeerror(self):
         r1 = Resource('a')
         self.assertEqual( r1.change, None )
         r1.change = 'deleted'
@@ -129,6 +129,37 @@ class TestResource(unittest.TestCase):
         Resource.CHANGE_TYPES = False
         r1 = Resource( 'a', change="bad" )
         self.assertEqual( r1.change, 'bad' )
+
+    def test10_at_roundtrips(self):
+        r = Resource('a')
+        r.at='2013-03-14'
+        self.assertEqual( r.at, '2013-03-14T00:00:00Z' )
+        r.at='2013-03-14T00:00:00+00:00'
+        self.assertEqual( r.at, '2013-03-14T00:00:00Z' )
+        r.at='2013-03-14T00:00:00-00:00'
+        self.assertEqual( r.at, '2013-03-14T00:00:00Z' )
+        r.at='2013-03-14T18:37:36Z'
+        self.assertEqual( r.at, '2013-03-14T18:37:36Z' )
+
+    def test11_completed_roundtrips(self):
+        r = Resource('a')
+        r.completed='2013-04-14'
+        self.assertEqual( r.completed, '2013-04-14T00:00:00Z' )
+        r.completed='2013-04-14T00:00:00+00:00'
+        self.assertEqual( r.completed, '2013-04-14T00:00:00Z' )
+        r.completed='2013-04-14T00:00:00-00:00'
+        self.assertEqual( r.completed, '2013-04-14T00:00:00Z' )
+        r.completed='2013-04-14T18:37:36Z'
+        self.assertEqual( r.completed, '2013-04-14T18:37:36Z' )
+
+    def test12_timevalues(self):
+        r = Resource(uri='tv',
+                     lastmod="2000-01-01",
+                     at="2000-01-02",
+                     completed="2000-01-03")
+        self.assertEqual( r.lastmod,   '2000-01-01T00:00:00Z' )
+        self.assertEqual( r.at,        '2000-01-02T00:00:00Z' )
+        self.assertEqual( r.completed, '2000-01-03T00:00:00Z' )
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestResource)
