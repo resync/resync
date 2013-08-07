@@ -23,6 +23,7 @@ from resync.resource import Resource
 from resync.url_authority import UrlAuthority
 from resync.utils import compute_md5_for_file
 from resync.client_state import ClientState
+from resync.list_base_with_index import ListBaseIndexError
 from w3c_datetime import str_to_datetime,datetime_to_str
 
 class ClientFatalError(Exception):
@@ -591,7 +592,10 @@ class Client(object):
             d.write(resource_list=rl,dumpfile=outfile)
         else:
             if (outfile is None):
-                print rl.as_xml()
+                try:
+                    print rl.as_xml()
+                except ListBaseIndexError as e:
+                    raise ClientFatalError("%s. Use --output option to specify base name for output files." % str(e))
             else:
                 rl.write(basename=outfile)
 
