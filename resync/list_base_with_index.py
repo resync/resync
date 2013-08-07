@@ -279,7 +279,7 @@ class ListBaseWithIndex(ListBase):
                 s.resources_as_xml(chunk, fh=f)
                 f.close()
                 # Record information about this sitemap for index
-                r = Resource( uri = uri, path = file,
+                r = Resource( uri = uri,
                               timestamp = os.stat(file).st_mtime,
                               md5 = compute_md5_for_file(file) )
                 index.add(r)
