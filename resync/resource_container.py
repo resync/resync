@@ -79,6 +79,31 @@ class ResourceContainer(object):
         """Get/set the until attribute of this resource container"""
         self.md['until']=md_until
 
+    @property
+    def md_at(self):
+        """ Convenient access to <rs:md at="" .../> """
+        if ('at' in self.md):
+            return(self.md['at'])
+        else:
+            return(None)
+
+    @md_at.setter
+    def md_at(self,md_at):
+        """Get/set the at attribute of this resource container"""
+        self.md['at']=md_at
+
+    @property
+    def md_completed(self):
+        """ Convenient access to <rs:md completed="" .../> """
+        if ('completed' in self.md):
+            return(self.md['completed'])
+        else:
+            return(None)
+
+    @md_completed.setter
+    def md_completed(self,md_completed):
+        """Get/set the completed attribute of this resource container"""
+        self.md['completed']=md_completed
 
     def link(self,rel):
         """Look for link with specified rel, return else None"""
@@ -113,16 +138,6 @@ class ResourceContainer(object):
             link[k] = atts[k]
 
     @property
-    def description(self):
-        """Convenient access to <rs:ln rel="resourcesync" href="uri">"""
-        return(self.link_href('resourcesync'))
-
-    @description.setter
-    def description(self,uri):
-        """Set ResourceSync Description link to given URI"""
-        self.link_set('resourcesync',uri)
-
-    @property
     def describedby(self):
         """Convenient access to <rs:ln rel="describedby" href="uri">"""
         return(self.link_href('describedby'))
@@ -142,16 +157,24 @@ class ResourceContainer(object):
         """Set ResourceSync Up link to given URI"""
         self.link_set('up',uri)
 
-    def default_capability_and_modified(self):
-        """Set capability name and modified time in md
+    @property
+    def index(self):
+        """Convenient access to <rs:ln rel="index" href="uri">"""
+        return(self.link_href('index'))
 
-        Every ResourceSync document should have these two top-level
-        metadata attributes.
+    @index.setter
+    def index(self,uri):
+        """Set index link to given URI"""
+        self.link_set('index',uri)
+
+    def default_capability(self):
+        """Set capability name in md
+
+        Every ResourceSync document should have the top-level
+        capability attributes.
         """
         if ('capability' not in self.md and self.capability_md is not None):
             self.md['capability']=self.capability_md
-        if ('from' not in self.md):
-            self.md['from']=datetime_to_str(no_fractions=True)
 
     def add(self, resource):
         """Add a resource or an iterable collection of resources to this container

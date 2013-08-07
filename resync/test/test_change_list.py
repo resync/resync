@@ -87,6 +87,7 @@ class TestChangeList(unittest.TestCase):
 
     def test20_as_xml(self):
         cl = ChangeList()
+        cl.md_from = '1970-01-01T00:00:00Z'
         cl.add( Resource('a',timestamp=1,change='updated') )
         cl.add( Resource('b',timestamp=2,change='updated') )
         xml = cl.as_xml()

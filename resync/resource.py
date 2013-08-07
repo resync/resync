@@ -46,7 +46,7 @@ class ChangeTypeError(Exception):
 class Resource(object):
     __slots__=('uri', 'timestamp', 'length',
                'md5', 'sha1', 'sha256', 'type',
-               'change', 'path',
+               'change', 'path', 'at_timestamp',
                'capability', 'ln' )
 
 
@@ -54,7 +54,8 @@ class Resource(object):
     
     def __init__(self, uri = None, timestamp = None, length = None, 
                  md5 = None, sha1 = None, sha256 = None, type = None,
-                 change = None, path = None,
+                 change = None, path = None, 
+                 at_timestamp = None, at = None,
                  lastmod = None, resource = None,
                  capability = None, ln = None):
         """ Initialize object either from parameters specified or
@@ -72,6 +73,7 @@ class Resource(object):
         self.type = None
         self.change = None
         self.path = None
+        self.at_timestamp = None
         self.capability = None
         self.ln = None
         if (resource is not None):
@@ -83,6 +85,7 @@ class Resource(object):
             self.sha256 = resource.sha256
             self.change = resource.change
             self.path = resource.path
+            self.at_timestamp = resource.at_timestamp
             self.capability = resource.capability
             self.ln = resource.ln
         if (uri is not None):
@@ -104,16 +107,20 @@ class Resource(object):
             self.change = change
         if (path is not None):
             self.path = path
+        if (at_timestamp is not None):
+            self.at_timestamp = at_timestamp
         if (capability is not None):
             self.capability = capability
         if (ln is not None):
             self.ln = ln
+        # Timestamp setters
         if (lastmod is not None):
             self.lastmod=lastmod
+        if (at is not None):
+            self.at=at
         # Sanity check
         if (self.uri is None):
             raise ValueError("Cannot create resoure without a URI")
-
 
     def __setattr__(self, prop, value):
         # Add validity check for self.change
@@ -139,6 +146,23 @@ class Resource(object):
         if (lastmod == ''):
             raise ValueError('Attempt to set empty lastmod')
         self.timestamp = str_to_datetime(lastmod)
+
+    @property
+    def at(self):
+        """The Last-Modified data in W3C Datetime syntax, Z notation"""
+        if (self.at_timestamp is None):
+            return None
+        return datetime_to_str(self.at_timestamp)
+
+    @at.setter
+    def at(self, at):
+        """Set timestamp from an W3C Datetime Last-Modified value"""
+        if (at is None):
+            self.at_timestamp = None
+            return
+        if (at == ''):
+            raise ValueError('Attempt to set empty at')
+        self.at_timestamp = str_to_datetime(at)
 
     @property
     def hash(self):

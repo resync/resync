@@ -1,35 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:rs="http://www.openarchives.org/rs/terms/">
-  <rs:ln rel="resourcesync"
+  <rs:ln rel="up"
          href="http://example.com/dataset1/capabilitylist.xml"/>
   <rs:md capability="changelist"
-         from="2013-01-01T11:00:00Z"
-         until="2013-01-03T11:00:00Z"/>
+         from="2013-01-03T00:00:00Z"/>
   <url>
       <loc>http://example.com/res4</loc>
-      <lastmod>2013-01-02T17:00:00Z</lastmod>
+      <lastmod>2013-01-03T17:00:00Z</lastmod>
       <rs:md change="updated"
              hash="sha-256:f4OxZX_x_DFGFDgghgdfb6rtSx-iosjf6735432nklj"
              length="56778"
              type="application/json"/>
       <rs:ln rel="http://www.openarchives.org/rs/terms/patch"
              href="http://example.com/res4-json-patch"
-             modified="2013-01-02T17:00:00Z"
+             modified="2013-01-03T17:00:00Z"
              hash="sha-256:y66dER_t_HWEIKpesdkeb7rtSc-ippjf9823742opld"
              length="73"
              type="application/json-patch"/>
   </url>
   <url>
       <loc>http://example.com/res5-full.tiff</loc>
-      <lastmod>2013-01-02T18:00:00Z</lastmod>
+      <lastmod>2013-01-03T18:00:00Z</lastmod>
       <rs:md change="updated"
              hash="sha-256:f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk"
              length="9788456778"
              type="image/tiff"/>
       <rs:ln rel="http://www.openarchives.org/rs/terms/patch"
              href="http://example.com/res5-diff"
-             modified="2013-01-02T18:00:00Z"
+             modified="2013-01-03T18:00:00Z"
              hash="sha-256:h986gT_t_87HTkjHYE76G558hY-jdfgy76t55sadJUYT"
              length="4533"
              type="application/x-tiff-diff"/>

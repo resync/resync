@@ -14,21 +14,20 @@ class TestResourceDump(unittest.TestCase):
         xml = rd.as_xml()
         print xml
         self.assertTrue( re.search(r'<rs:md .*capability="resourcedump"', xml), 'XML has capability' )
-        self.assertTrue( re.search(r'<rs:md .*from="\d\d\d\d\-\d\d\-\d\dT\d\d:\d\d:\d\dZ"', xml), 'XML has from to seconds precision (and not more)' )
         self.assertTrue( re.search(r'<url><loc>a.zip</loc><lastmod>1970-01-01T00:00:01Z</lastmod></url>', xml), 'XML has resource a' ) 
 
     def test10_parse(self):
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
-<rs:md capability="resourcedump" from="2013-01-01"/>\
+<rs:md at="2013-01-01" capability="resourcedump"/>\
 <url><loc>http://example.com/a.zip</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length="12345" /></url>\
 <url><loc>http://example.com/b.zip</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length="56789" /></url>\
 </urlset>'
         rd=ResourceDump()
         rd.parse(fh=StringIO.StringIO(xml))
         self.assertEqual( len(rd.resources), 2, 'got 2 resource dumps')
-        self.assertEqual( rd.md['capability'], 'resourcedump', 'capability set' )
-        self.assertEqual( rd.md['from'], '2013-01-01' )
+        self.assertEqual( rd.capability, 'resourcedump', 'capability set' )
+        self.assertEqual( rd.md_at, '2013-01-01' )
         self.assertTrue( 'http://example.com/a.zip' in rd.resources )
         self.assertTrue( rd.resources['http://example.com/a.zip'].length, 12345 )
         self.assertTrue( 'http://example.com/b.zip' in rd.resources )

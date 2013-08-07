@@ -1,29 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:rs="http://www.openarchives.org/rs/terms/">
-  <rs:ln rel="resourcesync"
-         href="http://example.com/dataset1/capabilitylist.xml"/>
-  <rs:md capability="changelist"
-         from="2013-01-01T11:00:00Z"
-         until="2013-01-03T11:00:00Z"/>
+  <rs:ln rel="describedby"
+         href="http://example.com/info_about_source.xml"/>
+  <rs:md capability="description"/>
   <url>
-      <loc>http://example.com/res1.html</loc>
-      <lastmod>2013-01-02T11:00:00Z</lastmod>
-      <rs:md change="created"/>
+      <loc>http://example.com/capabilitylist1.xml</loc>
+      <rs:md capability="capabilitylist"/>
+      <rs:ln rel="describedby"
+             href="http://example.com/info_about_set1_of_resources.xml"/>
   </url>
   <url>
-      <loc>http://example.com/res2.pdf</loc>
-      <lastmod>2013-01-02T13:00:00Z</lastmod>
-      <rs:md change="updated"/>
+      <loc>http://example.com/capabilitylist2.xml</loc>
+      <rs:md capability="capabilitylist"/>
+      <rs:ln rel="describedby"
+             href="http://example.com/info_about_set2_of_resources.xml"/>
   </url>
   <url>
-      <loc>http://example.com/res3.tiff</loc>
-      <lastmod>2013-01-02T18:00:00Z</lastmod>
-      <rs:md change="deleted"/>
-  </url>
-  <url>
-      <loc>http://example.com/res2.pdf</loc>
-      <lastmod>2013-01-02T21:00:00Z</lastmod>
-      <rs:md change="updated"/>
+      <loc>http://example.com/capabilitylist3.xml</loc>
+      <rs:md capability="capabilitylist"/>
+      <rs:ln rel="describedby"
+             href="http://example.com/info_about_set3_of_resources.xml"/>
   </url>
 </urlset>

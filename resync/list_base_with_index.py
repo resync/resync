@@ -200,7 +200,7 @@ class ListBaseWithIndex(ListBase):
         index.sitemapindex=True
         index.capability_name = self.capability_name
         index.capability_md = self.capability_md
-        index.default_capability_and_modified()
+        index.default_capability()
         for n in range(num_parts):
             r = Resource( uri = self.part_name(basename,n) )
             index.add(r)
@@ -224,7 +224,7 @@ class ListBaseWithIndex(ListBase):
         part = ListBase( itertools.islice(self.resources,start,stop) )
         part.capability_name = self.capability_name
         part.capability_md = self.capability_md
-        part.default_capability_and_modified()
+        part.default_capability()
         part.ln.append({'rel': 'up', 'href': basename})
         s = self.new_sitemap()
         return( s.resources_as_xml(part) )
@@ -264,7 +264,7 @@ class ListBaseWithIndex(ListBase):
             index=ListBase()
             index.capability_name = self.capability_name
             index.capability_md = self.capability_md
-            index.default_capability_and_modified()
+            index.default_capability()
             while (len(chunk)>0):
                 file = self.part_name(basename,len(index))
                 # Check that we can map the filename of this sitemap into
@@ -302,7 +302,7 @@ class ListBaseWithIndex(ListBase):
         """Return XML serialization of this list taken to be sitemapindex entries
 
         """
-        self.default_capability_and_modified()
+        self.default_capability()
         s = self.new_sitemap()
         return s.resources_as_xml(self,sitemapindex=True)
 
@@ -322,7 +322,7 @@ class ListBaseWithIndex(ListBase):
         chunk = ListBase()
         chunk.capability_name = self.capability_name
         chunk.capability_md = self.capability_md
-        chunk.default_capability_and_modified()
+        chunk.default_capability()
         if (first is not None):
             chunk.add(first)
         for r in resource_iter:

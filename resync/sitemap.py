@@ -212,7 +212,7 @@ class Sitemap(object):
             sub.text = str(resource.lastmod) #W3C Datetime in UTC
             e.append(sub)
         md_atts = {}
-        for att in ('capability','change','hash','length','path','type'):
+        for att in ('capability','change','hash','length','path','type','at','completed'):
             val = getattr(resource,att,None)
             if (val is not None):
                 md_atts[att] = str(val)
@@ -296,7 +296,7 @@ class Sitemap(object):
         """
         md = {}
         # grab all understood attributes into md dict
-        for att in ('capability','change','hash','length','from','until','path','type'):
+        for att in ('capability','change','hash','length','from','until','at','completed','until','path','type'):
             val = md_element.attrib.get(att,None)
             if (val is not None):
                 md[att] = val

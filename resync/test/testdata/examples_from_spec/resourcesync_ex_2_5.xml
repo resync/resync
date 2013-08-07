@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:rs="http://www.openarchives.org/rs/terms/">
   <rs:md capability="resourcedump-manifest"
-         from="2013-01-03T09:00:00Z"/>
+         at="2013-01-03T09:00:00Z"/>
   <url>
       <loc>http://example.com/res1</loc>
       <lastmod>2013-01-03T03:00:00Z</lastmod>

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:rs="http://www.openarchives.org/rs/terms/">
-  <rs:ln rel="resourcesync"
+  <rs:ln rel="up"
          href="http://aggregator2.example.com/dataset1/capabilitylist.xml"/>
   <rs:md capability="changelist"
-         from="2013-01-03T11:00:00Z"
-         until="2013-01-04T11:00:00Z"/>
+         from="2013-01-03T12:00:00Z"/>
   <url>
       <loc>http://aggregator2.example.com/res1.html</loc>
       <lastmod>2013-01-04T09:00:00Z</lastmod>

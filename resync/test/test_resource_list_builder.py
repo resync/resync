@@ -33,6 +33,9 @@ class TestResourceListBuilder(unittest.TestCase):
         self.assertEqual( r.md5, None )
         self.assertEqual( r.length, 45 )
         self.assertEqual( r.path, None )
+        # Make sure at and completed were set
+        self.assertTrue( rl.md_at is not None )
+        self.assertTrue( rl.md_completed is not None )
 
     def test02_no_length(self):
         rlb = ResourceListBuilder(set_length=False)

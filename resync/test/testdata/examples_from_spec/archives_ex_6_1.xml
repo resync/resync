@@ -4,7 +4,7 @@
   <rs:ln rel="describedby"
          href="http://example.com/info_about_set1_of_resources.xml"
          type="application/xml"/>
-  <rs:ln rel="resourcesync"
+  <rs:ln rel="up"
          href="http://example.com/resourcesync_description.xml"/>
   <rs:md capability="capabilitylist"/>
   <url>
