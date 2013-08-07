@@ -18,7 +18,7 @@ are:
     uri - Resource URI
     timestamp - Last-Modification time, has lastmod accessor
     length - size in bytes
-    type - MIME type 
+    mime_type - MIME type 
     md5, sha1, sha256 - digests, have hash accessor
     change - change type
     path - path in dump
@@ -32,8 +32,8 @@ has a dict of values. The ones explicitly used here are:
     ts_from - from time, has md_from accessor 
     ts_until - until time, has md_until accessor 
 
-The accessor names md_from etc. are used to avoid conflict 
-with Python built-in keywords from etc..
+The accessor names mime_type, md_from etc. are used to avoid conflict 
+with Python built-in functions and keywords type(), from etc..
 
 The 'ln' attribute is used when it is necessary to add links 
 or other information to the object. Use of non-core attributes 
@@ -68,14 +68,14 @@ class ChangeTypeError(Exception):
 
 
 class Resource(object):
-    __slots__=('uri', 'timestamp', 'length', 'type', 
+    __slots__=('uri', 'timestamp', 'length', 'mime_type', 
                'md5', 'sha1', 'sha256', 'change', 'path',
                '_extra', 'ln' )
 
     CHANGE_TYPES = ['created', 'updated', 'deleted']
     
     def __init__(self, uri = None, timestamp = None, length = None, 
-                 md5 = None, sha1 = None, sha256 = None, type = None,
+                 md5 = None, sha1 = None, sha256 = None, mime_type = None,
                  change = None, path = None, lastmod = None, 
                  capability = None,
                  ts_at = None, md_at = None,
@@ -92,7 +92,7 @@ class Resource(object):
         self.uri = None
         self.timestamp = None
         self.length = None
-        self.type = None
+        self.mime_type = None
         self.md5 = None
         self.sha1 = None
         self.sha256 = None
@@ -121,9 +121,8 @@ class Resource(object):
             self.sha1 = sha1
         if (sha256 is not None):
             self.sha256 = sha256
-        # FIXME: type is a builtin function, should use something else
-        if (type is not None):
-            self.type = type
+        if (mime_type is not None):
+            self.mime_type = mime_type
         if (change is not None):
             self.change = change
         if (path is not None):

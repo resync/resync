@@ -165,6 +165,14 @@ class TestResource(unittest.TestCase):
         self.assertEqual( r.md_from,      '2000-01-04T00:00:00Z' )
         self.assertEqual( r.md_until,     '2000-01-05T00:00:00Z' )
 
+    def test13_mime_type(self):
+        r = Resource(uri='tv1', mime_type='text/plain')
+        self.assertEqual( r.mime_type, 'text/plain' )
+        r.mime_type = None
+        self.assertEqual( r.mime_type, None )
+        r = Resource(uri='tv2')
+        self.assertEqual( r.mime_type, None )
+
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestResource)
     unittest.TextTestRunner(verbosity=2).run(suite)

@@ -262,16 +262,16 @@ class TestExamplesFromSpec(unittest.TestCase):
         rl.md_at="2013-01-03T09:00:00Z"
         rl.md_completed="2013-01-03T09:01:00Z"
         rl.add( Resource( uri='http://example.com/res1',
-                             lastmod='2013-01-02T13:00:00Z',
-                             md5='1584abdf8ebdc9802ac0c6a7402c03b6',
-                             length=8876,
-                             type="text/html" ))
+                          lastmod='2013-01-02T13:00:00Z',
+                          md5='1584abdf8ebdc9802ac0c6a7402c03b6',
+                          length=8876,
+                          mime_type="text/html" ))
         rl.add( Resource( uri='http://example.com/res2',
-                             lastmod='2013-01-02T14:00:00Z',
-                             md5='1e0d5cb8ef6ba40c99b14c0237be735e',
-                             sha256='854f61290e2e197a11bc91063afce22e43f8ccc655237050ace766adc68dc784',
-                             length=14599,
-                             type="application/pdf" ))
+                          lastmod='2013-01-02T14:00:00Z',
+                          md5='1e0d5cb8ef6ba40c99b14c0237be735e',
+                          sha256='854f61290e2e197a11bc91063afce22e43f8ccc655237050ace766adc68dc784',
+                          length=14599,
+                          mime_type="application/pdf" ))
         ex_xml = self._open_ex('resourcesync_ex_8_1').read()
         self._assert_xml_equal( rl.as_xml(), ex_xml )
 
@@ -300,12 +300,12 @@ class TestExamplesFromSpec(unittest.TestCase):
                           lastmod='2013-01-02T13:00:00Z',
                           md5='1584abdf8ebdc9802ac0c6a7402c8753',
                           length=4385,
-                          type="application/pdf" ))
+                          mime_type="application/pdf" ))
         rl.add( Resource( uri='http://example.com/res4',
                           lastmod='2013-01-02T14:00:00Z',
                           md5='4556abdf8ebdc9802ac0c6a7402c9881',
                           length=883,
-                          type="image/png" ))
+                          mime_type="image/png" ))
         ex_xml = self._open_ex('resourcesync_ex_8_3').read()
         self._assert_xml_equal( rl.as_xml(), ex_xml )
 
@@ -316,31 +316,31 @@ class TestExamplesFromSpec(unittest.TestCase):
         rd.md_at="2013-01-03T09:00:00Z"
         rd.md_completed="2013-01-03T09:04:00Z"
         z1 = Resource( uri='http://example.com/resourcedump-part1.zip',
-                       type="application/zip",
+                       mime_type="application/zip",
                        length=4765,
                        md_at="2013-01-03T09:00:00Z",
                        md_completed="2013-01-03T09:02:00Z" )
         z1.link_add( rel="contents",
                      href="http://example.com/resourcedump_manifest-part1.xml",
-                     type="application/xml" )
+                     mime_type="application/xml" )
         rd.add( z1 )
         z2 = Resource( uri='http://example.com/resourcedump-part2.zip',
-                       type="application/zip",
+                       mime_type="application/zip",
                        length=9875,
                        md_at="2013-01-03T09:01:00Z",
                        md_completed="2013-01-03T09:03:00Z" )
         z2.link_add( rel="contents",
                      href="http://example.com/resourcedump_manifest-part2.xml",
-                     type="application/xml" )
+                     mime_type="application/xml" )
         rd.add( z2 )
         z3 = Resource( uri='http://example.com/resourcedump-part3.zip',
-                       type="application/zip",
+                       mime_type="application/zip",
                        length=2298,
                        md_at="2013-01-03T09:03:00Z",
                        md_completed="2013-01-03T09:04:00Z" )
         z3.link_add( rel="contents",
                      href="http://example.com/resourcedump_manifest-part3.xml",
-                     type="application/xml" )
+                     mime_type="application/xml" )
         rd.add( z3 )
         ex_xml = self._open_ex('resourcesync_ex_9_1').read()
         self._assert_xml_equal( rd.as_xml(), ex_xml )
@@ -355,14 +355,14 @@ class TestExamplesFromSpec(unittest.TestCase):
                            lastmod='2013-01-02T13:00:00Z',
                            md5='1584abdf8ebdc9802ac0c6a7402c03b6',
                            length=8876,
-                           type='text/html',
+                           mime_type='text/html',
                            path='/resources/res1') )
         rdm.add( Resource( uri='http://example.com/res2',
                            lastmod='2013-01-02T14:00:00Z',
                            md5='1e0d5cb8ef6ba40c99b14c0237be735e',
                            sha256='854f61290e2e197a11bc91063afce22e43f8ccc655237050ace766adc68dc784',
                            length=14599,
-                           type='application/pdf',
+                           mime_type='application/pdf',
                            path='/resources/res2') )
         ex_xml = self._open_ex('resourcesync_ex_9_2').read()
         self._assert_xml_equal( rdm.as_xml(), ex_xml )
