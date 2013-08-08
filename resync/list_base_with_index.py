@@ -262,7 +262,7 @@ class ListBaseWithIndex(ListBase):
             # max_sitemap_entries to go into each sitemap, store the
             # names of the sitemaps as we go. Copy md from self into
             # the index and use this for all chunks also
-            index=ListBase(md=self.md.copy())
+            index=ListBase(md=self.md.copy(), ln=list(self.ln))
             index.capability_name = self.capability_name
             index.capability_md = self.capability_md
             index.default_capability()
@@ -321,7 +321,7 @@ class ListBaseWithIndex(ListBase):
         the iterator, providing indication of whether more is available. 
         Use this as first when asking for the following chunk.
         """
-        chunk = ListBase()
+        chunk = ListBase( md=self.md.copy(), ln=list(self.ln) )
         chunk.capability_name = self.capability_name
         chunk.capability_md = self.capability_md
         chunk.default_capability()
