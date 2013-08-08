@@ -198,12 +198,13 @@ class Client(object):
         ### 7. Done
         self.log_status(in_sync=(len(updated)+len(deleted)+len(created)==0),
                         same=len(same),created=num_created,
-                        updated=num_updated,deleted=num_deleted)
+                        updated=num_updated,deleted=num_deleted,to_delete=len(deleted))
         self.logger.debug("Completed %s" % (action))
 
     def incremental(self, allow_deletion=False, change_list_uri=None, from_datetime=None):
 	"""Incremental synchronization
 
+        Use Change List to do incremental sync
         """
         self.logger.debug("Starting incremental sync")
         ### 0. Sanity checks
@@ -221,7 +222,7 @@ class Client(object):
         if (from_timestamp is None):
             from_timestamp=ClientState().get_state(self.sitemap)
             if (from_timestamp is None):
-                raise ClientFatalError("No stored timestamp for this site, and no explicit --from")
+                raise ClientFatalError("Cannot do incremental sync. No stored timestamp for this site, and no explicit --from.")
         ### 2. Get URI of change list, from sitemap or explicit
         if (change_list_uri):
             # Translate as necessary using maps
@@ -268,8 +269,33 @@ class Client(object):
         num_dupes = src_change_list.prune_dupes()
         if (num_dupes>0):
             self.logger.info("Removed %d prior changes" % (num_dupes))
+        # Review and log status before
+        # FIXME - should at this stage prune the change list to pick out
+        # only the last change for each resource
+        to_update = 0
+        to_create = 0
+        to_delete = 0
+        for resource in src_change_list:
+            if (resource.change == 'updated'):
+                to_update+=1
+            elif (resource.change == 'created'):
+                to_create+=1
+            elif (resource.change == 'deleted'):
+                to_delete+=1
+            else:
+                raise ClientError("Unknown change type %s" % (resource.change) )
+        # Log status based on what we know from the Change List. Exit if
+        # either there are no changes or if there are only deletions and
+        # we don't allow deletion
+        in_sync = ((to_update+to_delete+to_create)==0)
+        self.log_status(in_sync=in_sync, incremental=True, created=to_create, 
+                        updated=to_update, deleted=to_delete)
+        if (in_sync or ((to_update+to_create)==0 and not allow_deletion)):
+            self.logger.debug("Completed incremental")
+            return
         ### 6. Apply changes at same time or after from_timestamp
-        self.logger.info("Applying %d changes" % (len(src_change_list)))
+        delete_msg = (", and delete %d resources" % to_delete) if (allow_deletion) else ''
+        self.logger.warning("Will apply %d changes%s" % (len(src_change_list),delete_msg))
         num_updated = 0
         num_deleted = 0
         num_created = 0
@@ -285,14 +311,12 @@ class Client(object):
                 self.update_resource(resource,file,'created')
                 num_created+=1
             elif (resource.change == 'deleted'):
-                self.delete_resource(resource,file,allow_deletion)
-                num_deleted+=1
+                num_deleted+=self.delete_resource(resource,file,allow_deletion)
             else:
                 raise ClientError("Unknown change type %s" % (resource.change) )
         ### 7. Report status and planned actions
-        self.log_status(in_sync=((num_updated+num_deleted+num_created)==0),
-                        incremental=True,created=num_created, updated=num_updated, 
-                        deleted=num_deleted)
+        self.log_status(incremental=True,created=num_created, updated=num_updated, 
+                        deleted=num_deleted,to_delete=to_delete)
         ### 8. Record last timestamp we have seen
         if (self.last_timestamp>0):
             ClientState().set_state(self.sitemap,self.last_timestamp)
@@ -689,16 +713,12 @@ class Client(object):
         return(rl)
 
     def log_status(self, in_sync=True, incremental=False, audit=False,
-                   same=None, created=0, updated=0, deleted=0):
+                   same=None, created=0, updated=0, deleted=0, to_delete=0):
         """Write log message regarding status in standard form
         
-        Split this off so we messages from baseline/audit/incremental
+        Split this off so all messages from baseline/audit/incremental
         are written in a consistent form.
         """
-        if (incremental):     
-            status = "NO CHANGES" if in_sync else "CHANGES"
-        else:
-            status = "IN SYNC" if in_sync else ("NOT IN SYNC" if (audit) else "SYNCED")
         if (audit):
             words = { 'created': 'to create',
                       'updated': 'to update',
@@ -707,8 +727,21 @@ class Client(object):
             words = { 'created': 'created',
                       'updated': 'updated',
                       'deleted': 'deleted' }
+        if in_sync:
+            # status rather than action
+            status = "NO CHANGES" if incremental else "IN SYNC" 
+        else:
+            if audit:
+                status = "NOT IN SYNC"
+            elif (to_delete>deleted):
+                #will need --delete
+                status = "PART APPLIED" if incremental else"PART SYNCED"
+                words['deleted']='to delete (--delete)'
+                deleted=to_delete
+            else: 
+                status = "CHANGES APPLIED" if incremental else "SYNCED"
         same =  "" if (same is None) else ("same=%d, " % same)
-        self.logger.warning("Status: %11s (%s%s=%d, %s=%d, %s=%d)" %\
+        self.logger.warning("Status: %15s (%s%s=%d, %s=%d, %s=%d)" %\
              (status, same, words['created'], created, 
               words['updated'], updated, words['deleted'], deleted))
 
