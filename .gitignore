@@ -7,6 +7,7 @@ MANIFEST
 resync.library.cornell.edu_sim100
 resync.library.cornell.edu_sim1000
 resync.library.cornell.edu_sim10000
+localhost_8888
 # Related to packaging
 resync.egg-info
 # Other...
