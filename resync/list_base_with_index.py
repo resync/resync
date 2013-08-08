@@ -209,7 +209,7 @@ class ListBaseWithIndex(ListBase):
     def as_xml_part(self, basename="/tmp/sitemap.xml", part_number=0):
         """Return a string of component sitemap part_number for a large list that is split
         
-        basename is used to create "up" links to the sitemapindex
+        basename is used to create "index" links to the sitemapindex
         
         Q - what timestamp should be used?
         """
@@ -225,7 +225,7 @@ class ListBaseWithIndex(ListBase):
         part.capability_name = self.capability_name
         part.capability_md = self.capability_md
         part.default_capability()
-        part.ln.append({'rel': 'up', 'href': basename})
+        part.index = basename
         s = self.new_sitemap()
         return( s.resources_as_xml(part) )
 
@@ -260,8 +260,9 @@ class ListBaseWithIndex(ListBase):
                 raise ListBaseIndexError("Cannot map sitemapindex filename to URI (%s)" % str(e))
             # Use iterator over all resources and count off sets of
             # max_sitemap_entries to go into each sitemap, store the
-            # names of the sitemaps as we go
-            index=ListBase()
+            # names of the sitemaps as we go. Copy md from self into
+            # the index and use this for all chunks also
+            index=ListBase(md=self.md.copy())
             index.capability_name = self.capability_name
             index.capability_md = self.capability_md
             index.default_capability()
@@ -275,7 +276,8 @@ class ListBaseWithIndex(ListBase):
                     raise ListBaseIndexError("Cannot map sitemap filename to URI (%s)" % str(e))
                 self.logger.info("Writing sitemap %s..." % (file))
                 f = open(file, 'w')
-                chunk.ln.append({'rel': 'up', 'href': index_uri})
+                chunk.index = index_uri
+                chunk.md = index.md
                 s.resources_as_xml(chunk, fh=f)
                 f.close()
                 # Record information about this sitemap for index
