@@ -256,7 +256,7 @@ def main():
                 outfile=args.outfile,
                 links=links)
         elif (args.description):
-            c.write_resourcesync_description(
+            c.write_source_description(
                 capability_lists=parse_capability_lists(args.description),
                 outfile=args.outfile,
                 links=links)

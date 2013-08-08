@@ -33,8 +33,8 @@ class ListBase(ResourceContainer):
     sitemapindex - defaults to False, set True if this is an index object
     """
 
-    def __init__(self, resources=None, count=None, md=None, ln=None):
-        super(ListBase, self).__init__(resources=resources, md=md, ln=ln)
+    def __init__(self, resources=None, count=None, md=None, ln=None, uri=None):
+        super(ListBase, self).__init__(resources=resources, md=md, ln=ln, uri=uri)
         self.count = count
         self.capability_name = 'unknown'
         self.capability_md = 'unknown'
@@ -98,7 +98,7 @@ class ListBase(ResourceContainer):
         This code does not support the case where the list is too big for 
         a single XML document.
         """
-        self.default_capability_and_modified()
+        self.default_capability()
         s = self.new_sitemap()
         return s.resources_as_xml(self,sitemapindex=self.sitemapindex)
 
@@ -107,7 +107,7 @@ class ListBase(ResourceContainer):
 
         Must be overridden to support multi-file lists.
         """
-        self.default_capability_and_modified()
+        self.default_capability()
         fh = open(basename,'w')
         s = self.new_sitemap()
         s.resources_as_xml(self,fh=fh,sitemapindex=self.sitemapindex)

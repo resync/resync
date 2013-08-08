@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:rs="http://www.openarchives.org/rs/terms/">
   <rs:md capability="resourcelist"
-         from="2013-01-03T09:00:00Z"/>
+         at="2013-01-03T09:00:00Z"/>
   <url>
       <loc>http://example.com/res1</loc>
       <lastmod>2013-01-02T13:00:00Z</lastmod>
@@ -12,5 +12,7 @@
       <loc>http://example.com/res2</loc>
       <lastmod>2013-01-02T14:00:00Z</lastmod>
       <rs:md hash="md5:1e0d5cb8ef6ba40c99b14c0237be735e"/>
+      <rs:ln rel="duplicate"
+             href="http://mirror.example.com/res2"/>
   </url>
 </urlset>

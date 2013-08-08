@@ -41,7 +41,13 @@ class CapabilitySet(ResourceSet):
             if (cap not in uris):
                 uris[cap]=[]
             uris[cap].append(uri)
-        # now build list or uris in order for iterator
+        # build list or uris in defined order for iterator
+        for cap in self.order:
+            if (cap in uris):
+                for uri in sorted(uris[cap]):
+                    self._iter_next_list.append(uri)
+                del uris[cap]
+        # add any left over capabilities we don't know about in alphabetical order
         for cap in uris:
             for uri in sorted(uris[cap]):
                 self._iter_next_list.append(uri)
@@ -61,16 +67,15 @@ class CapabilityList(ListBase):
     An Capability List will admit only one resource with any given 
     URI. The iterator over resources is expected to return them in
     canonical order of capability names as defined in main specification
-    section 9.2 and archives specification section 6.
+    section 7 and archives specification section 6.
     """
 
-    def __init__(self, resources=None, md=None, ln=None):
+    def __init__(self, resources=None, md=None, ln=None, uri=None):
         if (resources is None):
             resources = CapabilitySet()
-        super(CapabilityList, self).__init__(resources=resources, md=md, ln=ln)
+        super(CapabilityList, self).__init__(resources=resources, md=md, ln=ln, uri=uri)
         self.capability_name='capabilitylist'
         self.capability_md='capabilitylist'
-        self.md['from']=None #usually don't want a from date
 
     def add(self, resource, replace=False):
         """Add a resource or an iterable collection of resources
@@ -89,13 +94,15 @@ class CapabilityList(ListBase):
         
         Takes either:
         - a capability object (derived from ListBase) as the first argument 
-          from which the capability name is extracted
+          from which the capability name is extracted, and the URI if given
         - or a plain name string
         and
         - the URI of the capability
         """
         if (capability is not None):
             name = capability.capability_md
+            if (capability.uri is not None):
+                uri=capability.uri
         self.add( Resource(uri=uri,capability=name) )
 
     def has_capability(self,name=None):

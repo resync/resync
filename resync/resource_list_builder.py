@@ -25,6 +25,7 @@ from resource import Resource
 from resource_list import ResourceList
 from sitemap import Sitemap
 from utils import compute_md5_for_file
+from w3c_datetime import datetime_to_str
 
 class ResourceListBuilder():
 
@@ -107,10 +108,15 @@ class ResourceListBuilder():
             paths=[]
             for map in self.mapper.mappings:
                 paths.append(map.dst_path)
+        # Set start time unless already set (perhaps because building in chunks)
+        if (resource_list.md_at is None):
+            resource_list.md_at = datetime_to_str()
         # Run for each map in the mappings
         for path in paths:
             self.logger.info("Scanning disk from %s" % (path))
             self.from_disk_add_path(path=path, resource_list=resource_list)
+        # Set end time
+        resource_list.md_completed = datetime_to_str()
         return(resource_list)
 
     def from_disk_add_path(self, path=None, resource_list=None):

@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:rs="http://www.openarchives.org/rs/terms/">
-  <rs:ln href="http://example.com/info-about-source.xml"
-         rel="describedby"
-         type="application/xml"/>
-  <rs:md capability="resourcesync"/>
+  <rs:ln rel="describedby"
+         href="http://example.com/info-about-source.xml"/>
+  <rs:md capability="description"/>
   <url>
       <loc>http://example.com/dataset1/capabilitylist.xml</loc>
       <rs:md capability="capabilitylist"/>
-      <rs:ln href="http://example.com/info_about_set1_of_resources.xml"
-             rel="describedby"/>
+      <rs:ln rel="describedby"
+             href="http://example.com/info_about_set1_of_resources.xml"/>
   </url>
 </urlset>

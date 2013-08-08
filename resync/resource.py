@@ -11,12 +11,35 @@ a good way into the future.
 
 This object is optimized for size in the case whether there 
 is not large a large amount of data in the attributes. This 
-is done using __slots__ for the attributes so that there is 
-no __dict__ defined for a Resource object. The 'ln' attribute 
-is used when it is necessary to add links or other information
-to the object. Such links are stored in a hash which is 
-convenient but will significantly increase the size of each 
-Resource object that contains such information.
+is done using __slots__ for the core attributes so that there
+is no __dict__ defined for a Resource object. Core attributes
+are:
+
+    uri - Resource URI
+    timestamp - Last-Modification time, has lastmod accessor
+    length - size in bytes
+    mime_type - MIME type 
+    md5, sha1, sha256 - digests, have hash accessor
+    change - change type
+    path - path in dump
+
+If non-core attributes are needed then the '_extra' attribute 
+has a dict of values. The ones explicitly used here are:
+
+    capability - Capability name
+    ts_at - at time, has md_at accessor 
+    ts_completed - completed time, has md_completed accessor 
+    ts_from - from time, has md_from accessor 
+    ts_until - until time, has md_until accessor 
+
+The accessor names mime_type, md_from etc. are used to avoid conflict 
+with Python built-in functions and keywords type(), from etc..
+
+The 'ln' attribute is used when it is necessary to add links 
+or other information to the object. Use of non-core attributes 
+or links results in dicts being created which is convenient 
+but will significantly increase the size of each Resource 
+object that contains such information.
 """
 
 import re
@@ -37,54 +60,55 @@ class ChangeTypeError(Exception):
         self.supplied = val
 
     def __repr__(self):
-        return "<ChangeTypeError: got %s, expected one of %s>" % (self.supplied,str(Resource.CHANGE_TYPES))
+        return "<ChangeTypeError: got %s, expected one of %s>" % \
+               (self.supplied,str(Resource.CHANGE_TYPES))
 
     def __str__(self):
         return repr(self)
 
 
 class Resource(object):
-    __slots__=('uri', 'timestamp', 'length',
-               'md5', 'sha1', 'sha256', 'type',
-               'change', 'path',
-               'capability', 'ln' )
-
+    __slots__=('uri', 'timestamp', 'length', 'mime_type', 
+               'md5', 'sha1', 'sha256', 'change', 'path',
+               '_extra', 'ln' )
 
     CHANGE_TYPES = ['created', 'updated', 'deleted']
     
     def __init__(self, uri = None, timestamp = None, length = None, 
-                 md5 = None, sha1 = None, sha256 = None, type = None,
-                 change = None, path = None,
-                 lastmod = None, resource = None,
-                 capability = None, ln = None):
-        """ Initialize object either from parameters specified or
+                 md5 = None, sha1 = None, sha256 = None, mime_type = None,
+                 change = None, path = None, lastmod = None, 
+                 capability = None,
+                 ts_at = None, md_at = None,
+                 ts_completed = None, md_completed = None,
+                 ts_from = None, md_from = None,
+                 ts_until = None, md_until = None,
+                 resource = None, ln = None):
+        """Initialize object either from parameters specified or
         from an existing Resource object. If explicit parameters
         are specified then they will override values copied from
         a resource object supplied.
         """
-        # Create from a Resource?
+        # Initialize core attributes
         self.uri = None
         self.timestamp = None
         self.length = None
+        self.mime_type = None
         self.md5 = None
         self.sha1 = None
         self.sha256 = None
-        self.type = None
         self.change = None
         self.path = None
-        self.capability = None
+        self._extra = None
         self.ln = None
+        # Create from a Resource-like object? Copy any relevant attributes
         if (resource is not None):
-            self.uri = resource.uri
-            self.timestamp = resource.timestamp
-            self.length = resource.length
-            self.md5 = resource.md5
-            self.sha1 = resource.sha1
-            self.sha256 = resource.sha256
-            self.change = resource.change
-            self.path = resource.path
-            self.capability = resource.capability
-            self.ln = resource.ln
+            for att in ['uri','timestamp','length','md5','sha1','sha256',
+                        'change','path', 'capability',
+                        'ts_at','md_at', 'ts_completed', 'md_completed',
+                        'ts_from','md_from','ts_until','md_until','ln']:
+                if hasattr(resource,att):
+                    setattr(self, att, getattr(resource, att))
+        # Any arguments will then override
         if (uri is not None):
             self.uri = uri
         if (timestamp is not None):
@@ -97,23 +121,38 @@ class Resource(object):
             self.sha1 = sha1
         if (sha256 is not None):
             self.sha256 = sha256
-        # FIXME: type is a builtin function, should use something else
-        if (type is not None):
-            self.type = type
+        if (mime_type is not None):
+            self.mime_type = mime_type
         if (change is not None):
             self.change = change
         if (path is not None):
             self.path = path
+        if (ts_at is not None):
+            self.ts_at = ts_at
+        if (ts_completed is not None):
+            self.ts_completed = ts_completed
+        if (ts_from is not None):
+            self.ts_from = ts_from
+        if (ts_until is not None):
+            self.ts_until = ts_until
         if (capability is not None):
             self.capability = capability
         if (ln is not None):
             self.ln = ln
+        # Timestamp setters
         if (lastmod is not None):
             self.lastmod=lastmod
+        if (md_at is not None):
+            self.md_at=md_at
+        if (md_completed is not None):
+            self.md_completed=md_completed
+        if (md_from is not None):
+            self.md_from=md_from
+        if (md_until is not None):
+            self.md_until=md_until
         # Sanity check
         if (self.uri is None):
-            raise ValueError("Cannot create resoure without a URI")
-
+            raise ValueError("Cannot create resource without a URI")
 
     def __setattr__(self, prop, value):
         # Add validity check for self.change
@@ -121,24 +160,84 @@ class Resource(object):
             value is not None and not value in Resource.CHANGE_TYPES):
             raise ChangeTypeError(value)
         else:
-            object.__setattr__(self, prop, value)
-            
+            try:
+                object.__setattr__(self, prop, value)
+            except AttributeError:
+                # assume an extra one...
+                self._set_extra(prop, value)
+
+    def _set_extra(self, prop, value):
+        # Use self._extra dict to hold non-core attributes to 
+        # save space
+        if (self._extra is None):
+            self._extra = dict()
+        self._extra[prop] = value
+    
+    def _get_extra(self, prop):
+        # Returns None for a property not set
+        if (self._extra is None):
+            return None
+        return self._extra.get(prop)
+
     @property
     def lastmod(self):
         """The Last-Modified data in W3C Datetime syntax, Z notation"""
-        if (self.timestamp is None):
-            return None
         return datetime_to_str(self.timestamp)
 
     @lastmod.setter
     def lastmod(self, lastmod):
-        """Set timestamp from an W3C Datetime Last-Modified value"""
-        if (lastmod is None):
-            self.timestamp = None
-            return
-        if (lastmod == ''):
-            raise ValueError('Attempt to set empty lastmod')
-        self.timestamp = str_to_datetime(lastmod)
+        """Set timestamp from a W3C Datetime Last-Modified value"""
+        self.timestamp = str_to_datetime(lastmod, context='lastmod')
+
+    @property
+    def md_at(self):
+        """md_at values in W3C Datetime syntax, Z notation"""
+        return datetime_to_str(self._get_extra('ts_at'))
+
+    @md_at.setter
+    def md_at(self, md_at):
+        """Set at value from a W3C Datetime value"""
+        self._set_extra( 'ts_at', str_to_datetime(md_at, context='md_at datetime') )
+
+    @property
+    def md_completed(self):
+        """md_completed value in W3C Datetime syntax, Z notation"""
+        return datetime_to_str(self._get_extra('ts_completed'))
+
+    @md_completed.setter
+    def md_completed(self, md_completed):
+        """Set md_completed value from a W3C Datetime value"""
+        self._set_extra( 'ts_completed', str_to_datetime(md_completed, context='md_completed datetime') )
+
+    @property
+    def md_from(self):
+        """md_from value in W3C Datetime syntax, Z notation"""
+        return datetime_to_str(self._get_extra('ts_from'))
+
+    @md_from.setter
+    def md_from(self, md_from):
+        """Set md_from value from a W3C Datetime value"""
+        self._set_extra( 'ts_from', str_to_datetime(md_from, context='md_from datetime') )
+
+    @property
+    def md_until(self):
+        """md_until value in W3C Datetime syntax, Z notation"""
+        return datetime_to_str(self._get_extra('ts_until'))
+
+    @md_until.setter
+    def md_until(self, md_until):
+        """Set md_until value from a W3C Datetime value"""
+        self._set_extra( 'ts_until', str_to_datetime(md_until, context='md_until datetime') )
+
+    @property
+    def capability(self):
+        """Get Capability name string"""
+        return self._get_extra('capability')
+
+    @capability.setter
+    def capability(self, capability):
+        """Set Capability name string"""
+        self._set_extra('capability', capability)
 
     @property
     def hash(self):

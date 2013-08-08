@@ -21,16 +21,18 @@ class ResourceContainer(object):
     -- iter() to get iterator over self.resource in appropriate order
     - md property that is a dict of metadata
     - ln property that is a list of links
+    - uri is optional identifier of this container object
 
     Derived classes may add extra functionality such as len() etc..
     However, any code designed to work with any ResourceContainer
     should use only the core functionality.
     """
 
-    def __init__(self, resources=None, md=None, ln=None):
+    def __init__(self, resources=None, md=None, ln=None, uri=None):
         self.resources=(resources if (resources is not None) else [])
         self.md=(md if (md is not None) else {})
         self.ln=(ln if (ln is not None) else [])
+        self.uri=uri
         self.capability_name=None
         self.capability_md=None
 
@@ -56,29 +58,54 @@ class ResourceContainer(object):
     @property
     def md_from(self):
         """ Convenient access to <rs:md from="" .../> """
-        if ('from' in self.md):
-            return(self.md['from'])
+        if ('md_from' in self.md):
+            return(self.md['md_from'])
         else:
             return(None)
 
     @md_from.setter
     def md_from(self,md_from):
         """Get/set the from attribute of this resource container"""
-        self.md['from']=md_from
+        self.md['md_from']=md_from
 
     @property
     def md_until(self):
         """ Convenient access to <rs:md until="" .../> """
-        if ('until' in self.md):
-            return(self.md['until'])
+        if ('md_until' in self.md):
+            return(self.md['md_until'])
         else:
             return(None)
 
     @md_until.setter
     def md_until(self,md_until):
         """Get/set the until attribute of this resource container"""
-        self.md['until']=md_until
+        self.md['md_until']=md_until
 
+    @property
+    def md_at(self):
+        """ Convenient access to <rs:md at="" .../> """
+        if ('md_at' in self.md):
+            return(self.md['md_at'])
+        else:
+            return(None)
+
+    @md_at.setter
+    def md_at(self,md_at):
+        """Get/set the at attribute of this resource container"""
+        self.md['md_at']=md_at
+
+    @property
+    def md_completed(self):
+        """ Convenient access to <rs:md completed="" .../> """
+        if ('md_completed' in self.md):
+            return(self.md['md_completed'])
+        else:
+            return(None)
+
+    @md_completed.setter
+    def md_completed(self,md_completed):
+        """Get/set the completed attribute of this resource container"""
+        self.md['md_completed']=md_completed
 
     def link(self,rel):
         """Look for link with specified rel, return else None"""
@@ -113,16 +140,6 @@ class ResourceContainer(object):
             link[k] = atts[k]
 
     @property
-    def description(self):
-        """Convenient access to <rs:ln rel="resourcesync" href="uri">"""
-        return(self.link_href('resourcesync'))
-
-    @description.setter
-    def description(self,uri):
-        """Set ResourceSync Description link to given URI"""
-        self.link_set('resourcesync',uri)
-
-    @property
     def describedby(self):
         """Convenient access to <rs:ln rel="describedby" href="uri">"""
         return(self.link_href('describedby'))
@@ -142,16 +159,24 @@ class ResourceContainer(object):
         """Set ResourceSync Up link to given URI"""
         self.link_set('up',uri)
 
-    def default_capability_and_modified(self):
-        """Set capability name and modified time in md
+    @property
+    def index(self):
+        """Convenient access to <rs:ln rel="index" href="uri">"""
+        return(self.link_href('index'))
 
-        Every ResourceSync document should have these two top-level
-        metadata attributes.
+    @index.setter
+    def index(self,uri):
+        """Set index link to given URI"""
+        self.link_set('index',uri)
+
+    def default_capability(self):
+        """Set capability name in md
+
+        Every ResourceSync document should have the top-level
+        capability attributes.
         """
         if ('capability' not in self.md and self.capability_md is not None):
             self.md['capability']=self.capability_md
-        if ('from' not in self.md):
-            self.md['from']=datetime_to_str(no_fractions=True)
 
     def add(self, resource):
         """Add a resource or an iterable collection of resources to this container

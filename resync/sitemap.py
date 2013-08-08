@@ -12,6 +12,14 @@ from resource_container import ResourceContainer
 
 SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9'
 RS_NS = 'http://www.openarchives.org/rs/terms/'
+# Mapping of Resource object atts to XML atts, see Sitemap._xml_att_name()
+XML_ATT_NAME = {
+    'mime_type': 'type',
+    'md_at': 'at',
+    'md_completed': 'completed',
+    'md_from': 'from',
+    'md_until': 'until'
+}
 
 class SitemapIndexError(Exception):
     """Exception on attempt to read a sitemapindex instead of sitemap 
@@ -80,10 +88,10 @@ class Sitemap(object):
         # <rs:ln>
         if (hasattr(resources,'ln')):
             for ln in resources.ln:
-                self.add_ln_to_etree(root,ln)
+                self.add_element_with_atts_to_etree(root,'rs:ln',ln)
         # <rs:md>
         if (hasattr(resources,'md')):
-            self.add_md_to_etree(root,resources.md)
+            self.add_element_with_atts_to_etree(root,'rs:md',resources.md)
         # <url> entries from either an iterable or an iterator
         for r in resources:
             e=self.resource_etree_element(r, element_name=item_element)
@@ -212,10 +220,11 @@ class Sitemap(object):
             sub.text = str(resource.lastmod) #W3C Datetime in UTC
             e.append(sub)
         md_atts = {}
-        for att in ('capability','change','hash','length','path','type'):
+        for att in ('capability','change','hash','length','path','mime_type',
+                    'md_at','md_completed','md_from','md_until'):
             val = getattr(resource,att,None)
             if (val is not None):
-                md_atts[att] = str(val)
+                md_atts[self._xml_att_name(att)] = str(val)
         if (len(md_atts)>0):
             md = Element('rs:md',md_atts)
             e.append(md)
@@ -223,7 +232,7 @@ class Sitemap(object):
         if (hasattr(resource,'ln') and
             resource.ln is not None):
             for ln in resource.ln:
-                self.add_ln_to_etree(e,ln)
+                self.add_element_with_atts_to_etree(e,'rs:ln',ln)
         if (self.pretty_xml):
             e.tail="\n"
         return(e)
@@ -270,7 +279,7 @@ class Sitemap(object):
             # have on element, look at attributes
             md = self.md_from_etree(md_elements[0],context=loc)
             # simple attributes that map directly to Resource object attributes
-            for att in ('capability','change','length','path','type'):
+            for att in ('capability','change','length','path','mime_type'):
                 if (att in md):
                     setattr(resource,att,md[att])
             # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
@@ -292,12 +301,15 @@ class Sitemap(object):
         """Parse rs:md attributes returning a dict of the data
 
         Parameters:
-         md_element     - etree element <rs:md>
+            md_element  - etree element <rs:md>
+            context     - context for error reporting
         """
         md = {}
         # grab all understood attributes into md dict
-        for att in ('capability','change','hash','length','from','until','path','type'):
-            val = md_element.attrib.get(att,None)
+        for att in ('capability','change','hash','length','path','mime_type',
+                    'md_at','md_completed','md_from','md_until'):
+            xml_att = self._xml_att_name(att)
+            val = md_element.attrib.get(xml_att,None)
             if (val is not None):
                 md[att] = val
         # capability. Allow this to be missing but do a very simple syntax
@@ -322,12 +334,14 @@ class Sitemap(object):
         """Parse rs:ln element from an etree, returning a dict of the data
 
         Parameters:
-         md_element     - etree element <rs:md>
+            md_element - etree element <rs:md>
+            context    - context string for error reporting
         """
         ln = {}
         # grab all understood attributes into ln dict
-        for att in ('hash','href','length','modified','path','rel','pri','type'):
-            val = ln_element.attrib.get(att,None)
+        for att in ('hash','href','length','modified','path','rel','pri','mime_type'):
+            xml_att = self._xml_att_name(att)
+            val = ln_element.attrib.get(xml_att,None)
             if (val is not None):
                 ln[att] = val
         # now do some checks and conversions...
@@ -354,47 +368,34 @@ class Sitemap(object):
         return(ln)
 
 
-    ##### Metadata and links #####
+    ##### Metadata and link elements #####
 
-    def add_md_to_etree(self, etree, md):
-        """ Add <rs:md> element to the etree supplied
+    def add_element_with_atts_to_etree(self, etree, name, atts):
+        """Add element with name and atts to etree iff there are any atts
+
+        Parameters:
+            etree - an etree object
+            name  - XML element name
+            atts  - dicts of attribute values. Attribute names are transformed
         """
-        atts = {}
-        for a in md.keys():
-            # make attributes by space concatenating any capability dict values 
-            # that are arrays
-            value = md[a]
-            if (value is None):
-                # skip None values
-                pass
-            elif (isinstance(value, str)):
-                atts[a]=value
-            else:
-                atts[a]=' '.join(value)
-        if (len(atts)>0):
-            e = Element('rs:md', atts)
+        xml_atts = {}
+        for att in atts.keys():
+            val = atts[att]
+            if (val is not None):
+                xml_atts[self._xml_att_name(att)] = str(val)
+        if (len(xml_atts)>0):
+            e = Element(name,xml_atts)
             if (self.pretty_xml):
                 e.tail="\n"
             etree.append(e)
 
+    def _xml_att_name(self,att):
+        """Get XML attribute name corresponding to supplied Resource object attribute
 
-    def add_ln_to_etree(self, etree, ln):
-        """ Add <rs:ln> element to the etree supplied
+        We cannot use the XML attribute names in Python because 'from' and others
+        conflict with Python reserved words. To be consistent all the extra timestamps
+        are prefixed with md_. Assumption is that attibute name is same unless 
+        specified in XML_ATT_NAME.
         """
-        atts = {}
-        for a in ln.keys():
-            # make attributes by space concatenating any capability dict values 
-            # that are arrays
-            value = ln[a]
-            if (value is None):
-                # skip None values
-                pass
-            elif (isinstance(value, str)):
-                atts[a]=value
-            else:
-                atts[a]=' '.join(value)
-        if (len(atts)>0):
-            e = Element('rs:ln', atts)
-            if (self.pretty_xml):
-                e.tail="\n"
-            etree.append(e)
+        return XML_ATT_NAME.get(att,att)
+

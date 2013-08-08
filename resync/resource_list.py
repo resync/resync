@@ -118,7 +118,7 @@ class ResourceList(ListBaseWithIndex):
 
     rl = ResourceList( resources_class=ResourceDictOrdered )
     
-    In normal use it is expected that any Resource List Inex will be
+    In normal use it is expected that any Resource List Index will be
     created automatically when writing out a large Resource List in
     multiple sitemap files. However, should it be necessary to 
     explicitly create an index then this may be specified with:
@@ -129,12 +129,13 @@ class ResourceList(ListBaseWithIndex):
     See additional descriptions in ListBaseWithIndex and ListBase.
     """
 
-    def __init__(self, resources=None, count=None, md=None, ln=None, allow_multifile=None, mapper=None,
+    def __init__(self, resources=None, count=None, md=None, ln=None, uri=None, allow_multifile=None, mapper=None,
                  resources_class=None):
         self.resources_class = ResourceListDict if resources_class is None else resources_class
         if (resources is None):
             resources = self.resources_class()
-        super(ResourceList, self).__init__(resources=resources, count=count, md=md, ln=ln, allow_multifile=allow_multifile, mapper=mapper)
+        super(ResourceList, self).__init__(resources=resources, count=count, md=md, ln=ln, uri=uri,
+                                           allow_multifile=allow_multifile, mapper=mapper)
         self.capability_name = 'resourcelist'
         self.capability_md = 'resourcelist'
 

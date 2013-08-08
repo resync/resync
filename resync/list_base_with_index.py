@@ -50,8 +50,8 @@ class ListBaseWithIndex(ListBase):
         to those that the component sitemap files will be exposed as
     """
 
-    def __init__(self, resources=None, count=None, md=None, ln=None, allow_multifile=None, mapper=None):
-        super(ListBaseWithIndex, self).__init__(resources=resources, count=count, md=md, ln=ln)
+    def __init__(self, resources=None, count=None, md=None, ln=None, uri=None, allow_multifile=None, mapper=None):
+        super(ListBaseWithIndex, self).__init__(resources=resources, count=count, md=md, ln=ln, uri=uri)
         # specific to lists with indexes
         self.max_sitemap_entries=50000
         self.mapper = mapper
@@ -200,7 +200,7 @@ class ListBaseWithIndex(ListBase):
         index.sitemapindex=True
         index.capability_name = self.capability_name
         index.capability_md = self.capability_md
-        index.default_capability_and_modified()
+        index.default_capability()
         for n in range(num_parts):
             r = Resource( uri = self.part_name(basename,n) )
             index.add(r)
@@ -209,7 +209,7 @@ class ListBaseWithIndex(ListBase):
     def as_xml_part(self, basename="/tmp/sitemap.xml", part_number=0):
         """Return a string of component sitemap part_number for a large list that is split
         
-        basename is used to create "up" links to the sitemapindex
+        basename is used to create "index" links to the sitemapindex
         
         Q - what timestamp should be used?
         """
@@ -224,8 +224,8 @@ class ListBaseWithIndex(ListBase):
         part = ListBase( itertools.islice(self.resources,start,stop) )
         part.capability_name = self.capability_name
         part.capability_md = self.capability_md
-        part.default_capability_and_modified()
-        part.ln.append({'rel': 'up', 'href': basename})
+        part.default_capability()
+        part.index = basename
         s = self.new_sitemap()
         return( s.resources_as_xml(part) )
 
@@ -260,11 +260,12 @@ class ListBaseWithIndex(ListBase):
                 raise ListBaseIndexError("Cannot map sitemapindex filename to URI (%s)" % str(e))
             # Use iterator over all resources and count off sets of
             # max_sitemap_entries to go into each sitemap, store the
-            # names of the sitemaps as we go
-            index=ListBase()
+            # names of the sitemaps as we go. Copy md from self into
+            # the index and use this for all chunks also
+            index=ListBase(md=self.md.copy())
             index.capability_name = self.capability_name
             index.capability_md = self.capability_md
-            index.default_capability_and_modified()
+            index.default_capability()
             while (len(chunk)>0):
                 file = self.part_name(basename,len(index))
                 # Check that we can map the filename of this sitemap into
@@ -275,11 +276,12 @@ class ListBaseWithIndex(ListBase):
                     raise ListBaseIndexError("Cannot map sitemap filename to URI (%s)" % str(e))
                 self.logger.info("Writing sitemap %s..." % (file))
                 f = open(file, 'w')
-                chunk.ln.append({'rel': 'up', 'href': index_uri})
+                chunk.index = index_uri
+                chunk.md = index.md
                 s.resources_as_xml(chunk, fh=f)
                 f.close()
                 # Record information about this sitemap for index
-                r = Resource( uri = uri, path = file,
+                r = Resource( uri = uri,
                               timestamp = os.stat(file).st_mtime,
                               md5 = compute_md5_for_file(file) )
                 index.add(r)
@@ -302,7 +304,7 @@ class ListBaseWithIndex(ListBase):
         """Return XML serialization of this list taken to be sitemapindex entries
 
         """
-        self.default_capability_and_modified()
+        self.default_capability()
         s = self.new_sitemap()
         return s.resources_as_xml(self,sitemapindex=True)
 
@@ -322,7 +324,7 @@ class ListBaseWithIndex(ListBase):
         chunk = ListBase()
         chunk.capability_name = self.capability_name
         chunk.capability_md = self.capability_md
-        chunk.default_capability_and_modified()
+        chunk.default_capability()
         if (first is not None):
             chunk.add(first)
         for r in resource_iter:

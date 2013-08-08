@@ -80,24 +80,25 @@ class TestResourceContainer(unittest.TestCase):
         self.assertEqual( rc.md_from, "ftime" )
         self.assertEqual( rc.md_until, "utime" )
         # via underlying dict
-        rc.md['from'] = "ftime2"
-        rc.md['until'] = "utime2too"
+        rc.md['md_from'] = "ftime2"
+        rc.md['md_until'] = "utime2too"
         self.assertEqual( rc.md_from, "ftime2" )
         self.assertEqual( rc.md_until, "utime2too" )
 
-    def test06_resourcesync_description(self):
+    def test06_source_description(self):
+        # up links used to point to the source description
         rc = ResourceContainer()
         # via convenience methods                                  
-        self.assertEqual( rc.description, None )
-        rc.description = "well-known"
-        self.assertEqual( rc.description, "well-known" )
-        rc.description = "well-known2"
-        self.assertEqual( rc.description, "well-known2" )
+        self.assertEqual( rc.up, None )
+        rc.up = "well-known"
+        self.assertEqual( rc.up, "well-known" )
+        rc.up = "well-known2"
+        self.assertEqual( rc.up, "well-known2" )
         # via link
-        link = rc.link("resourcesync")
+        link = rc.link("up")
         self.assertEqual( link['href'], "well-known2" )
         link['href'] = "wk3"
-        self.assertEqual( rc.description, "wk3" )
+        self.assertEqual( rc.up, "wk3" )
 
     def test07_describedby(self):
         rc = ResourceContainer()

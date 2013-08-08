@@ -15,7 +15,7 @@ from resync.resource_list_builder import ResourceListBuilder
 from resync.resource_list import ResourceList
 from resync.change_list import ChangeList
 from resync.capability_list import CapabilityList
-from resync.resourcesync_description import ResourceSyncDescription
+from resync.source_description import SourceDescription
 from resync.mapper import Mapper
 from resync.sitemap import Sitemap
 from resync.dump import Dump
@@ -23,6 +23,7 @@ from resync.resource import Resource
 from resync.url_authority import UrlAuthority
 from resync.utils import compute_md5_for_file
 from resync.client_state import ClientState
+from resync.list_base_with_index import ListBaseIndexError
 from w3c_datetime import str_to_datetime,datetime_to_str
 
 class ClientFatalError(Exception):
@@ -615,7 +616,10 @@ class Client(object):
             d.write(resource_list=rl,dumpfile=outfile)
         else:
             if (outfile is None):
-                print rl.as_xml()
+                try:
+                    print rl.as_xml()
+                except ListBaseIndexError as e:
+                    raise ClientFatalError("%s. Use --output option to specify base name for output files." % str(e))
             else:
                 rl.write(basename=outfile)
 
@@ -667,9 +671,9 @@ class Client(object):
         else:
             capl.write(basename=outfile)
 
-    def write_resourcesync_description(self,capability_lists=None,outfile=None,links=None):
+    def write_source_description(self,capability_lists=None,outfile=None,links=None):
         """Write a ResourceSync Description document to outfile or STDOUT"""
-        rsd = ResourceSyncDescription(ln=links)
+        rsd = SourceDescription(ln=links)
         rsd.pretty_xml = self.pretty_xml
         if (capability_lists is not None):
             for uri in capability_lists:

@@ -46,14 +46,13 @@ class TestClient(unittest.TestCase):
         self.assertTrue( re.search(r'<url><loc>uri_a</loc><rs:md capability="a"',capturer.result) )
         self.assertTrue( re.search(r'<url><loc>uri_b</loc><rs:md capability="b"',capturer.result) )
 
-    def test07_write_resourcesync_description(self):
+    def test07_write_source_description(self):
         c = Client()
         with capture_stdout() as capturer:
-            c.write_resourcesync_description( [ 'a','b','c' ] )
-        print capturer.result
-        self.assertTrue( re.search(r'<urlset ',capturer.result) )
-        self.assertTrue( re.search(r'<rs:md capability="resourcesync" />',capturer.result) )
+            c.write_source_description( [ 'a','b','c' ] )
         #print capturer.result
+        self.assertTrue( re.search(r'<urlset ',capturer.result) )
+        self.assertTrue( re.search(r'<rs:md capability="description" />',capturer.result) )
         self.assertTrue( re.search(r'<url><loc>a</loc><rs:md capability="capabilitylist" /></url>',capturer.result) )
         self.assertTrue( re.search(r'<url><loc>b</loc><rs:md capability="capabilitylist" /></url>',capturer.result) )
 
@@ -66,15 +65,15 @@ class TestClient(unittest.TestCase):
             c.parse_document()
         self.assertTrue( re.search(r'Parsed resourcelist document with 2 entries',capturer.result) )
         with capture_stdout() as capturer:
-            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_5_1.xml'
+            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_9_1.xml'
             c.parse_document()
         self.assertTrue( re.search(r'Parsed resourcedump document with 3 entries',capturer.result) )
         with capture_stdout() as capturer:
-            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_6_1.xml'
+            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_10_1.xml'
             c.parse_document()
         self.assertTrue( re.search(r'Parsed changelist document with 4 entries',capturer.result) )
         with capture_stdout() as capturer:
-            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_7_1.xml'
+            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_11_1.xml'
             c.parse_document()
         self.assertTrue( re.search(r'Parsed changedump document with 3 entries',capturer.result) )
 
@@ -85,14 +84,15 @@ class TestClient(unittest.TestCase):
 
         with capture_stdout() as capturer:
             c.write_resource_list()
-        self.assertTrue( re.search(r'<rs:md capability="resourcelist" from="', capturer.result ) )
+        #print capturer.result
+        self.assertTrue( re.search(r'<rs:md at="\S+" capability="resourcelist"', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_a</loc>', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_b</loc>', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir2/file_x</loc>', capturer.result ) )
         # with an explicit paths setting only the specified paths will be included
         with capture_stdout() as capturer:
             c.write_resource_list(paths='resync/test/testdata/dir1')
-        self.assertTrue( re.search(r'<rs:md capability="resourcelist" from="', capturer.result ) )
+        self.assertTrue( re.search(r'<rs:md at="\S+" capability="resourcelist"', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_a</loc><lastmod>2012-07-25T17:13:46Z</lastmod><rs:md length="20" /></url>', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_b</loc><lastmod>2001-09-09T01:46:40Z</lastmod><rs:md length="45" /></url>', capturer.result ) )
         self.assertFalse( re.search(r'dir2', capturer.result ) )

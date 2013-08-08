@@ -1,8 +1,10 @@
-from distutils.core import setup
+from setuptools import setup
+# setuptools used instead of distutils.core so that 
+# dependencies can be handled automatically
 
-# Extract version number from resync/_version.py. Here we are very strict
-# about the format of the version string as an extra sanity check.
-# (thanks for comments in 
+# Extract version number from resync/_version.py. Here we 
+# are very strict about the format of the version string 
+# as an extra sanity check. (Thanks for comments in 
 # http://stackoverflow.com/questions/458550/standard-way-to-embed-version-into-python-package )
 import re
 VERSIONFILE="resync/_version.py"
@@ -33,4 +35,9 @@ setup(
     description='ResourceSync library and client',
     long_description=open('README').read(),
     url='http://github.com/resync/resync',
+    install_requires=[
+        "requests",
+        "python-dateutil>=1.5"
+    ],
+    test_suite="resync.test",
 )

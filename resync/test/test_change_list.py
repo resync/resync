@@ -87,10 +87,10 @@ class TestChangeList(unittest.TestCase):
 
     def test20_as_xml(self):
         cl = ChangeList()
+        cl.md_from = '1970-01-01T00:00:00Z'
         cl.add( Resource('a',timestamp=1,change='updated') )
         cl.add( Resource('b',timestamp=2,change='updated') )
         xml = cl.as_xml()
-        print xml
         self.assertTrue( re.search(r'<rs:md .*capability="changelist"', xml), 'XML has capability' )
         self.assertTrue( re.search(r'<rs:md .*from="\d\d\d\d\-\d\d\-\d\dT\d\d:\d\d:\d\dZ"', xml), 'XML has from to seconds precision (and not more)' )
         self.assertTrue( re.search(r'<url><loc>a</loc><lastmod>1970-01-01T00:00:01Z</lastmod>', xml), 'XML has resource a' ) 
@@ -106,7 +106,7 @@ class TestChangeList(unittest.TestCase):
         cl.parse(fh=StringIO.StringIO(xml))
         self.assertEqual( len(cl.resources), 2, 'got 2 resources')
         self.assertEqual( cl.md['capability'], 'changelist', 'capability set' )
-        self.assertEqual( cl.md['from'], '2013-01-01' )
+        self.assertEqual( cl.md['md_from'], '2013-01-01' )
 
     def test31_parse_no_capability(self):
         # missing capability is an error for changelist
