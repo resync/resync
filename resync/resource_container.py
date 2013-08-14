@@ -66,7 +66,7 @@ class ResourceContainer(object):
     @md_from.setter
     def md_from(self,md_from):
         """Get/set the from attribute of this resource container"""
-        self.md['md_from']=md_from
+        self.md['md_from']=self._str_datetime_now(md_from)
 
     @property
     def md_until(self):
@@ -79,7 +79,7 @@ class ResourceContainer(object):
     @md_until.setter
     def md_until(self,md_until):
         """Get/set the until attribute of this resource container"""
-        self.md['md_until']=md_until
+        self.md['md_until']=self._str_datetime_now(md_until)
 
     @property
     def md_at(self):
@@ -92,7 +92,7 @@ class ResourceContainer(object):
     @md_at.setter
     def md_at(self,md_at):
         """Get/set the at attribute of this resource container"""
-        self.md['md_at']=md_at
+        self.md['md_at']=self._str_datetime_now(md_at)
 
     @property
     def md_completed(self):
@@ -105,7 +105,7 @@ class ResourceContainer(object):
     @md_completed.setter
     def md_completed(self,md_completed):
         """Get/set the completed attribute of this resource container"""
-        self.md['md_completed']=md_completed
+        self.md['md_completed']=self._str_datetime_now(md_completed)
 
     def link(self,rel):
         """Look for link with specified rel, return else None"""
@@ -251,3 +251,22 @@ class ResourceContainer(object):
         for resource in self:
             s += str(resource) + "\n"
         return(s)
+
+    def _str_datetime_now(self, x=None):
+        """Return datetime string for use with time attributes
+        
+        Handling depends on input:
+          'now'   - returns datetime for now
+          number  - assume datetime values, generate string
+          other   - no change, return same value
+        """
+        if (x == 'now'):
+            # Now, this is wht datetime_to_str() with no arg gives
+            return( datetime_to_str() )
+        try:
+            # Test for number
+            junk = x + 0.0
+            return datetime_to_str(x)
+        except TypeError:
+            # Didn't look like a number, treat as string
+            return x
