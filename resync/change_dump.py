@@ -20,6 +20,6 @@ class ChangeDump(ResourceList):
     """
 
     def __init__(self, resources=None, md=None, ln=None, uri=None, allow_multifile=None, mapper=None):
-        super(ChangeDump, self).__init__(resources=resources, md=md, ln=ln, uri=uri, mapper=mapper)
-        self.capability_name = 'changedump'
-        self.capability_md = 'changedump'
+        super(ChangeDump, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
+                                         mapper=mapper)
+        self.capability_name='changedump' 

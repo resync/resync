@@ -22,19 +22,19 @@ class ResourceContainer(object):
     - md property that is a dict of metadata
     - ln property that is a list of links
     - uri is optional identifier of this container object
+    - capability_name - name of this capability
 
     Derived classes may add extra functionality such as len() etc..
     However, any code designed to work with any ResourceContainer
     should use only the core functionality.
     """
 
-    def __init__(self, resources=None, md=None, ln=None, uri=None):
+    def __init__(self, resources=None, md=None, ln=None, uri=None, capability_name=None):
         self.resources=(resources if (resources is not None) else [])
         self.md=(md if (md is not None) else {})
         self.ln=(ln if (ln is not None) else [])
         self.uri=uri
-        self.capability_name=None
-        self.capability_md=None
+        self.capability_name=capability_name
 
     def __iter__(self):
         """Iterator over all the resources in this resource list
@@ -175,8 +175,8 @@ class ResourceContainer(object):
         Every ResourceSync document should have the top-level
         capability attributes.
         """
-        if ('capability' not in self.md and self.capability_md is not None):
-            self.md['capability']=self.capability_md
+        if ('capability' not in self.md and self.capability_name is not None):
+            self.md['capability']=self.capability_name
 
     def add(self, resource):
         """Add a resource or an iterable collection of resources to this container

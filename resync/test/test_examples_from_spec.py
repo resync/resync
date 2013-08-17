@@ -393,7 +393,6 @@ class TestExamplesFromSpec(unittest.TestCase):
         cl = ResourceList(resources_class=ResourceListOrdered) #order in example is non-canonical   
         cl.sitemapindex=True
         cl.capability_name='changelist'
-        cl.capability_md='changelist'
         cl.up = 'http://example.com/dataset1/capabilitylist.xml'
         cl.md_from="2013-01-01T00:00:00Z"
         cl.add( Resource( uri='http://example.com/20130101-changelist.xml',

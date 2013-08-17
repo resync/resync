@@ -33,11 +33,11 @@ class ListBase(ResourceContainer):
     sitemapindex - defaults to False, set True if this is an index object
     """
 
-    def __init__(self, resources=None, count=None, md=None, ln=None, uri=None):
-        super(ListBase, self).__init__(resources=resources, md=md, ln=ln, uri=uri)
+    def __init__(self, resources=None, count=None, md=None, ln=None, uri=None, 
+                 capability_name='unknown'):
+        super(ListBase, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
+                                       capability_name=capability_name)
         self.count = count
-        self.capability_name = 'unknown'
-        self.capability_md = 'unknown'
         self.sitemapindex = False
         self.pretty_xml = False
         #
@@ -87,7 +87,7 @@ class ListBase(ResourceContainer):
         if (fh is None):
             raise Exception("Nothing to parse")
         s = self.new_sitemap()
-        s.parse_xml(fh=fh,resources=self,capability=self.capability_md,sitemapindex=False)
+        s.parse_xml(fh=fh,resources=self,capability=self.capability_name,sitemapindex=False)
         self.parsed_index = s.parsed_index
         
     ##### OUTPUT #####

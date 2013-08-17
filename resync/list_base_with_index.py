@@ -50,8 +50,10 @@ class ListBaseWithIndex(ListBase):
         to those that the component sitemap files will be exposed as
     """
 
-    def __init__(self, resources=None, count=None, md=None, ln=None, uri=None, allow_multifile=None, mapper=None):
-        super(ListBaseWithIndex, self).__init__(resources=resources, count=count, md=md, ln=ln, uri=uri)
+    def __init__(self, resources=None, count=None, md=None, ln=None, uri=None, 
+                 capability_name='unknown', allow_multifile=None, mapper=None):
+        super(ListBaseWithIndex, self).__init__(resources=resources, count=count, md=md, ln=ln, 
+                                                uri=uri, capability_name=capability_name)
         # specific to lists with indexes
         self.max_sitemap_entries=50000
         self.mapper = mapper
@@ -199,7 +201,6 @@ class ListBaseWithIndex(ListBase):
         index=ListBase()
         index.sitemapindex=True
         index.capability_name = self.capability_name
-        index.capability_md = self.capability_md
         index.default_capability()
         for n in range(num_parts):
             r = Resource( uri = self.part_name(basename,n) )
@@ -223,7 +224,6 @@ class ListBaseWithIndex(ListBase):
             stop=len(self)
         part = ListBase( itertools.islice(self.resources,start,stop) )
         part.capability_name = self.capability_name
-        part.capability_md = self.capability_md
         part.default_capability()
         part.index = basename
         s = self.new_sitemap()
@@ -264,7 +264,6 @@ class ListBaseWithIndex(ListBase):
             # the index and use this for all chunks also
             index=ListBase(md=self.md.copy(), ln=list(self.ln))
             index.capability_name = self.capability_name
-            index.capability_md = self.capability_md
             index.default_capability()
             while (len(chunk)>0):
                 file = self.part_name(basename,len(index))
@@ -323,7 +322,6 @@ class ListBaseWithIndex(ListBase):
         """
         chunk = ListBase( md=self.md.copy(), ln=list(self.ln) )
         chunk.capability_name = self.capability_name
-        chunk.capability_md = self.capability_md
         chunk.default_capability()
         if (first is not None):
             chunk.add(first)

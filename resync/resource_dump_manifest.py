@@ -22,4 +22,3 @@ class ResourceDumpManifest(ResourceList):
     def __init__(self, resources=None, md=None, ln=None, uri=None, allow_multifile=None, mapper=None):
         super(ResourceDumpManifest, self).__init__(resources=resources, md=md, ln=ln, uri=uri, mapper=mapper)
         self.capability_name = 'resourcedump-manifest'
-        self.capability_md = 'resourcedump-manifest'

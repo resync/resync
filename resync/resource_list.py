@@ -135,9 +135,8 @@ class ResourceList(ListBaseWithIndex):
         if (resources is None):
             resources = self.resources_class()
         super(ResourceList, self).__init__(resources=resources, count=count, md=md, ln=ln, uri=uri,
+                                           capability_name = 'resourcelist',
                                            allow_multifile=allow_multifile, mapper=mapper)
-        self.capability_name = 'resourcelist'
-        self.capability_md = 'resourcelist'
 
     def add(self, resource, replace=False):
         """Add a resource or an iterable collection of resources

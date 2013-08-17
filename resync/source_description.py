@@ -33,9 +33,8 @@ class SourceDescription(ListBase):
     def __init__(self, resources=None, md=None, ln=None):
         if (resources is None):
             resources = ResourceSet()
-        super(SourceDescription, self).__init__(resources=resources, md=md, ln=ln)
-        self.capability_name='description'
-        self.capability_md='description'
+        super(SourceDescription, self).__init__(resources=resources, md=md, ln=ln,
+                                                capability_name='description')
         self.md['from']=None #usually don't want a from date
 
     def add(self, resource, replace=False):

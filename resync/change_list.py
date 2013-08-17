@@ -30,9 +30,8 @@ class ChangeList(ListBaseWithIndex):
         self.resources_class = list if resources_class is None else resources_class
         if (resources is None):
             resources = self.resources_class()
-        super(ChangeList, self).__init__(resources=resources, md=md, ln=ln, uri=uri)
-        self.capability_name='changelist'
-        self.capability_md='changelist'
+        super(ChangeList, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
+                                         capability_name='changelist')
 
     # FIXME: Should probably be inline in add, rather than a class method
     def maybeAdd(self, resource):

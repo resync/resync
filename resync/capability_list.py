@@ -73,9 +73,8 @@ class CapabilityList(ListBase):
     def __init__(self, resources=None, md=None, ln=None, uri=None):
         if (resources is None):
             resources = CapabilitySet()
-        super(CapabilityList, self).__init__(resources=resources, md=md, ln=ln, uri=uri)
-        self.capability_name='capabilitylist'
-        self.capability_md='capabilitylist'
+        super(CapabilityList, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
+                                             capability_name='capabilitylist')
 
     def add(self, resource, replace=False):
         """Add a resource or an iterable collection of resources
@@ -100,7 +99,7 @@ class CapabilityList(ListBase):
         - the URI of the capability
         """
         if (capability is not None):
-            name = capability.capability_md
+            name = capability.capability_name
             if (capability.uri is not None):
                 uri=capability.uri
         self.add( Resource(uri=uri,capability=name) )
