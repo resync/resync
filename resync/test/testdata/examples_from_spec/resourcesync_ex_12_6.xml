@@ -21,7 +21,7 @@
       <rs:ln rel="timegate"
              href="http://example.com/timegate/http://example.com/res1"/>
       <rs:ln rel="timemap"
-             href="http://example.com/timemap/http://example.com/res1"/>
+             href="http://example.com/timemap/http://example.com/res1"
              type="application/link-format"/>
   </url>
 </urlset>

@@ -3,20 +3,17 @@
         xmlns:rs="http://www.openarchives.org/rs/terms/">
   <rs:ln rel="up"
          href="http://example.com/dataset1/capabilitylist.xml"/>
-  <rs:md capability="changelist-archive"/>
+  <rs:md capability="resourcedump-archive"/>
   <url>
-      <loc>http://example.com/changelist1.xml</loc>
-      <rs:md from="2013-01-01T09:00:00Z"
-             until="2013-01-02T09:00:00Z"/>
+      <loc>http://example.com/resourcedump1.xml</loc>
+      <lastmod>2012-11-03T09:05:42Z</lastmod>
+      <rs:md at="2012-11-03T09:00:00Z"
+             completed="2012-11-03T09:05:01Z"/>
   </url>
   <url>
-      <loc>http://example.com/changelist2.xml</loc>
-      <rs:md from="2013-01-02T09:00:00Z"
-             until="2013-01-03T09:00:00Z"/>
-  </url>
-  <url>
-      <loc>http://example.com/changelist3.xml</loc>
-      <rs:md from="2013-01-03T09:00:00Z"
-             until="2013-01-04T09:00:00Z"/>
+      <loc>http://example.com/resourcedump2.xml</loc>
+      <lastmod>2012-12-03T09:06:12Z</lastmod>
+      <rs:md at="2012-12-03T09:00:00Z"
+             completed="2012-12-03T09:05:17Z"/>
   </url>
 </urlset>

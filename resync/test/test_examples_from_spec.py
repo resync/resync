@@ -5,13 +5,14 @@ import sys
 import unittest
 import StringIO
 from resync.resource import Resource
+from resync.source_description import SourceDescription
+from resync.capability_list import CapabilityList
 from resync.resource_list import ResourceList,ResourceListOrdered
 from resync.resource_dump import ResourceDump
 from resync.resource_dump_manifest import ResourceDumpManifest
 from resync.change_list import ChangeList
 from resync.change_dump import ChangeDump
-from resync.capability_list import CapabilityList
-from resync.source_description import SourceDescription
+from resync.archives import ResourceListArchive,ResourceDumpArchive,ChangeListArchive,ChangeDumpArchive
 from resync.sitemap import Sitemap
 
 class TestExamplesFromSpec(unittest.TestCase):
@@ -19,10 +20,10 @@ class TestExamplesFromSpec(unittest.TestCase):
     def test_all_simple_read(self):
         """Just try to read each one"""
         for ex in ('archives_ex_2_1','archives_ex_2_2',
-                   'archives_ex_3_1',
+                   'archives_ex_3_1','archives_ex_3_2',
                    'archives_ex_4_1',
                    'archives_ex_5_1',
-                   'archives_ex_6_1','archives_ex_6_2',
+                   'archives_ex_6_1',
                    'resourcesync_ex_2_1','resourcesync_ex_2_2','resourcesync_ex_2_3',
                    'resourcesync_ex_2_4','resourcesync_ex_2_5','resourcesync_ex_2_6',
                    'resourcesync_ex_2_7','resourcesync_ex_2_8',
@@ -405,6 +406,76 @@ class TestExamplesFromSpec(unittest.TestCase):
                           md_from='2013-01-03T00:00:00Z') )
         ex_xml = self._open_ex('resourcesync_ex_10_2').read()
         self._assert_xml_equal( cl.as_xml(), ex_xml )
+
+    def test_build_archives_ex_3_1(self):
+        """Resource List Archive listing 3 Resource Lists"""
+        rla = ResourceListArchive()
+        rla.up = 'http://example.com/dataset1/capabilitylist.xml'
+        rla.add( Resource( uri='http://example.com/resourcelist1.xml',
+                           md_at='2012-11-03T09:00:00Z') )
+        rla.add( Resource( uri='http://example.com/resourcelist2.xml',
+                           md_at='2012-12-03T09:00:00Z') )
+        rla.add( Resource( uri='http://example.com/resourcelist3.xml',
+                           md_at='2013-01-03T09:00:00Z') )
+        ex_xml = self._open_ex('archives_ex_3_1').read()
+        self._assert_xml_equal( rla.as_xml(), ex_xml )
+
+    def test_build_archives_ex_3_2(self):
+        """Resource List Archive Index listing 2 component Resource List Archives"""
+        rlai = ResourceListArchive()
+        rlai.sitemapindex = True
+        rlai.up = 'http://example.com/dataset1/capabilitylist.xml'
+        rlai.add( Resource( uri='http://example.com/resourcelistarchive00001.xml' ))
+        rlai.add( Resource( uri='http://example.com/resourcelistarchive00002.xml' ))
+        ex_xml = self._open_ex('archives_ex_3_2').read()
+        self._assert_xml_equal( rlai.as_xml(), ex_xml )
+
+    def test_build_archives_ex_4_1(self):
+        """Resource Dump Archive listing 2 Resource Dumps"""
+        rda = ResourceDumpArchive()
+        rda.up = 'http://example.com/dataset1/capabilitylist.xml'
+        rda.add( Resource( uri='http://example.com/resourcedump1.xml',
+                           lastmod='2012-11-03T09:05:42Z',
+                           md_at="2012-11-03T09:00:00Z",
+                           md_completed="2012-11-03T09:05:01Z" ) )
+
+        rda.add( Resource( uri='http://example.com/resourcedump2.xml',
+                           lastmod='2012-12-03T09:06:12Z',
+                           md_at="2012-12-03T09:00:00Z",
+                           md_completed="2012-12-03T09:05:17Z" ) )
+        ex_xml = self._open_ex('archives_ex_4_1').read()
+        self._assert_xml_equal( rda.as_xml(), ex_xml )
+
+    def test_build_archives_ex_5_1(self):
+        """Change List Archive listing 3 Change Lists"""
+        cla = ChangeListArchive()
+        cla.up = 'http://example.com/dataset1/capabilitylist.xml'
+        cla.add( Resource( uri='http://example.com/changelist1.xml',
+                           md_from='2013-01-01T09:00:00Z',
+                           md_until='2013-01-02T09:00:00Z') )
+        cla.add( Resource( uri='http://example.com/changelist2.xml',
+                           md_from='2013-01-02T09:00:00Z',
+                           md_until='2013-01-03T09:00:00Z') )
+        cla.add( Resource( uri='http://example.com/changelist3.xml',
+                           md_from='2013-01-03T09:00:00Z',
+                           md_until='2013-01-04T09:00:00Z') )
+        ex_xml = self._open_ex('archives_ex_5_1').read()
+        self._assert_xml_equal( cla.as_xml(), ex_xml )
+
+    def test_build_archives_ex_6_1(self):
+        """Change Dump Archive listing 2 Change Dumps"""
+        cda = ChangeDumpArchive()
+        cda.up = 'http://example.com/dataset1/capabilitylist.xml'
+        cda.add( Resource( uri='http://example.com/changedump-w1.xml',
+                           lastmod='2012-12-20T09:02:43Z',
+                           md_from="2012-01-13T09:00:00Z",
+                           md_until="2013-01-20T09:00:00Z" ) )
+        cda.add( Resource( uri='http://example.com/changedump-w2.xml',
+                           lastmod='2012-12-27T09:01:57Z',
+                           md_from="2012-01-20T09:00:00Z",
+                           md_until="2013-01-27T09:00:00Z" ) )
+        ex_xml = self._open_ex('archives_ex_6_1').read()
+        self._assert_xml_equal( cda.as_xml(), ex_xml )
 
 ##### UTILITIES FOR (APPROX) COMPARISON OF XML IN EXAMPLES AND OUTPUT
 

@@ -129,14 +129,12 @@ class ResourceList(ListBaseWithIndex):
     See additional descriptions in ListBaseWithIndex and ListBase.
     """
 
-    def __init__(self, resources=None, count=None, md=None, ln=None, uri=None, allow_multifile=None, mapper=None,
-                 resources_class=None):
-        self.resources_class = ResourceListDict if resources_class is None else resources_class
-        if (resources is None):
-            resources = self.resources_class()
+    def __init__(self, resources=None, count=None, md=None, ln=None, uri=None, 
+                 allow_multifile=None, mapper=None, resources_class=ResourceListDict):
         super(ResourceList, self).__init__(resources=resources, count=count, md=md, ln=ln, uri=uri,
-                                           capability_name = 'resourcelist',
-                                           allow_multifile=allow_multifile, mapper=mapper)
+                                           capability_name = 'resourcelist', 
+                                           allow_multifile=allow_multifile, mapper=mapper,
+                                           resources_class=resources_class)
 
     def add(self, resource, replace=False):
         """Add a resource or an iterable collection of resources

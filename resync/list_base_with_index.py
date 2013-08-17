@@ -51,7 +51,11 @@ class ListBaseWithIndex(ListBase):
     """
 
     def __init__(self, resources=None, count=None, md=None, ln=None, uri=None, 
-                 capability_name='unknown', allow_multifile=None, mapper=None):
+                 capability_name='unknown', allow_multifile=None, mapper=None,
+                 resources_class=None):
+        self.resources_class = list if resources_class is None else resources_class
+        if (resources is None):
+            resources = self.resources_class()
         super(ListBaseWithIndex, self).__init__(resources=resources, count=count, md=md, ln=ln, 
                                                 uri=uri, capability_name=capability_name)
         # specific to lists with indexes

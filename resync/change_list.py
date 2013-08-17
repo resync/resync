@@ -26,12 +26,10 @@ class ChangeList(ListBaseWithIndex):
     """Class representing an Change List"""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
-                 resources_class=None):
-        self.resources_class = list if resources_class is None else resources_class
-        if (resources is None):
-            resources = self.resources_class()
+                 resources_class=list):
         super(ChangeList, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
-                                         capability_name='changelist')
+                                         capability_name='changelist',
+                                         resources_class=resources_class)
 
     # FIXME: Should probably be inline in add, rather than a class method
     def maybeAdd(self, resource):

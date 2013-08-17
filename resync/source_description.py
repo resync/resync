@@ -19,9 +19,9 @@ import collections
 
 from resource import Resource
 from resource_set import ResourceSet
-from list_base import ListBase
+from list_base_with_index import ListBaseWithIndex
 
-class SourceDescription(ListBase):
+class SourceDescription(ListBaseWithIndex):
     """Class representing the set of Capability Lists supported
 
     Will admit only one resource with any given URI.
@@ -31,10 +31,9 @@ class SourceDescription(ListBase):
     """
 
     def __init__(self, resources=None, md=None, ln=None):
-        if (resources is None):
-            resources = ResourceSet()
         super(SourceDescription, self).__init__(resources=resources, md=md, ln=ln,
-                                                capability_name='description')
+                                                capability_name='description',
+                                                resources_class=ResourceSet)
         self.md['from']=None #usually don't want a from date
 
     def add(self, resource, replace=False):

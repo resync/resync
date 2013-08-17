@@ -1,42 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:rs="http://www.openarchives.org/rs/terms/">
-  <rs:ln rel="describedby"
-         href="http://example.com/info_about_set1_of_resources.xml"
-         type="application/xml"/>
   <rs:ln rel="up"
-         href="http://example.com/resourcesync_description.xml"/>
-  <rs:md capability="capabilitylist"/>
+         href="http://example.com/dataset1/capabilitylist.xml"/>
+  <rs:md capability="changedump-archive"/>
   <url>
-      <loc>http://example.com/dataset1/resourcelist.xml</loc>
-      <rs:md capability="resourcelist"/>
+      <loc>http://example.com/changedump-w1.xml</loc>
+      <lastmod>2012-12-20T09:02:43Z</lastmod>
+      <rs:md from="2012-01-13T09:00:00Z"
+             until="2013-01-20T09:00:00Z"/>
   </url>
   <url>
-      <loc>http://example.com/dataset1/resourcedump.xml</loc>
-      <rs:md capability="resourcedump"/>
-  </url>
-  <url>
-      <loc>http://example.com/dataset1/changelist.xml</loc>
-      <rs:md capability="changelist"/>
-  </url>
-  <url>
-      <loc>http://example.com/dataset1/changedump.xml</loc>
-      <rs:md capability="changedump"/>
-  </url>
-  <url>
-      <loc>http://example.com/dataset1/resourcelist-archive.xml</loc>
-      <rs:md capability="resourcelist-archive"/>
-  </url>
-  <url>
-      <loc>http://example.com/dataset1/resourcedump-archive.xml</loc>
-      <rs:md capability="resourcedump-archive"/>
-  </url>
-  <url>
-      <loc>http://example.com/dataset1/changelist-archive.xml</loc>
-      <rs:md capability="changelist-archive"/>
-  </url>
-  <url>
-      <loc>http://example.com/dataset1/changedump-archive.xml</loc>
-      <rs:md capability="changedump-archive"/>
+      <loc>http://example.com/changedump-w2.xml</loc>
+      <lastmod>2012-12-27T09:01:57Z</lastmod>
+      <rs:md from="2012-01-20T09:00:00Z"
+             until="2013-01-27T09:00:00Z"/>
   </url>
 </urlset>
