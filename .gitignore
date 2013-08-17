@@ -12,6 +12,7 @@ localhost_8888
 # Related to packaging
 resync.egg-info
 # Other...
+.DS_store
 *.pyc
 *~
 rc
