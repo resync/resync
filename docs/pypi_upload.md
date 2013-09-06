@@ -15,7 +15,7 @@ Putting up a new version
 3. Check out master and merge in dev
 4. Check all tests good (python setup.py test; py.test)
 5. Check branches as expected (git branch -a)
-6. Check local build and version reported OK (python setup.py install; resync --version)
+6. Check local build and version reported OK (python setup.py build; sudo python setup.py install; resync --version)
 7. Check client works with simulator:
 
    ```
