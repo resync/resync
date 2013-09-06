@@ -1,12 +1,12 @@
 resync change log
 =================
 
-The first two components of the version tags are tied to the ResourceSync specification 
-version. Versions 0.9.x are intended to implement the v0.9[.y] ResourceSync beta
-specification. Version 0.9.4 and up implement the v0.9.1 specification 
-(http://www.openarchives.org/rs/0.9.1/).
+The first two components of the version tags are tied to the ResourceSync 
+specification version. Versions 0.9.x are intended to implement the v0.9[.y] 
+ResourceSync beta specification. Version 0.9.4 and up implement the v0.9.1 
+specification (http://www.openarchives.org/rs/0.9.1/).
 
-v0.9.4 2013-08-...
+v0.9.4 2013-09-06
 - Work toward v0.9.1 specification (http://www.openarchives.org/rs/0.9.1/)
 - ResourceSync Description becomes Source Description
 
