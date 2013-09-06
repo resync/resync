@@ -69,7 +69,7 @@ class ListBaseWithIndex(ListBase):
 
     ##### INPUT #####
 
-    def read(self, uri=None, resources=None, capability=None, index_only=False):
+    def read(self, uri=None, resources=None, index_only=False):
         """Read sitemap from a URI including handling sitemapindexes
 
         If index_only is True then individual sitemaps references in a sitemapindex
@@ -96,7 +96,7 @@ class ListBaseWithIndex(ListBase):
             pass
         self.logger.info( "Read sitemap/sitemapindex from %s" % (uri) )
         s = self.new_sitemap()
-        s.parse_xml(fh=fh,resources=self,capability='resourcelist')
+        s.parse_xml(fh=fh,resources=self,capability=self.capability_name)
         # what did we read? sitemap or sitemapindex?
         if (s.parsed_index):
             # sitemapindex
