@@ -9,12 +9,14 @@ resync is at https://pypi.python.org/pypi/resync
 Putting up a new version
 ------------------------
 
-1. Check code is up-to-date with github version
-2. Check all tests good (python setup.py test; py.test)
-3. Check branches as expected (git branch -a)
-4. Check version number if set correctly (more resync/_version.py)
-5. Check local build and version reported OK (python setup.py install; resync --version)
-6. Check client works with simulator:
+0. In dev branch: bump version number in resync/_version.py and check CHANGES.md is up to date
+1. Check all tests good (python setup.py test; py.test)
+2. Check code is up-to-date with github version
+3. Check out master and merge in dev
+4. Check all tests good (python setup.py test; py.test)
+5. Check branches as expected (git branch -a)
+6. Check local build and version reported OK (python setup.py install; resync --version)
+7. Check client works with simulator:
 
    ```
    simeon@RottenApple resync>resync --delete http://resync.library.cornell.edu/sim100
@@ -37,7 +39,7 @@ Putting up a new version
    Status:     IN SYNC (same=95, to create=0, to update=0, to delete=0)
     ```
 
-If all checks out OK, tag and push the new version:
+8. If all checks out OK, tag and push the new version to github:
 
     ```
     git tag -n1
@@ -48,7 +50,6 @@ If all checks out OK, tag and push the new version:
     python setup.py sdist upload
     ```
 
-Then check on PyPI at https://pypi.python.org/pypi/resync
-
-Finally, start new version number by editing resync/_version.py and CHANGES.md
+9. Then check on PyPI at https://pypi.python.org/pypi/resync
+10. Finally, back on dev branch start new version number by editing resync/_version.py and CHANGES.md
 
