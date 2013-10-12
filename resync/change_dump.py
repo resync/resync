@@ -1,9 +1,10 @@
-"""ResourceSync ChangeDump object
+"""ResourceSync Change Dump object
 
-A ChangeDump is a set of content dump package resources
+A Change Dump is a set of content dump package resources
 with some metadata for each resource. 
 
-The ChangeDump object may also contain metadata and links.
+The Change Dump may also contain metadata and links like
+other ResourceSync documents.
 
 Described in specification at:
 http://www.openarchives.org/rs/resourcesync#ChangeDump
@@ -15,7 +16,7 @@ class ChangeDump(ResourceList):
     """Class representing an Change Dump
 
     A ChangeDump comprises a set of content dump packages that
-    are the resources listed. Properties much Like a ResourceList
+    are the resources listed. Properties similar to a ResourceList
     and implemented as a sub-class of ResourceList.
     """
 

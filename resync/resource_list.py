@@ -6,8 +6,11 @@ a destination allows understanding of whether the two are in
 sync or whether some resources need to be updated at the
 destination.
 
-The Resource List object may also contain metadata and links
-at the top level. These include a creation timestamp (from) 
+There may also be metadata about the Resource List, and links
+to other ResourceSync documents. Metadata include the 
+timestamp of the ResourceList (md_at) and, optionally, the 
+timestamp when creation of the Resource List was completed
+(md_completed).at the top level. These include a creation timestamp (from) 
 and links to the Capability List.
 
 Described in specification at:
@@ -183,7 +186,7 @@ class ResourceList(ListBaseWithIndex):
                 created.add(src_cur)
                 src_cur=next(src_iter,None)
             else:
-                raise InternalError("this should not be possible")
+                raise Exception("this should not be possible")
         # what do we have leftover in src or dst lists?
         while (dst_cur is not None):
             deleted.add(dst_cur)

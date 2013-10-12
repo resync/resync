@@ -7,7 +7,8 @@ class implements this model.
 
 This is a base class for the ListBase class which is in turn the
 base class for ResourceList, ChangeList, etc. This class provides
-only the data storage and manipulation, ListBase adds IO.
+only the data storage and manipulation, the ListBase class
+adds IO.
 """
 import collections
 from w3c_datetime import datetime_to_str
@@ -45,6 +46,7 @@ class ResourceContainer(object):
 
     @property
     def capability(self):
+        """Get/set the <rs:md capability="" .../> attribute"""
         if ('capability' in self.md):
             return(self.md['capability'])
         else:
@@ -52,12 +54,11 @@ class ResourceContainer(object):
 
     @capability.setter
     def capability(self,capability):
-        """Get/set the capability attribute of this resource container"""
         self.md['capability']=capability
 
     @property
     def md_from(self):
-        """ Convenient access to <rs:md from="" .../> """
+        """Get/set the <rs:md from="" .../> attribute"""
         if ('md_from' in self.md):
             return(self.md['md_from'])
         else:
@@ -65,12 +66,11 @@ class ResourceContainer(object):
 
     @md_from.setter
     def md_from(self,md_from):
-        """Get/set the from attribute of this resource container"""
         self.md['md_from']=self._str_datetime_now(md_from)
 
     @property
     def md_until(self):
-        """ Convenient access to <rs:md until="" .../> """
+        """Get/set the <rs:md until="" .../> attribute"""
         if ('md_until' in self.md):
             return(self.md['md_until'])
         else:
@@ -78,12 +78,11 @@ class ResourceContainer(object):
 
     @md_until.setter
     def md_until(self,md_until):
-        """Get/set the until attribute of this resource container"""
         self.md['md_until']=self._str_datetime_now(md_until)
 
     @property
     def md_at(self):
-        """ Convenient access to <rs:md at="" .../> """
+        """Get/set the <rs:md at="" attribute"""
         if ('md_at' in self.md):
             return(self.md['md_at'])
         else:
@@ -91,12 +90,11 @@ class ResourceContainer(object):
 
     @md_at.setter
     def md_at(self,md_at):
-        """Get/set the at attribute of this resource container"""
         self.md['md_at']=self._str_datetime_now(md_at)
 
     @property
     def md_completed(self):
-        """ Convenient access to <rs:md completed="" .../> """
+        """Get/set the <rs:md completed="" .../> attribute"""
         if ('md_completed' in self.md):
             return(self.md['md_completed'])
         else:
@@ -104,7 +102,6 @@ class ResourceContainer(object):
 
     @md_completed.setter
     def md_completed(self,md_completed):
-        """Get/set the completed attribute of this resource container"""
         self.md['md_completed']=self._str_datetime_now(md_completed)
 
     def link(self,rel):
@@ -151,17 +148,17 @@ class ResourceContainer(object):
 
     @property
     def up(self):
-        """Convenient access to <rs:ln rel="resourcesync" href="uri">"""
+        """Get the URI of any ResourceSync rel="up" link"""
         return(self.link_href('up'))
 
     @up.setter
     def up(self,uri):
-        """Set ResourceSync Up link to given URI"""
+        """Set ResourceSync rel="up" link to given URI"""
         self.link_set('up',uri)
 
     @property
     def index(self):
-        """Convenient access to <rs:ln rel="index" href="uri">"""
+        """Get the URI of and ResourceSync rel="index" link"""
         return(self.link_href('index'))
 
     @index.setter
