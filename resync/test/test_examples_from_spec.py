@@ -390,8 +390,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_10_2(self):
         """Change List Index listing 3 Change Lists, the last one 'open'"""
-        # FIXME - should make this work with a changelist!
-        cl = ResourceList(resources_class=ResourceListOrdered) #order in example is non-canonical   
+        cl = ChangeListArchive(resources_class=ResourceListOrdered) #order in example is non-canonical   
         cl.sitemapindex=True
         cl.capability_name='changelist'
         cl.up = 'http://example.com/dataset1/capabilitylist.xml'
