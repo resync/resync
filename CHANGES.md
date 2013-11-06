@@ -6,6 +6,13 @@ specification version. Versions 0.9.x are intended to implement the v0.9[.y]
 ResourceSync beta specification. Version 0.9.4 and up implement the v0.9.1 
 specification (http://www.openarchives.org/rs/0.9.1/).
 
+v0.9.5 2013-11-06
+- Still working toward v0.9.1 specification (http://www.openarchives.org/rs/0.9.1/)
+- Set up for Travis-CI working from github
+- Use /usr/bin/env to find python in executables
+- Fix timezone handling in w3c_datetime.py
+- Fix a number of documentation inconsistencies
+ 
 v0.9.4 2013-09-06
 - Work toward v0.9.1 specification (http://www.openarchives.org/rs/0.9.1/)
 - ResourceSync Description becomes Source Description
