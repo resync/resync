@@ -84,7 +84,7 @@ class TestClient(unittest.TestCase):
 
         with capture_stdout() as capturer:
             c.write_resource_list()
-        #print capturer.result
+        print capturer.result
         self.assertTrue( re.search(r'<rs:md at="\S+" capability="resourcelist"', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_a</loc>', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_b</loc>', capturer.result ) )
