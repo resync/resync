@@ -14,9 +14,10 @@ Putting up a new version
 2. Check code is up-to-date with github version
 3. Check out master and merge in dev
 4. Check all tests good (python setup.py test; py.test)
-5. Check branches as expected (git branch -a)
-6. Check local build and version reported OK (python setup.py build; sudo python setup.py install; resync --version)
-7. Check client works with simulator:
+5. Make sure master README has correct travis-ci icon link
+6. Check branches as expected (git branch -a)
+7. Check local build and version reported OK (python setup.py build; sudo python setup.py install; resync --version)
+8. Check client works with simulator:
 
    ```
    simeon@RottenApple resync>resync --delete http://resync.library.cornell.edu/sim100
@@ -39,7 +40,7 @@ Putting up a new version
    Status:     IN SYNC (same=95, to create=0, to update=0, to delete=0)
     ```
 
-8. If all checks out OK, tag and push the new version to github:
+9. If all checks out OK, tag and push the new version to github:
 
     ```
     git tag -n1
@@ -50,6 +51,6 @@ Putting up a new version
     python setup.py sdist upload
     ```
 
-9. Then check on PyPI at https://pypi.python.org/pypi/resync
-10. Finally, back on dev branch start new version number by editing resync/_version.py and CHANGES.md
+10. Then check on PyPI at https://pypi.python.org/pypi/resync
+11. Finally, back on dev branch start new version number by editing resync/_version.py and CHANGES.md
 

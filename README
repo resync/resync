@@ -2,7 +2,9 @@
 resync
 ======
 
-[![Build Status](https://travis-ci.org/resync/resync.png?branch=master)](https://travis-ci.org/resync/resync)
+.. image:: https://travis-ci.org/resync/resync.png?branch=0.9
+  :target: https://travis-ci.org/resync/resync
+  :alt: Build status
 
 **resync** is a ResourceSync client and library in python. `ResourceSync 
 <http://www.openarchives.org/rs/>`_ is a synchronization framework for 

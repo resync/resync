@@ -67,6 +67,16 @@ class TestW3cDatetime(unittest.TestCase):
         self.assertRaises( ValueError, str_to_datetime, "2012-11-01 01:01:01Z" )
         self.assertRaises( ValueError, str_to_datetime, "2012-11-01T01:01:01+0000" )
         self.assertRaises( ValueError, str_to_datetime, "2012-11-01T01:01:01-1000" )
+        # Bad values
+        self.assertRaises( ValueError, str_to_datetime, "2012-00-01T01:01:01Z" )
+        self.assertRaises( ValueError, str_to_datetime, "2012-13-01T01:01:01Z" )
+        self.assertRaises( ValueError, str_to_datetime, "2012-11-00T01:01:01Z" )
+        self.assertRaises( ValueError, str_to_datetime, "2012-11-32T01:01:01Z" )
+        self.assertRaises( ValueError, str_to_datetime, "2012-13-01T24:01:01Z" )
+        self.assertRaises( ValueError, str_to_datetime, "2012-13-01T00:60:01Z" )
+        self.assertRaises( ValueError, str_to_datetime, "2012-13-01T00:00:60Z" )
+        self.assertRaises( ValueError, str_to_datetime, "2012-11-01T01:01:01+99:00" )
+        self.assertRaises( ValueError, str_to_datetime, "2012-11-01T01:01:01-25:00" )
    
     def test5_roundtrips(self):
         self.assertEqual( rt('2012-03-14T00:00:00+00:00'),
@@ -77,6 +87,10 @@ class TestW3cDatetime(unittest.TestCase):
                              '2012-03-14T00:00:00Z')
         self.assertEqual( rt('2012-03-14T18:37:36Z' ),
                              '2012-03-14T18:37:36Z' )
+        self.assertEqual( rt('2012-03-14T18:37:36+00:10' ),
+                             '2012-03-14T18:47:36Z' )
+        self.assertEqual( rt('2012-03-14T18:37:36-01:01' ),
+                             '2012-03-14T17:36:36Z' )
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestW3cDatetime)
