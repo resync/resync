@@ -83,7 +83,7 @@ def str_to_datetime(s, context='datetime'):
         s += 'T00:00:00Z'
     # Now have datetime with timezone info
     m = re.match(r"(.*\d{2}:\d{2}:\d{2})(\.\d+)([^\d].*)?$",s)
-    # Chop out fractional seconds
+    # Chop out fractional seconds if present
     fractional_seconds = 0
     if (m is not None):
         s = m.group(1)
@@ -91,13 +91,26 @@ def str_to_datetime(s, context='datetime'):
             s += m.group(3)
         fractional_seconds = float(m.group(2))
     # Now check that only allowed formats supplied (the parse
-    # function is rather lax)
-    m = re.match(r"\d\d\d\d\-\d\d\-\d\dT\d\d:\d\d(:\d\d)?(Z|[+-]\d\d:\d\d)$",s)
+    # function in dateutil is rather lax) and separate out
+    # timezone information to be handled separately
+    #
+    # Seems that one should be able to handle timezone offset
+    # with dt.tzinfo module but this has variation in behavior
+    # between python 2.6 and 2.7... so do here for now
+    m = re.match(r"(\d\d\d\d\-\d\d\-\d\dT\d\d:\d\d(:\d\d)?)(Z|([+-])(\d\d):(\d\d))$",s)
     if (m is None):
         raise ValueError("Bad datetime format (%s)" % s)
-    dt = dateutil_parser.parse(s)
-    # timetuple ignores timezone information
-    #offset_seconds = dt.tzinfo.utcoffset(0).total_seconds() #only >=2.7
-    offset = dt.tzinfo.utcoffset(0)
-    offset_seconds = (offset.seconds + offset.days * 24 * 3600)
+    str = m.group(1) + 'Z'
+    dt = dateutil_parser.parse(str)
+    offset_seconds = 0
+    if (m.group(3) != 'Z'):
+        hh = int(m.group(5));
+        mm = int(m.group(6));
+        if (hh>23 or mm>59):
+            raise ValueError("Bad timezone offset (%s)" % s) 
+        offset_seconds = hh*3600 + mm*60
+        if (m.group(4) == '-'):
+            offset_seconds = -offset_seconds
+    # timetuple() ignores timezone information so we have to add in
+    # the offset here, and any fractional component of the seconds
     return( timegm(dt.timetuple()) + offset_seconds + fractional_seconds )
