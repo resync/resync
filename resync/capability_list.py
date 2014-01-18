@@ -106,9 +106,9 @@ class CapabilityList(ListBase):
 
     def has_capability(self,name=None):
         """True if the Capability List includes the named capability"""
-        return( self.capability(name) is not None )
+        return( self.capability_info(name) is not None )
 
-    def capability(self,name=None):
+    def capability_info(self,name=None):
         """Return information about the requested capability from this list
 
         Will return None if there is no information about the requested capability

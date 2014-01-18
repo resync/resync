@@ -104,11 +104,11 @@ class TestExamplesFromSpec(unittest.TestCase):
         self.assertEqual( len(capl.resources), 3, '3 capabilities')
         # What capabilities are present?
         self.assertTrue( capl.has_capability('resourcelist') )
-        self.assertEqual( capl.capability('resourcelist').uri, 'http://example.com/dataset1/resourcelist.xml')
+        self.assertEqual( capl.capability_info('resourcelist').uri, 'http://example.com/dataset1/resourcelist.xml')
         self.assertTrue( capl.has_capability('resourcedump') )
-        self.assertEqual( capl.capability('resourcedump').uri, 'http://example.com/dataset1/resourcedump.xml')
+        self.assertEqual( capl.capability_info('resourcedump').uri, 'http://example.com/dataset1/resourcedump.xml')
         self.assertTrue( capl.has_capability('changelist') )
-        self.assertEqual( capl.capability('changelist').uri, 'http://example.com/dataset1/changelist.xml')
+        self.assertEqual( capl.capability_info('changelist').uri, 'http://example.com/dataset1/changelist.xml')
         # Check some that aren't
         self.assertFalse( capl.has_capability() )
         self.assertFalse( capl.has_capability('bogus') )
