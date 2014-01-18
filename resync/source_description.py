@@ -12,7 +12,7 @@ The ResourceSync Description can only be based on the
 See: http://www.openarchives.org/rs/resourcesync#ResourceSyncDesc
 
 May also contain metadata and links like other ResourceSync
-document.
+documents.
 """
 
 import collections
