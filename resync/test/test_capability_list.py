@@ -26,6 +26,16 @@ class TestCapabilityList(unittest.TestCase):
         self.assertTrue( re.search( r'<loc>rl.xml</loc><rs:md capability="resourcelist" />', xml ) )
         self.assertTrue( re.search( r'<loc>cl.xml</loc><rs:md capability="changelist" />', xml) )
 
+    def test03_parse(self):
+        xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/"><rs:md capability="capabilitylist" from="2013-02-07T22:39:00" /><url><loc>http://example.org/resourcelist.xml</loc><rs:md capability="resourcelist" /></url></urlset>'
+        cl=CapabilityList()
+        cl.parse(str=xml)
+        self.assertEqual( cl.capability, 'capabilitylist')
+        self.assertEqual( len(cl.resources), 1, 'got 1 resource')
+        [r] = cl.resources
+        self.assertEqual( r.uri, 'http://example.org/resourcelist.xml', 'resourcelist uri')
+        self.assertEqual( r.capability, 'resourcelist')
+
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestCapabilityList)
     unittest.TextTestRunner().run(suite)

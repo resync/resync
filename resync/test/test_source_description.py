@@ -31,6 +31,18 @@ class TestSourceDescription(unittest.TestCase):
         self.assertEqual( len(rsd), 3 )
         self.assertEqual( rsd.as_xml(), '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/"><rs:ln href="http://example.org/about" rel="describedby" /><rs:md capability="description" /><url><loc>http://example.org/ds1/cl.xml</loc><rs:md capability="capabilitylist" /></url><url><loc>http://example.org/ds2/cl.xml</loc><rs:md capability="capabilitylist" /></url><url><loc>http://example.org/ds3/cl.xml</loc><rs:md capability="capabilitylist" /></url></urlset>' )
 
+    def test04_parse(self):
+        xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/"><rs:ln href="http://example.org/about" rel="describedby" /><rs:md capability="description" /><url><loc>http://example.org/ds1/cl.xml</loc><rs:md capability="capabilitylist" /></url><url><loc>http://example.org/ds2/cl.xml</loc><rs:md capability="capabilitylist" /></url><url><loc>http://example.org/ds3/cl.xml</loc><rs:md capability="capabilitylist" /></url></urlset>'
+        sd=SourceDescription()
+        sd.parse(str=xml)
+        self.assertEqual( sd.link_href('describedby'), 'http://example.org/about', 
+                          'describedby link' )
+        self.assertEqual( sd.capability, 'description' )
+        self.assertEqual( len(sd.resources), 3, 'got 3 capacility lists' )
+        [r1,r2,r3]=sd.resources
+        self.assertEqual( r1.uri, 'http://example.org/ds1/cl.xml' )
+        self.assertEqual( r1.capability, 'capabilitylist' )
+
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestSourceDescription)
     unittest.TextTestRunner().run(suite)
