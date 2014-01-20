@@ -154,7 +154,7 @@ class Sitemap(object):
                 raise SitemapIndexError("Got sitemapindex when expecting sitemap",etree)
             resource_tag = '{'+SITEMAP_NS+"}sitemap"
         else:
-            raise SitemapParseError("XML is not sitemap or sitemapindex")
+            raise SitemapParseError("XML is not sitemap or sitemapindex (root element is <%s>)" % root_tag)
         
         # have what we expect, read it
         in_preamble = True
