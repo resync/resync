@@ -255,23 +255,33 @@ class Sitemap(object):
          etree - the etree to parse
          resource_class - class of Resource object to create
 
-        The parsing is properly namespace aware but we search just for 
-        the elements wanted and leave everything else alone. Provided 
-        there is a <loc> element then we'll go ahead and extract as much 
-        as possible.
+        The parsing is properly namespace aware but we search just 
+        for the elements wanted and leave everything else alone. Will 
+        raise an error if there are multiple <loc> or multiple <lastmod>
+        elements. Otherwise, provided there is a <loc> element then will 
+        go ahead and extract as much as possible.
+
+        All errors raised are SitemapParseError with messages intended
+        to help debug problematic sitemap XML.
         """
-        loc = etree.findtext('{'+SITEMAP_NS+"}loc")
-        if (loc is None):
+        loc_elements = etree.findall('{'+SITEMAP_NS+"}loc")
+        if (len(loc_elements)>1):
+            raise SitemapParseError("Multiple <loc> elements while parsing <url> in sitemap");
+        elif (len(loc_elements)==0):
             raise SitemapParseError("Missing <loc> element while parsing <url> in sitemap")
-        ###FIXME - test for mutliple <loc> -> error
+        else:
+            loc = loc_elements[0].text
+        if (loc is None or loc==''):
+            raise SitemapParseError("Bad <loc> element with no content while parsing <url> in sitemap")
         # must at least have a URI, make this object
         resource=resource_class(uri=loc)
-        # and hopefully a lastmod datetime
-        lastmod = etree.findtext('{'+SITEMAP_NS+"}lastmod")
-        ###FIXME - test for multple <lastmod> -> error
-        if (lastmod is not None):
-            resource.lastmod=lastmod
-        # then proceed to look for other resource attributes in an rs:md element
+        # and hopefully a lastmod datetime (but none is OK)
+        lastmod_elements = etree.findall('{'+SITEMAP_NS+"}lastmod")
+        if (len(lastmod_elements)>1):
+            raise SitemapParseError("Multiple <lastmod> elements while parsing <url> in sitemap");
+        elif (len(lastmod_elements)==1):
+            resource.lastmod=lastmod_elements[0].text
+        # proceed to look for other resource attributes in an rs:md element
         md_elements = etree.findall('{'+RS_NS+"}md")
         if (len(md_elements)>1):
             raise SitemapParseError("Found multiple (%d) <rs:md> elements for %s", (len(md_elements),loc))
@@ -398,4 +408,3 @@ class Sitemap(object):
         specified in XML_ATT_NAME.
         """
         return XML_ATT_NAME.get(att,att)
-

@@ -94,22 +94,60 @@ class TestSitemap(unittest.TestCase):
         self.assertFalse( s.parsed_index, 'was a sitemap')
         self.assertEqual( s.resources_created, 2, 'got 2 resources')
 
-    def test_13_parse_illformed(self):
+    def test_12_parse_multi_loc(self):
+        xml_start='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<url>'
+        xml_end='<lastmod>2012-03-14T18:37:36Z</lastmod></url></urlset>'
+        s=Sitemap()
+        two_loc='<loc>/tmp/rs_test/src/file_a</loc><loc>/tmp/rs_test/src/file_b</loc>'
+        self.assertRaises( SitemapParseError, s.parse_xml, 
+                           StringIO.StringIO(xml_start+two_loc+xml_end))
+        mt_loc='<loc></loc>'
+        self.assertRaises( SitemapParseError, s.parse_xml, 
+                           StringIO.StringIO(xml_start+mt_loc+xml_end))
+        mt_loc_att='<loc att="value"/>'
+        self.assertRaises( SitemapParseError, s.parse_xml, 
+                           StringIO.StringIO(xml_start+mt_loc_att+xml_end))
+
+    def test_13_parse_multi_lastmod(self):
+        xml_start='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<url><loc>uri:a</loc>'
+        xml_end='</url></urlset>'
+        s=Sitemap()
+        two_lastmod='<lastmod>2013-01-01</lastmod><lastmod>2013-01-02</lastmod>'
+        self.assertRaises( SitemapParseError, s.parse_xml, 
+                           StringIO.StringIO(xml_start+two_lastmod+xml_end))
+        # While it not ideal to omit, <lastmod> is not required and
+        # thus either empty lastmod or lastmod with just an attribute
+        # and no content are not ambiguous and thus should be accepted
+        # with resulting None for resource.lastmod
+        mt_lastmod='<lastmod></lastmod>'
+        i=s.parse_xml(fh=StringIO.StringIO(xml_start+mt_lastmod+xml_end))
+        self.assertEqual( s.resources_created, 1 )
+        self.assertEqual( i.resources[0].lastmod, None )
+        mt_lastmod_att='<lastmod att="value"/>'
+        i=s.parse_xml(fh=StringIO.StringIO(xml_start+mt_lastmod_att+xml_end))
+        self.assertEqual( s.resources_created, 1 )
+        self.assertEqual( i.resources[0].lastmod, None )
+
+    def test_14_parse_illformed(self):
         s=Sitemap()
         # ExpatError in python2.6, ParserError in 2.7
         self.assertRaises( etree_error_class, s.parse_xml, StringIO.StringIO('not xml') )
         self.assertRaises( etree_error_class, s.parse_xml, StringIO.StringIO('<urlset><url>something</urlset>') )
 
-    def test_13_parse_valid_xml_but_other(self):
+    def test_15_parse_valid_xml_but_other(self):
         s=Sitemap()
         self.assertRaises( SitemapParseError, s.parse_xml, StringIO.StringIO('<urlset xmlns="http://example.org/other_namespace"> </urlset>') )
         self.assertRaises( SitemapParseError, s.parse_xml, StringIO.StringIO('<other xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> </other>') )
 
-    def test_14_parse_sitemapindex_as_sitemap(self):
+    def test_16_parse_sitemapindex_as_sitemap(self):
         s=Sitemap()
         self.assertRaises( SitemapIndexError, s.parse_xml, StringIO.StringIO('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> </sitemapindex>'), sitemapindex=False )
 
-    def test_15_parse_with_rs_ln_on_resource(self):
+    def test_17_parse_with_rs_ln_on_resource(self):
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
 <rs:md capability=\"resourcelist\"/>\
@@ -139,7 +177,7 @@ class TestSitemap(unittest.TestCase):
         self.assertEqual( r1.ln[0]['pri'], 1 )
         self.assertEqual( r2.uri, 'http://example.com/file_b' )
 
-    def test_16_parse_with_bad_rs_ln(self):
+    def test_18_parse_with_bad_rs_ln(self):
         xmlstart='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
 <rs:md capability="resourcelist"/>\
