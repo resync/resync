@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="describedby"
+         href="http://example.com/description.html"/>
+  <rs:md capability="description"
+         modified="2013-11-27"/>
+  <url>
+    <loc>caps1.xml</loc>
+    <rs:md capability="capabilitylist"/>
+  </url>
+  <url>
+    <loc>caps2.xml</loc>
+    <rs:md capability="capabilitylist"/>
+  </url>
+</urlset>

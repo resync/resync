@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="resourcesync"
+         href="../caps1.xml"/>
+  <rs:md capability="resourcelist"
+         modified="2013-01-03T15:00:00Z"/>
+  <url>
+      <loc>resource1</loc>
+      <lastmod>2013-05-28T17:23:34Z</lastmod>
+      <rs:md length="16"/>
+  </url>
+  <url>
+      <loc>resource2</loc>
+  </url>
+  <url>
+      <loc>resource3</loc>
+  </url>
+</urlset>

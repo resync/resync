@@ -142,11 +142,9 @@ class Explorer(Client):
                 list = s.parse_xml(urllib.urlopen(uri))
                 (options,capability)=self.explore_show_summary(list,s.parsed_index,caps,context=uri)
         except IOError as e:
-            print "Cannot read %s (%s)\nGoing back" % (uri,str(e))
-            return(None)
+            print "Cannot read %s (%s)" % (uri,str(e))
         except Exception as e:
-            print "Cannot parse %s (%s)\nGoing back" % (uri,str(e))
-            return(None)
+            print "Cannot parse %s (%s)" % (uri,str(e))
         #
         # Loop until we have some valide input
         #
@@ -208,7 +206,9 @@ class Explorer(Client):
             print "WARNING - expected a %s document" % (','.join(expected))
         if (capability not in ['description','descriptionoindex','capabilitylist',
                                'resourcelist','resourcelistindex','changelist','changelistindex',
-                               'resourcedump','resourcedumpindex','changedump','changedumpindex']):
+                               'resourcedump','resourcedumpindex','changedump','changedumpindex',
+                               'resourcelist-archive', 'resourcedump-archive',
+                               'changelist-archive', 'changedump-archive']):
             print "WARNING - unknown %s document type" % (capability)
         to_show = num_entries
         if (num_entries>21):
@@ -300,10 +300,13 @@ class Explorer(Client):
         entries are *.
         """
         index = re.match(r'(.+)index$',capability)
+        archive = re.match('r(.+)\-archive$',capability)
         if (capability == 'capabilitylistindex'):
             return([]) #not allowed so no valid references
         elif (index):
-            return(index.group[1])
+            return(index.group(0)) #name without index ending
+        elif (archive):
+            return(archive.group(0)) #name without -archive ending
         elif (capability == 'description'):
             return(['capabilitylist'])
         elif (capability == 'capabilitylist'):
