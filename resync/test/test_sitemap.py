@@ -132,22 +132,31 @@ class TestSitemap(unittest.TestCase):
         self.assertEqual( s.resources_created, 1 )
         self.assertEqual( i.resources[0].lastmod, None )
 
-    def test_14_parse_illformed(self):
+    def test_14_parse_multi(self):
+        xml_start='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">'
+        xml_end='<url><loc>uri:a</loc></url></urlset>'
+        s=Sitemap()
+        two_md='<rs:md capability="resourcelist"/><rs:md capability="resourcelist"/>'
+        self.assertRaises( SitemapParseError, s.parse_xml, 
+                           StringIO.StringIO(xml_start+two_md+xml_end))
+
+    def test_15_parse_illformed(self):
         s=Sitemap()
         # ExpatError in python2.6, ParserError in 2.7
         self.assertRaises( etree_error_class, s.parse_xml, StringIO.StringIO('not xml') )
         self.assertRaises( etree_error_class, s.parse_xml, StringIO.StringIO('<urlset><url>something</urlset>') )
 
-    def test_15_parse_valid_xml_but_other(self):
+    def test_16_parse_valid_xml_but_other(self):
         s=Sitemap()
         self.assertRaises( SitemapParseError, s.parse_xml, StringIO.StringIO('<urlset xmlns="http://example.org/other_namespace"> </urlset>') )
         self.assertRaises( SitemapParseError, s.parse_xml, StringIO.StringIO('<other xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> </other>') )
 
-    def test_16_parse_sitemapindex_as_sitemap(self):
+    def test_17_parse_sitemapindex_as_sitemap(self):
         s=Sitemap()
         self.assertRaises( SitemapIndexError, s.parse_xml, StringIO.StringIO('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> </sitemapindex>'), sitemapindex=False )
 
-    def test_17_parse_with_rs_ln_on_resource(self):
+    def test_18_parse_with_rs_ln_on_resource(self):
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
 <rs:md capability=\"resourcelist\"/>\
@@ -177,7 +186,7 @@ class TestSitemap(unittest.TestCase):
         self.assertEqual( r1.ln[0]['pri'], 1 )
         self.assertEqual( r2.uri, 'http://example.com/file_b' )
 
-    def test_18_parse_with_bad_rs_ln(self):
+    def test_19_parse_with_bad_rs_ln(self):
         xmlstart='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
 <rs:md capability="resourcelist"/>\

@@ -158,7 +158,8 @@ class Sitemap(object):
         
         # have what we expect, read it
         in_preamble = True
-        self.resources_created=0
+        self.resources_created = 0
+        seen_top_level_md = False
         for e in etree.getroot().getchildren():
             # look for <rs:md> and <rs:ln>, first <url> ends
             # then look for resources in <url> blocks
@@ -172,18 +173,20 @@ class Sitemap(object):
                 self.resources_created+=1
             elif (e.tag == "{"+RS_NS+"}md"):
                 if (in_preamble):
-                    # FIXME - more then one <rs:md> should be error
-                    resources.md = self.md_from_etree(e,'preamble')
+                    if (seen_top_level_md):
+                        raise SitemapParseError("Multiple <rs:md> at top level of sitemap")
+                    else:
+                        resources.md = self.md_from_etree(e,'preamble')
+                        seen_top_level_md = True
                 else:
                     raise SitemapParseError("Found <rs:md> after first <url> in sitemap")
             elif (e.tag == "{"+RS_NS+"}ln"):
                 if (in_preamble):
                     resources.ln.append(self.ln_from_etree(e,'preamble'))
                 else:
-                    raise SitemapParseError("Found <rs:md> after first <url> in sitemap")
+                    raise SitemapParseError("Found <rs:ln> after first <url> in sitemap")
             else:
                 # element we don't recognize, ignore
-                # FIXME - might add check for debug?
                 pass
         # check that we read to right capability document
         if (capability is not None):
