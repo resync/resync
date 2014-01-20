@@ -167,12 +167,11 @@ class Explorer(Client):
         checks = {}
         r = options[input]
         if ( r.capability is None ):
-            if (capability == 'capabilitylistindex'):
-                # all links should be to capabilitylist documents
-                caps = ['capabilitylist']
-            elif (capability in ['resourcelist','changelist',
-                                 'resourcedump','changedump']):
+            if (capability in ['resourcelist','changelist',
+                               'resourcedump','changedump']):
                 caps = 'resource'
+            else:
+                caps = self.allowed_entries(capability)
         else:
             caps = [r.capability]
         # Record anything we know about the resource to check
@@ -207,18 +206,15 @@ class Explorer(Client):
         print "Parsed %s document with %d entries:" % (capability,num_entries)
         if (expected is not None and capability not in expected):
             print "WARNING - expected a %s document" % (','.join(expected))
+        if (capability not in ['description','descriptionoindex','capabilitylist',
+                               'resourcelist','resourcelistindex','changelist','changelistindex',
+                               'resourcedump','resourcedumpindex','changedump','changedumpindex']):
+            print "WARNING - unknown %s document type" % (capability)
         to_show = num_entries
         if (num_entries>21):
             to_show = 20
-        # What entries are allowed? 
-        # FIXME - not complete
-        entry_caps = []
-        if (capability == 'capabilitylistindex'):
-            entry_caps = ['capabilitylist']
-        elif (capability == 'capabilitylist'):
-            entry_caps = ['resourcelist','changelist','resourcedump','changedump','changelistindex']
-        elif (capability == 'changelistindex'):
-            entry_caps = ['changelist']
+        # What capability entries are allowed/expected? 
+        entry_caps = self.allowed_entries(capability);
         options = {}
         n=0
         # Look for <rs:ln> elements in this document
@@ -296,3 +292,23 @@ class Explorer(Client):
             response.headers['last-modified']=datetime_to_str(os.path.getmtime(file))
             response.headers['content-length']=os.path.getsize(file)
         return(response)
+
+    def allowed_entries(self,capability):
+        """Given a current capability document, return list of allowed entries
+
+        Includes handling of capability = *index where the only acceptable 
+        entries are *.
+        """
+        index = re.match(r'(.+)index$',capability)
+        if (capability == 'capabilitylistindex'):
+            return([]) #not allowed so no valid references
+        elif (index):
+            return(index.group[1])
+        elif (capability == 'description'):
+            return(['capabilitylist'])
+        elif (capability == 'capabilitylist'):
+            return(['resourcelist', 'resourcedump',
+                    'changelist', 'changedump',
+                    'resourcelist-archive', 'resourcedump-archive',
+                    'changelist-archive', 'changedump-archive'])
+        return([])
