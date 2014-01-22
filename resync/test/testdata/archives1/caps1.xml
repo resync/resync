@@ -3,6 +3,8 @@
         xmlns:rs="http://www.openarchives.org/rs/terms/">
   <rs:ln rel="describedby"
          href="dataset1/info_about_source.html"/>
+  <rs:ln rel="up"
+         href="resourcesync"/>
   <rs:md capability="capabilitylist"
          modified="2013-11-27T14:00:00Z"/>
   <url>

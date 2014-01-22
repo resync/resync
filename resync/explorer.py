@@ -20,6 +20,7 @@ from resync.mapper import Mapper
 from resync.sitemap import Sitemap
 from resync.client import Client,ClientFatalError
 from resync.client_state import ClientState
+from resync.resource import Resource
 from w3c_datetime import str_to_datetime,datetime_to_str
 
 class XResource(object):
@@ -170,6 +171,8 @@ class Explorer(Client):
                 caps = 'resource'
             else:
                 caps = self.allowed_entries(capability)
+        elif (r.capability is 'resource'):
+            caps = r.capability
         else:
             caps = [r.capability]
         # Record anything we know about the resource to check
@@ -177,7 +180,9 @@ class Explorer(Client):
             checks['content-length']=r.length
         if (r.lastmod is not None):
             checks['last-modified']=r.lastmod
-        # FIXME - could do sanity check here and issue warnings if odd
+        if (r.mime_type is not None):
+            checks['content-type']=r.mime_type
+        # FIXME - could add fixity checks here too
         return( XResource(options[input].uri, caps, checks) )
 
     def explore_show_summary(self, list, index=False, expected=None, context=None):
@@ -193,7 +198,7 @@ class Explorer(Client):
         types. If this is set then a warning will be printed if list is not
         one of these document types.
 
-        FIXME - should look for <rs:ln rel="up"...> link and show that
+        Look for certain top-level link types including rel="up".
         """
         num_entries = len(list.resources)
         capability = '(unknown capability)'
@@ -218,15 +223,33 @@ class Explorer(Client):
         options = {}
         n=0
         # Look for <rs:ln> elements in this document
-        if ('resourcesync' in list.ln):
-            options['rs']=list.ln['resourcesync']
-            print "[%s] %s" % ('rs',list.ln['resourcesync'].uri)
-        if ('up' in list.ln):
-            options['up']=list.ln['up']
-            print "[%s] %s" % ('up',list.ln['up'].uri)
-        if ('db' in list.ln):
-            options['db']=list.ln['describedby']
-            print "[%s] %s" % ('db',list.ln['describedby'].uri)
+        ln_describedby = list.link('describedby')
+        if (ln_describedby):
+            if ('href' in ln_describedby):
+                uri = ln_describedby['href']
+                print "[%s] rel='describedby' link to %s" % ('d',uri)
+                uri = self.expand_relative_uri(context,uri)
+                options['d']=Resource(uri,capability='resource')
+            else:
+                print "WARNING - describedby link with no href, ignoring"
+        ln_up = list.link('up')
+        if (ln_up):
+            if ('href' in ln_up):
+                uri = ln_up['href']
+                print "[%s] rel='up' link to %s" % ('u',uri)
+                uri = self.expand_relative_uri(context,uri)
+                options['u']=Resource(uri)
+            else:
+                print "WARNING - up link with no href, ignoring"
+        ln_index = list.link('index')
+        if (ln_index):
+            if ('href' in ln_index):
+                uri = ln_index['href']
+                print "[%s] rel='index' link to %s" % ('i',uri)
+                uri = self.expand_relative_uri(context,uri)
+                options['i']=Resource(uri)
+            else:
+                print "WARNING - index link with no href, ignoring"
         # Show listed resources as numbered options
         for r in list.resources:
             if (n>=to_show):
@@ -237,10 +260,7 @@ class Explorer(Client):
             print "[%d] %s" % (n,r.uri)
             if (self.verbose):
                 print "  " + str(r)
-            full_uri = urlparse.urljoin(context,r.uri)
-            if (full_uri != r.uri):
-                print "  WARNING - expanded relative URI to %s" % (full_uri)
-                r.uri = full_uri
+            r.uri = self.expand_relative_uri(context,r.uri)
             if (r.capability is not None):
                 warning = ''
                 if (r.capability not in entry_caps):
@@ -315,3 +335,14 @@ class Explorer(Client):
                     'resourcelist-archive', 'resourcedump-archive',
                     'changelist-archive', 'changedump-archive'])
         return([])
+
+    def expand_relative_uri(self,context,uri):
+        """If uri is relative then expand in context
+        
+        Prints warning if expansion happens
+        """
+        full_uri = urlparse.urljoin(context,uri)
+        if (full_uri != uri):
+            print "  WARNING - expanded relative URI to %s" % (full_uri)
+            uri = full_uri
+        return(uri)

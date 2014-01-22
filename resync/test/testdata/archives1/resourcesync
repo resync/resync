@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:rs="http://www.openarchives.org/rs/terms/">
   <rs:ln rel="describedby"
-         href="http://example.com/description.html"/>
+         href="info_about_source.txt"/>
   <rs:md capability="description"
          modified="2013-11-27"/>
   <url>
