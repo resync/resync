@@ -31,24 +31,25 @@ class ChangeList(ListBaseWithIndex):
                                          capability_name='changelist',
                                          resources_class=resources_class)
 
-    # FIXME: Should probably be inline in add, rather than a class method
-    def maybeAdd(self, resource):
+    def add_if_changed(self, resource):
+        """Add resource if change is not None else ChangeTypeError"""
         if (resource.change is not None):
             self.resources.append(resource)    
         else:
             raise ChangeTypeError(resource.change)
 
     def add(self, resource):
-        """Add a resource change or an iterable collection of them to this ChangeList
+        """Add a resource change or an iterable collection of them to 
+        this ChangeList
       
-        Allows multiple resource_change objects for the same resource (ie. URI) and
-        preserves the order of addition.
+        Allows multiple resource_change objects for the same 
+        resource (ie. URI) and preserves the order of addition.
         """
         if isinstance(resource, collections.Iterable):
             for r in resource:
-                self.maybeAdd(r)
+                self.add_if_changed(r)
         else:
-            self.maybeAdd(resource)
+            self.add_if_changed(resource)
 
     def add_changed_resources(self, resources, change=None):
         """Add items from a ResourceContainer resources to this ChangeList
@@ -59,4 +60,3 @@ class ChangeList(ListBaseWithIndex):
         for resource in resources:
             rc = Resource( resource=resource, change=change )
             self.add(rc)
-
