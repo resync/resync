@@ -157,7 +157,6 @@ class Map:
     def src_to_dst(self,src_uri):
         """Return the dst filepath from the src URI
         
-        FIXME -- look at whether urlparse can be used here?
         Returns None on failure, destination path on success.
         """
         m=re.match(self.src_uri+"/(.*)$",src_uri)
