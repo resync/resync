@@ -1,7 +1,8 @@
 """A set of Resource objects used for Capability List
 Indexes and ResourceSync Description documents.
 
-FIXME - what should the ordering be?
+Ordinging is currently alphanumeric (using sorted(..)) on the
+uri which is the key. 
 """
 
 class ResourceSet(dict):
