@@ -3,7 +3,6 @@
 import re
 import sys
 import unittest
-import StringIO
 from resync.resource import Resource
 from resync.source_description import SourceDescription
 from resync.capability_list import CapabilityList
