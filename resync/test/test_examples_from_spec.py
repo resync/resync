@@ -11,6 +11,7 @@ from resync.resource_dump import ResourceDump
 from resync.resource_dump_manifest import ResourceDumpManifest
 from resync.change_list import ChangeList
 from resync.change_dump import ChangeDump
+from resync.change_dump_manifest import ChangeDumpManifest
 from resync.archives import ResourceListArchive,ResourceDumpArchive,ChangeListArchive,ChangeDumpArchive
 from resync.sitemap import Sitemap
 
@@ -481,6 +482,37 @@ class TestExamplesFromSpec(unittest.TestCase):
         ex_xml = self._open_ex('resourcesync_ex_22').read()
         self._assert_xml_equal( cd.as_xml(), ex_xml ) 
 
+    def test_build_ex_23(self):
+        cdm = ChangeDumpManifest()
+        cdm.up = "http://example.com/dataset1/capabilitylist.xml"
+        cdm.md_from = "2013-01-02T00:00:00Z"
+        cdm.md_until = "2013-01-03T00:00:00Z"
+        cdm.add( Resource(uri="http://example.com/res7.html",
+                          lastmod="2013-01-02T12:00:00Z",
+                          change="created",
+                          md5="1c1b0e264fa9b7e1e9aa6f9db8d6362b",
+                          length=4339,
+                          mime_type="text/html",
+                          path="/changes/res7.html") )
+        cdm.add( Resource(uri="http://example.com/res9.pdf",
+                          lastmod="2013-01-02T13:00:00Z",
+                          change="updated",
+                          md5="f906610c3d4aa745cb2b986f25b37c5a",
+                          length=38297,
+                          mime_type="application/pdf",
+                          path="/changes/res9.pdf") )
+        cdm.add( Resource(uri="http://example.com/res5.tiff",
+                          lastmod="2013-01-02T19:00:00Z",
+                          change="deleted") )
+        cdm.add( Resource(uri="http://example.com/res7.html",
+                          lastmod="2013-01-02T20:00:00Z",
+                          change="updated",
+                          md5="0988647082c8bc51778894a48ec3b576",
+                          length="5426", #should also take string
+                          mime_type="text/html",
+                          path="/changes/res7-v2.html") )
+        self._assert_xml_equal_ex( cdm.as_xml(), 'resourcesync_ex_23' )
+
     ##### Archives tests
 
     def test_build_archives_ex_3_1(self):
@@ -554,6 +586,11 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal( cda.as_xml(), ex_xml )
 
 ##### UTILITIES FOR (APPROX) COMPARISON OF XML IN EXAMPLES AND OUTPUT
+
+    def _assert_xml_equal_ex(self,xml,ex):
+        """Compare XML supplied with XML from example file ex"""
+        ex_xml = self._open_ex(ex).read()
+        self._assert_xml_equal( xml, ex_xml )
 
     def _assert_xml_equal(self,a,b):
         context = "Element mismatch in\n%s\nvs\n%s\n" % (a,b);
