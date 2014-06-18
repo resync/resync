@@ -61,19 +61,19 @@ class TestClient(unittest.TestCase):
         # document and identifies its type
         c = Client()
         with capture_stdout() as capturer:
-            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_2_1.xml'
+            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_1.xml'
             c.parse_document()
         self.assertTrue( re.search(r'Parsed resourcelist document with 2 entries',capturer.result) )
         with capture_stdout() as capturer:
-            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_9_1.xml'
+            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_17.xml'
             c.parse_document()
         self.assertTrue( re.search(r'Parsed resourcedump document with 3 entries',capturer.result) )
         with capture_stdout() as capturer:
-            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_10_1.xml'
+            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_19.xml'
             c.parse_document()
         self.assertTrue( re.search(r'Parsed changelist document with 4 entries',capturer.result) )
         with capture_stdout() as capturer:
-            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_11_1.xml'
+            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_22.xml'
             c.parse_document()
         self.assertTrue( re.search(r'Parsed changedump document with 3 entries',capturer.result) )
 
