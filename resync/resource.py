@@ -356,7 +356,7 @@ class Resource(object):
 
     @up.setter
     def up(self,uri):
-        """Set ResourceSync rel="up" link to given URI"""
+        """Set rel="up" link to given URI"""
         self.link_set('up',uri)
 
     @property
@@ -366,8 +366,21 @@ class Resource(object):
 
     @index.setter
     def index(self,uri):
-        """Set index link to given URI"""
+        """Set rel="index" link to given URI"""
         self.link_set('index',uri)
+
+    @property
+    def contents(self):
+        """Get the URI of and ResourceSync rel="contents" link"""
+        return(self.link_href('index'))
+
+    @contents.setter
+    def contents(self,uri,type='application/xml'):
+        """Set rel="contents" link to given URI
+
+        Will also set the type="application/xml" unless overridden
+        """
+        self.link_set('contents',uri,type=type)
 
     @property
     def basename(self):
