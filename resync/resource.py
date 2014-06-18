@@ -311,7 +311,7 @@ class Resource(object):
             link = link['href']
         return(link)
 
-    def link_set(self,rel,href,**atts):
+    def link_set(self,rel,href,allow_duplicates=False,**atts):
         """Set/create link with specified rel, set href and any other attributes
 
         Any link element must have both rel and href values, the specification
@@ -329,7 +329,7 @@ class Resource(object):
             link = None
         else:
             link = self.link(rel)
-        if (link is not None):
+        if (link is not None and not allow_duplicates):
             # overwrite current value
             link['href'] = href
         else:
@@ -338,6 +338,10 @@ class Resource(object):
             self.ln.append(link)
         for k in atts:
             link[k] = atts[k]
+
+    def link_add(self,rel,href,**atts):
+        """Create an link with specified rel even if one with that rel already exists"""
+        self.link_set(rel,href,allow_duplicates=True,**atts)
 
     @property
     def describedby(self):
