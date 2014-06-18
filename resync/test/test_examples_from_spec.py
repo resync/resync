@@ -513,6 +513,218 @@ class TestExamplesFromSpec(unittest.TestCase):
                           path="/changes/res7-v2.html") )
         self._assert_xml_equal_ex( cdm.as_xml(), 'resourcesync_ex_23' )
 
+    def test_build_ex_24(self):
+        cl = ChangeList()
+        cl.up = "http://example.com/dataset1/capabilitylist.xml"
+        cl.md_from = "2013-01-03T00:00:00Z"
+        c1 = Resource(uri="http://example.com/res1",
+                      lastmod="2013-01-03T18:00:00Z",
+                      change="updated",
+                      md5="1584abdf8ebdc9802ac0c6a7402c03b6",
+                      length=8876,
+                      mime_type="text/html")
+        # Resource.link_set with add or change link depending on one with 
+        # the particular rel exists unless allow_duplicates=True. 
+        # Resource.link_add will always add. Test both here...
+        c1.link_set(rel="duplicate",
+                    href="http://mirror1.example.com/res1",
+                    pri="1",
+                    modified="2013-01-03T18:00:00Z")
+        c1.link_set(rel="duplicate",
+                    href="http://mirror2.example.com/res1",
+                    pri="2",
+                    modified="2013-01-03T18:00:00Z",
+                    allow_duplicates=True)
+        c1.link_add(rel="duplicate",
+                    href="gsiftp://gridftp.example.com/res1",
+                    pri="3",
+                    modified="2013-01-03T18:00:00Z")
+        cl.add( c1 )
+        self._assert_xml_equal_ex( cl.as_xml(), 'resourcesync_ex_24' )
+
+    def test_build_ex_25(self):
+        cl = ChangeList()
+        cl.up = "http://example.com/dataset1/capabilitylist.xml"
+        cl.md_from = "2013-01-03T11:00:00Z"
+        c1 = Resource(uri="http://example.com/res1",
+                      lastmod="2013-01-03T18:00:00Z",
+                      change="updated")
+        c1.link_add(rel="alternate",
+                    href="http://example.com/res1.html",
+                    modified="2013-01-03T18:00:00Z",
+                    type="text/html") #FIXME - inconsistent
+        c1.link_add(rel="alternate",
+                    href="http://example.com/res1.pdf",
+                    modified="2013-01-03T18:00:00Z",
+                    type="application/pdf")
+        cl.add( c1 )
+        self._assert_xml_equal_ex( cl.as_xml(), 'resourcesync_ex_25' )
+
+    def test_build_ex_26(self):
+        cl = ChangeList()
+        cl.up = "http://example.com/dataset1/capabilitylist.xml"
+        cl.md_from = "2013-01-03T00:00:00Z"
+        c1 = Resource(uri="http://example.com/res1.html",
+                      lastmod="2013-01-03T18:00:00Z",
+                      change="updated",
+                      md5="1584abdf8ebdc9802ac0c6a7402c03b6",
+                      length=8876 )
+        c1.link_add(rel="canonical",
+                    href="http://example.com/res1",
+                    modified="2013-01-03T18:00:00Z")
+        cl.add( c1 )
+        self._assert_xml_equal_ex( cl.as_xml(), 'resourcesync_ex_26' )
+
+    def test_build_ex_27(self):
+        cl = ChangeList()
+        cl.up = "http://example.com/dataset1/capabilitylist.xml"
+        cl.md_from = "2013-01-03T00:00:00Z"
+        c1 = Resource(uri="http://example.com/res4",
+                      lastmod="2013-01-03T17:00:00Z",
+                      change="updated",
+                      sha256="f4OxZX_x_DFGFDgghgdfb6rtSx-iosjf6735432nklj",
+                      length=56778,
+                      mime_type="application/json" )
+        c1.link_set(rel="http://www.openarchives.org/rs/terms/patch",
+                    href="http://example.com/res4-json-patch",
+                    modified="2013-01-03T17:00:00Z",
+                    hash="sha-256:y66dER_t_HWEIKpesdkeb7rtSc-ippjf9823742opld", #FIXME - inconsistent
+                    length=73,
+                    type="application/json-patch")
+        c2 = Resource(uri="http://example.com/res5-full.tiff",
+                      lastmod="2013-01-03T18:00:00Z",
+                      change="updated",
+                      sha256="f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk",
+                      length="9788456778",
+                      mime_type="image/tiff")
+        c2.link_set(rel="http://www.openarchives.org/rs/terms/patch",
+                    href="http://example.com/res5-diff",
+                    modified="2013-01-03T18:00:00Z",
+                    hash="sha-256:h986gT_t_87HTkjHYE76G558hY-jdfgy76t55sadJUYT",
+                    length=4533,
+                    type="application/x-tiff-diff" )
+        cl.add( [c1,c2] )
+        self._assert_xml_equal_ex( cl.as_xml(), 'resourcesync_ex_27' )
+
+    def test_build_ex_28(self):
+        cl = ChangeList()
+        cl.up = "http://example.com/dataset1/capabilitylist.xml"
+        cl.md_from = "2013-01-03T00:00:00Z"
+        c1 = Resource(uri="http://example.com/res2.pdf",
+                      lastmod="2013-01-03T18:00:00Z",
+                      change="updated",
+                      md5="1584abdf8ebdc9802ac0c6a7402c03b6",
+                      length=8876,
+                      mime_type="application/pdf" )
+        c1.link_set(rel="describedby",
+                    href="http://example.com/res2_dublin-core_metadata.xml",
+                    modified="2013-01-01T12:00:00Z",
+                    type="application/xml")
+        c2 = Resource(uri="http://example.com/res2_dublin-core_metadata.xml",
+                      lastmod="2013-01-03T19:00:00Z",
+                      change="updated",
+                      mime_type="application/xml")
+        c2.link_set(rel="describes",
+                    href="http://example.com/res2.pdf",
+                    modified="2013-01-03T18:00:00Z",
+                    hash="md5:1584abdf8ebdc9802ac0c6a7402c03b6",
+                    length="8876",
+                    type="application/pdf")
+        c2.link_set(rel="profile",
+                    href="http://purl.org/dc/elements/1.1/")
+        cl.add( [c1,c2] )
+        self._assert_xml_equal_ex( cl.as_xml(), 'resourcesync_ex_28' )
+
+    def test_build_ex_29(self):
+        cl = ChangeList()
+        cl.up = "http://example.com/dataset1/capabilitylist.xml"
+        cl.md_from = "2013-01-03T00:00:00Z"
+        c1 = Resource(uri="http://example.com/res1",
+                      lastmod="2013-01-03T18:00:00Z",
+                      change="updated",
+                      md5="1584abdf8ebdc9802ac0c6a7402c03b6",
+                      length=8876,
+                      mime_type="text/html" )
+        c1.link_add(rel="memento",
+                    href="http://example.com/20130103070000/res1",
+                    modified="2013-01-02T18:00:00Z",
+                    hash="md5:1584abdf8ebdc9802ac0c6a7402c03b6",
+                    length="8876",
+                    type="text/html")
+        c1.link_add(rel="timegate",
+                    href="http://example.com/timegate/http://example.com/res1")
+        c1.link_add(rel="timemap",
+                    href="http://example.com/timemap/http://example.com/res1",
+                    type="application/link-format")
+        cl.add( c1 )
+        self._assert_xml_equal_ex( cl.as_xml(), 'resourcesync_ex_29' )
+
+    def test_build_ex_30(self):
+        cl = ChangeList()
+        cl.up = "http://example.com/dataset1/capabilitylist.xml"
+        cl.md_from = "2013-01-03T00:00:00Z"
+        c1 = Resource(uri="http://example.com/res1",
+                      lastmod="2013-01-03T07:00:00Z",
+                      change="updated",
+                      md5="1584abdf8ebdc9802ac0c6a7402c03b6",
+                      length=8876,
+                      mime_type="text/html" )
+        c1.link_add(rel="collection",
+                    href="http://example.com/aggregation/0601007")
+        cl.add( c1 )
+        self._assert_xml_equal_ex( cl.as_xml(), 'resourcesync_ex_30' )
+
+    def test_build_ex_31(self):
+        cl = ChangeList()
+        cl.up = "http://example.com/dataset1/capabilitylist.xml"
+        cl.md_from = "2013-01-03T00:00:00Z"
+        c1 = Resource(uri="http://original.example.com/res1.html",
+                      lastmod="2013-01-03T07:00:00Z",
+                      change="updated",
+                      md5="1584abdf8ebdc9802ac0c6a7402c03b6",
+                      length=8876,
+                      mime_type="text/html" )
+        cl.add( c1 )
+        self._assert_xml_equal_ex( cl.as_xml(), 'resourcesync_ex_31' )
+
+    def test_build_ex_32(self):
+        cl = ChangeList()
+        cl.up = "http://aggregator1.example.com/dataset1/capabilitylist.xml"
+        cl.md_from = "2013-01-03T11:00:00Z"
+        c1 = Resource(uri="http://aggregator1.example.com/res1.html",
+                      lastmod="2013-01-03T20:00:00Z",
+                      change="updated",
+                      md5="1584abdf8ebdc9802ac0c6a7402c03b6",
+                      length=8876,
+                      mime_type="text/html" )
+        c1.link_add(rel="via",
+                    href="http://original.example.com/res1.html",
+                    modified="2013-01-03T07:00:00Z",
+                    hash="md5:1584abdf8ebdc9802ac0c6a7402c03b6",
+                    length="8876",
+                    type="text/html")
+        cl.add( c1 )
+        self._assert_xml_equal_ex( cl.as_xml(), 'resourcesync_ex_32' )
+
+    def test_build_ex_33(self):
+        cl = ChangeList()
+        cl.up = "http://aggregator2.example.com/dataset1/capabilitylist.xml"
+        cl.md_from = "2013-01-03T12:00:00Z"
+        c1 = Resource(uri="http://aggregator2.example.com/res1.html",
+                      lastmod="2013-01-04T09:00:00Z",
+                      change="updated",
+                      md5="1584abdf8ebdc9802ac0c6a7402c03b6",
+                      length=8876,
+                      mime_type="text/html" )
+        c1.link_add(rel="via",
+                    href="http://original.example.com/res1.html",
+                    modified="2013-01-03T07:00:00Z",
+                    hash="md5:1584abdf8ebdc9802ac0c6a7402c03b6",
+                    length="8876",
+                    type="text/html")
+        cl.add( c1 )
+        self._assert_xml_equal_ex( cl.as_xml(), 'resourcesync_ex_33' )
+
     ##### Archives tests
 
     def test_build_archives_ex_3_1(self):
