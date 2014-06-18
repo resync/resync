@@ -1,18 +1,24 @@
-"""ResourceSync Description object
+"""ResourceSync Source Description object
 
-A ResourceSync Description enumerates the Capability Lists 
-offered by a Source. Since a Source has one Capability List
-per set of resources that it distinguishes, the 
-ResourceSync Description will enumerate as many Capability 
-Lists as the Source has distinct sets of resources.
+A ResourceSync Source Description enumerates the Capability 
+Lists offered by a Source. Since a Source has one Capability 
+List per set of resources that it distinguishes, the 
+ResourceSync Source Description will enumerate as many 
+Capability Lists as the Source has distinct sets of resources.
 
-The ResourceSync Description can only be based on the 
-<urlset> format. 
+The ResourceSync Source Description is based on the <urlset>
+format. The specification allows for a very large Source Descriptions
+to use and index based on a <sitemapindex>, though this is probably 
+rarely necessary!
 
-See: http://www.openarchives.org/rs/resourcesync#ResourceSyncDesc
+There is no meaning in the order of description of sets of resources 
+in a Source Description so the default is to store these descriptions
+as a set (ResourceSet).
 
 May also contain metadata and links like other ResourceSync
 documents.
+
+See: http://www.openarchives.org/rs/resourcesync#SourceDesc
 """
 
 import collections
@@ -27,7 +33,8 @@ class SourceDescription(ListBaseWithIndex):
     Will admit only one resource with any given URI.
 
     Storage is unordered but the iterator imposes a canonical order
-    which is currently alphabetical by URI.
+    which is currently alphabetical by URI. Pass in a resources object
+    to override.
     """
 
     def __init__(self, resources=None, md=None, ln=None):
@@ -59,7 +66,7 @@ class SourceDescription(ListBaseWithIndex):
             r = Resource( uri=capability_list.uri,
                           capability=capability_list.capability_name )
             if (capability_list.describedby is not None):
-                r.link_add( rel='describedby', href=capability_list.describedby )
+                r.link_set( rel='describedby', href=capability_list.describedby )
         else:
             r = Resource( uri=capability_list,
                           capability='capabilitylist')

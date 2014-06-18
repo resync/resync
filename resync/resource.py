@@ -304,27 +304,70 @@ class Resource(object):
                 return(link)
         return(None)
 
-    def link_add(self,**atts):
-        """Add a link (ln) with specified attributes
-        
-        Simply appends to the set of ln links associated with this 
-        object. In all cases the arguments should include rel and 
-        href values and an exception will be thrown if that is not 
-        the case. Other attributes are descibed in 
+    def link_href(self,rel):
+        """Look for link with specified rel, return href from it or None"""
+        link = self.link(rel)
+        if (link is not None):
+            link = link['href']
+        return(link)
+
+    def link_set(self,rel,href,**atts):
+        """Set/create link with specified rel, set href and any other attributes
+
+        Any link element must have both rel and href values, the specification
+        also defines the type attributes and others are permitted also. See 
+        description of allowed formats in
+
         http://www.openarchives.org/rs/resourcesync.html#DocumentFormats
 
         Be aware that adding links to a Resource object will 
         significantly increase the size of the object.
         """
-        # sanity check
-        if ('rel' not in atts or
-            'href' not in atts):
-            raise ValueError("Resource link must have at least rel and href attributes")
         if (self.ln is None):
             # automagically create a self.ln list
             self.ln = []
-        link = atts.copy()
-        self.ln.append(link)
+            link = None
+        else:
+            link = self.link(rel)
+        if (link is not None):
+            # overwrite current value
+            link['href'] = href
+        else:
+            # create new link
+            link = {'rel':rel,'href':href}
+            self.ln.append(link)
+        for k in atts:
+            link[k] = atts[k]
+
+    @property
+    def describedby(self):
+        """Convenient access to <rs:ln rel="describedby" href="uri">"""
+        return(self.link_href('describedby'))
+
+    @describedby.setter
+    def describedby(self,uri):
+        """Set ResourceSync Description link to given URI"""
+        self.link_set('describedby',uri)
+
+    @property
+    def up(self):
+        """Get the URI of any ResourceSync rel="up" link"""
+        return(self.link_href('up'))
+
+    @up.setter
+    def up(self,uri):
+        """Set ResourceSync rel="up" link to given URI"""
+        self.link_set('up',uri)
+
+    @property
+    def index(self):
+        """Get the URI of and ResourceSync rel="index" link"""
+        return(self.link_href('index'))
+
+    @index.setter
+    def index(self,uri):
+        """Set index link to given URI"""
+        self.link_set('index',uri)
 
     @property
     def basename(self):

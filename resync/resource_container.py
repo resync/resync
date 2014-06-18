@@ -44,6 +44,10 @@ class ResourceContainer(object):
         """
         return(iter(self.resources))
 
+    def __getitem__(self,index):
+        """Feed through for __getitem__ of resources property"""
+        return(self.resources[index])
+
     @property
     def capability(self):
         """Get/set the <rs:md capability="" .../> attribute"""
@@ -123,7 +127,10 @@ class ResourceContainer(object):
         """Set/create link with specified rel, set href and any other attributes
 
         Any link element must have both rel and href values, the specification
-        also defines the type attributes and others are permitted also
+        also defines the type attributes and others are permitted also. See 
+        description of allowed formats in
+
+        http://www.openarchives.org/rs/resourcesync.html#DocumentFormats
         """
         link = self.link(rel)
         if (link is not None):

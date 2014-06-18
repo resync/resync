@@ -115,7 +115,10 @@ class TestExamplesFromSpec(unittest.TestCase):
         sd=SourceDescription()
         sd.read(uri='resync/test/testdata/examples_from_spec/resourcesync_ex_7.xml')
         self.assertEqual( len(sd.resources), 1, '1 capability list' )
-        #FIXIME
+        cl=sd.resources[0]
+        self.assertEqual( cl.uri, 'http://example.com/dataset1/capabilitylist.xml' )
+        self.assertEqual( cl.capability, 'resourcelist' )
+        self.assertEqual( cl.describedby, 'http://example.com/info_about_set1_of_resources.xml' )
 
     def test_ex_8(self):
         """resourcesync_ex_8 is a simple Resource List Index with 2 Resource Lists"""
@@ -127,6 +130,21 @@ class TestExamplesFromSpec(unittest.TestCase):
         sms = sorted(rl.uris())
         self.assertEqual( sms, ['http://example.com/resourcelist-part1.xml',
                                 'http://example.com/resourcelist-part2.xml'] )
+
+    # Examples 9, 10, 11 in the spec are not XML documents
+
+    def test_ex_12(self):
+        """resourcesync_ex_12 is a Source Description that talks about 3 sets of resources"""
+        sd=SourceDescription()
+        sd.read(uri='resync/test/testdata/examples_from_spec/resourcesync_ex_12.xml')
+        self.assertEqual( len(sd), 3 )
+        self.assertEqual( sd.uris(), ['http://example.com/capabilitylist1.xml',
+                                      'http://example.com/capabilitylist2.xml',
+                                      'http://example.com/capabilitylist3.xml'] )
+        cl1=sd['http://example.com/capabilitylist1.xml']
+        self.assertEqual( cl1.capability, 'capabilitylist' )
+        self.assertEqual( cl1.describedby, 'http://example.com/info_about_set1_of_resources.xml')
+
 
 ##### BUILD EXAMPLES #####
 
@@ -149,7 +167,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         r2 =  Resource(uri='http://example.com/res2',
                        lastmod='2013-01-02T14:00:00Z',
                        md5='1e0d5cb8ef6ba40c99b14c0237be735e')
-        r2.link_add(rel="duplicate",href="http://mirror.example.com/res2")
+        r2.link_set(rel="duplicate",href="http://mirror.example.com/res2")
         rl.add( r2 )
         ex_xml = self._open_ex('resourcesync_ex_2').read()
         self._assert_xml_equal( rl.as_xml(), ex_xml )
@@ -209,7 +227,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         sd.describedby = 'http://example.com/info-about-source.xml'
         r = Resource( uri='http://example.com/dataset1/capabilitylist.xml',
                       capability='capabilitylist' )
-        r.link_add( rel='describedby',
+        r.link_set( rel='describedby',
                     href='http://example.com/info_about_set1_of_resources.xml' )
         sd.add( r )
         ex_xml = self._open_ex('resourcesync_ex_7').read()
@@ -231,7 +249,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         ex_xml = self._open_ex('resourcesync_ex_8').read()
         self._assert_xml_equal( rli.as_xml(), ex_xml )
 
-# Examples 9, 10, 11 in the spec are not XML documents
+    # Examples 9, 10, 11 in the spec are not XML documents
 
     def test_build_ex_12(self):
         """Source Description document with describedby links"""
@@ -326,7 +344,7 @@ class TestExamplesFromSpec(unittest.TestCase):
                        length=4765,
                        md_at="2013-01-03T09:00:00Z",
                        md_completed="2013-01-03T09:02:00Z" )
-        z1.link_add( rel="contents",
+        z1.link_set( rel="contents",
                      href="http://example.com/resourcedump_manifest-part1.xml",
                      mime_type="application/xml" )
         rd.add( z1 )
@@ -335,7 +353,7 @@ class TestExamplesFromSpec(unittest.TestCase):
                        length=9875,
                        md_at="2013-01-03T09:01:00Z",
                        md_completed="2013-01-03T09:03:00Z" )
-        z2.link_add( rel="contents",
+        z2.link_set( rel="contents",
                      href="http://example.com/resourcedump_manifest-part2.xml",
                      mime_type="application/xml" )
         rd.add( z2 )
@@ -344,7 +362,7 @@ class TestExamplesFromSpec(unittest.TestCase):
                        length=2298,
                        md_at="2013-01-03T09:03:00Z",
                        md_completed="2013-01-03T09:04:00Z" )
-        z3.link_add( rel="contents",
+        z3.link_set( rel="contents",
                      href="http://example.com/resourcedump_manifest-part3.xml",
                      mime_type="application/xml" )
         rd.add( z3 )
