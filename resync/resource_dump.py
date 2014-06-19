@@ -17,9 +17,19 @@ class ResourceDump(ResourceList):
     A Resource Dump comprises a set of content packages that are
     the resources listed. Properties similar to a ResourceList
     and implemented as a sub-class of ResourceList.
+
+    See the Dump class for details of how to create a Resource
+    Dump from a ResourceList.
     """
 
     def __init__(self, resources=None, md=None, ln=None, uri=None, allow_multifile=None, mapper=None):
         super(ResourceDump, self).__init__(resources=resources, md=md, ln=ln, uri=uri, 
                                            mapper=mapper)
         self.capability_name='resourcedump'
+
+    def write(self, basename="/tmp/resource_dump.xml", dumpfile=None):
+    	"""Write out a Resource Dump document and optionally also the actual dump files
+
+    	Dump files will be written if the dumpfile argument is set to a base filename.
+    	"""
+    	super(ResourceDump,self).write(basename)
