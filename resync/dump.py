@@ -18,30 +18,39 @@ class Dump(object):
        # ... add items by whatever means, may have >50k items and/or
        # >100MB total size of files ...
        d = Dump(rl)
-       d.write()
+       d.write(dumpfile="/tmp/rd")
     """
 
     def __init__(self, resources=None, format=None, compress=True):
         self.resources = resources
         self.format = ('zip' if (format is None) else format)
         self.compress = compress
+        self.manifest_class = ResourceDumpManifest #FIXME 
         self.max_size = 100*1024*1024 #100MB
         self.max_files = 50000
         self.path_prefix = None
         
-    def write(self, dumpfile=None):
-        """Write one or more dump files to complete this dump"""
+    def write(self, basename=None, write_separate_manifests=True):
+        """Write one or more dump files to complete this dump
+
+        Returns the number of dump/archive files written.
+        """
         self.check_files()
         n=0
         for manifest in self.partition_dumps():
+            dumpbase="%s%05d" % (basename,n)
+            dumpfile="%s.%s" % (dumpbase,self.format)
+            if (write_separate_manifests):
+                manifest.write(basename=dumpbase+'.xml')
             if (self.format == 'zip'):
-                self.write_zip(self.resources,dumpfile)
+                self.write_zip(manifest.resources,dumpfile)
             elif (self.format == 'warc'):
-                self.write_warc(self.resources,dumpfile)
+                self.write_warc(manifest.resources,dumpfile)
             else:
                 raise DumpError("Unknown dump format requested (%s)" % (self.format))
             n+=1
         print "Wrote %d dump files" % (n)
+        return(n)
 
     def write_zip(self, resources=None, dumpfile=None):
         """Write a ZIP format dump file"""
@@ -91,13 +100,11 @@ class Dump(object):
         longest common path that can be used when writing the dump file. Saved in 
         self.path_prefix.
 
-        Parameters set_length and check_lenght control control whether then set_length
+        Parameters set_length and check_length control control whether then set_length
         attribute should be set from the file size if not specified, and whether any 
         length specified should be checked. By default both are True. In any event, the
         total size calculated is the size of files on disk.
         """
-        if (len(self.resources) > self.max_files):
-            raise DumpError("Number of files to dump (%d) exceeds maximum (%d)" % (len(resources),self.max_files))
         total_size = 0 #total size of all files in bytes
         path_prefix = None
         for resource in self.resources:
@@ -115,25 +122,38 @@ class Dump(object):
                                     (resource.uri, size, resource.length) )
             elif (set_length):
                 resource.length = size
+            if (size > self.max_size):
+                raise DumpError("Size of file (%s, %d) exceeds maximum (%d) dump size" % (resource.path,size,self.max_size))
             total_size += size
         self.path_prefix = path_prefix
         self.total_size = total_size
         print "Total size of files to include in dump %d bytes" % (total_size)
-        if (total_size > self.max_size):
-            raise DumpError("Size of files to dump (%d) exceeds maximum (%d)" % (total_size,self.max_size))
         return True
 
     def partition_dumps(self):
-        """Return a set of manifest object that parition the dumps
+        """Yeild a set of manifest object that parition the dumps
+
+        Simply adds resources/files to a manifest until their are either the
+        the correct number of files or the size limit is exceeded, then yields
+        that manifest. 
         """
-        manifests=[]
-        if (self.total_size<=self.max_size and
-            self.total_files<=self.max_files):
-            # No need to partition into multiple files
-            pass #FIXME - fill in
-        else:
-            pass #FIXME - fill in 
-        return manifests
+        manifest=self.manifest_class()
+        manifest_size=0
+        manifest_files=0
+        for resource in self.resources:
+            manifest.add(resource)
+            manifest_size+=resource.length
+            manifest_files+=1
+            if (manifest_size>=self.max_size or
+                manifest_files>=self.max_files):
+                yield(manifest)
+                # Need to start a new manifest
+                manifest=self.manifest_class()
+                manifest_size=0
+                manifest_files=0
+        if (manifest_files>0):
+            yield(manifest)
+
 
     def archive_path(self,real_path):
         """Return the archive path for file with real_path
