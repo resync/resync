@@ -2,7 +2,7 @@
 resync
 ======
 
-.. image:: https://travis-ci.org/resync/resync.png?branch=1.0
+.. image:: https://travis-ci.org/resync/resync.png?branch=master
   :target: https://travis-ci.org/resync/resync
   :alt: Build status
 
