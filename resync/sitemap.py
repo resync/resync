@@ -56,7 +56,7 @@ class Sitemap(object):
     """
 
     def __init__(self, pretty_xml=False):
-        self.logger = logging.getLogger('sitemap')
+        self.logger = logging.getLogger('resync.sitemap')
         self.pretty_xml=pretty_xml
         # Classes used when parsing
         self.resource_class=Resource

@@ -45,7 +45,7 @@ class Client(object):
         self.checksum = checksum
         self.verbose = verbose
         self.dryrun = dryrun
-        self.logger = logging.getLogger('client')
+        self.logger = logging.getLogger('resync.client')
         self.mapper = Mapper()
         self.resource_list_name = 'resourcelist.xml'
         self.change_list_name = 'changelist.xml'

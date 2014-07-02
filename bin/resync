@@ -156,7 +156,7 @@ def main():
                    help="override default size limits")
     # Want these to show at the end
     opt.add_option('--verbose', '-v', action='store_true',
-                   help="verbose")
+                   help="verbose, show additional informational messages")
     opt.add_option('--logger', '-l', action='store_true',
                    help="create detailed log of client actions (will write "
                         "to %s unless specified with --logfile" %

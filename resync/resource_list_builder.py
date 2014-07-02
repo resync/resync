@@ -51,7 +51,7 @@ class ResourceListBuilder():
         self.exclude_dirs = ['CVS','.git']
         self.include_symlinks = False
         # Used internally only:
-        self.logger = logging.getLogger('resource_list_builder')
+        self.logger = logging.getLogger('resync.resource_list_builder')
         self.compiled_exclude_files = []
 
     def add_exclude_files(self, exclude_patterns):

@@ -18,8 +18,9 @@ class Dump(object):
        rl = ResourceList()
        # ... add items by whatever means, may have >50k items and/or
        # >100MB total size of files ...
-       d = Dump(rl)
-       d.write(dumpfile="/tmp/rd")
+       d = Dump()
+       d.write(resources=rl,basename="/tmp/rd_")
+       # will create dump files /tmp/rd_00001.zip etc.
     """
 
     def __init__(self, resources=None, format=None, compress=True):
@@ -30,7 +31,7 @@ class Dump(object):
         self.max_size = 100*1024*1024 #100MB
         self.max_files = 50000
         self.path_prefix = None
-        self.logger = logging.getLogger('dump')
+        self.logger = logging.getLogger('resync.dump')
         
     def write(self, basename=None, write_separate_manifests=True):
         """Write one or more dump files to complete this dump

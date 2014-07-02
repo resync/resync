@@ -11,7 +11,7 @@ class MapperError(Exception):
 class Mapper():
     
     def __init__(self, mappings=None, use_default_path=False):
-        self.logger = logging.getLogger('mapper')
+        self.logger = logging.getLogger('resync.mapper')
         self.mappings=[]
         if (mappings):
             self.parse(mappings, use_default_path)
@@ -39,7 +39,7 @@ class Mapper():
             len(mappings)==1 and
             re.search(r"=",mappings[0])==None):
             path = self.path_from_uri(mappings[0])
-            self.logger.info("Assuming mapping: %s -> %s" % (mappings[0],path))
+            self.logger.warning("Using URI mapping: %s -> %s" % (mappings[0],path))
             self.mappings.append(Map(mappings[0],path))
         elif (len(mappings)==2 and 
             re.search(r"=",mappings[0])==None and 
