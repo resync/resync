@@ -41,7 +41,7 @@ class ListBase(ResourceContainer):
         self.sitemapindex = False
         self.pretty_xml = False
         #
-        self.logger = logging.getLogger('list_base')
+        self.logger = logging.getLogger('resync.list_base')
         self.bytes_read = 0
         self.parsed_index = None
 

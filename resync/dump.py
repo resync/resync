@@ -1,5 +1,6 @@
 """Dump handler for ResourceSync"""
 
+import logging
 import os.path
 from zipfile import ZipFile, ZIP_STORED, ZIP_DEFLATED
 from resync.resource_dump_manifest import ResourceDumpManifest
@@ -17,8 +18,8 @@ class Dump(object):
        rl = ResourceList()
        # ... add items by whatever means, may have >50k items and/or
        # >100MB total size of files ...
-       d = Dump(rl)
-       d.write(dumpfile="/tmp/rd")
+       d.write(resources=rl,basename="/tmp/rd_")
+       # will create dump files /tmp/rd_00001.zip etc.
     """
 
     def __init__(self, resources=None, format=None, compress=True):
@@ -29,6 +30,7 @@ class Dump(object):
         self.max_size = 100*1024*1024 #100MB
         self.max_files = 50000
         self.path_prefix = None
+        self.logger = logging.getLogger('resync.dump')
         
     def write(self, basename=None, write_separate_manifests=True):
         """Write one or more dump files to complete this dump
@@ -49,11 +51,16 @@ class Dump(object):
             else:
                 raise DumpError("Unknown dump format requested (%s)" % (self.format))
             n+=1
-        print "Wrote %d dump files" % (n)
+        self.logger.info("Wrote %d dump files" % (n))
         return(n)
 
     def write_zip(self, resources=None, dumpfile=None):
-        """Write a ZIP format dump file"""
+        """Write a ZIP format dump file
+
+        Writes a ZIP file containing the resources in the iterable resources along with
+        a manifest file manifest.xml (written first). No checks on the size of files
+        or total size are performed, this is expected to have been done beforehand.
+        """
         compression = ( ZIP_DEFLATED if self.compress else ZIP_STORED )
         zf = ZipFile(dumpfile, mode="w", compression=compression, allowZip64=True)
         # Write resources first
@@ -69,10 +76,14 @@ class Dump(object):
             zf.write(real_path[resource.path], arcname=resource.path)
         zf.close()
         zipsize = os.path.getsize(dumpfile)
-        print "Wrote ZIP file dump %s with size %d bytes" % (dumpfile,zipsize)
+        self.logger.info("Wrote ZIP file dump %s with size %d bytes" % (dumpfile,zipsize))
         
     def write_warc(self, resources=None, dumpfile=None):
-        """Write a WARC dump file"""
+        """Write a WARC dump file
+
+        WARC support is not part of ResourceSync v1.0 (Z39.99 2014) but is left
+        in this library for experimentation.
+        """
         # Load library late as we want to be able to run rest of code 
         # without this installed
         try:
@@ -93,7 +104,7 @@ class Dump(object):
             wf.write_record( WARCRecord( header=wh, payload=resource.path ) )
         wf.close()
         warcsize = os.path.getsize(dumpfile)
-        print "Wrote WARC file dump %s with size %d bytes" % (dumpfile,warcsize)
+        self.logging.info("Wrote WARC file dump %s with size %d bytes" % (dumpfile,warcsize))
         
     def check_files(self,set_length=True,check_length=True):
         """Go though and check all files in self.resources, add up size, and find
@@ -127,7 +138,7 @@ class Dump(object):
             total_size += size
         self.path_prefix = path_prefix
         self.total_size = total_size
-        print "Total size of files to include in dump %d bytes" % (total_size)
+        self.logger.info("Total size of files to include in dump %d bytes" % (total_size))
         return True
 
     def partition_dumps(self):

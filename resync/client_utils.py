@@ -57,7 +57,7 @@ def init_logging(to_file=False, logfile=None, default_logfile='/tmp/resync.log',
         fh.setFormatter(formatter)
         fh.setLevel( logging.DEBUG if (eval_mode) else logging.INFO )
 
-    loggers = [default_logger,'resourcelist_builder','sitemap']
+    loggers = [default_logger,'resync']
     if (extra_loggers is not None):
         for logger in extra_loggers:
             loggers.append(logger)
