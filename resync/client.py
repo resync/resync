@@ -110,8 +110,11 @@ class Client(object):
         # 1. Build from disk
         rlb = ResourceListBuilder(set_md5=self.checksum,mapper=self.mapper)
         rlb.set_path=set_path
-        rlb.add_exclude_files(self.exclude_patterns)
-        rl = rlb.from_disk(paths=paths)
+        try:
+            rlb.add_exclude_files(self.exclude_patterns)
+            rl = rlb.from_disk(paths=paths)
+        except ValueError as e:
+            raise ClientFatalError(str(e))
         # 2. Set defaults and overrides
         rl.allow_multifile = self.allow_multifile
         rl.pretty_xml = self.pretty_xml

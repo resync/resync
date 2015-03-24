@@ -63,7 +63,10 @@ class ResourceListBuilder():
         """Compile a set of regexps for files to be exlcuded from scans"""
         self.compiled_exclude_files = []
         for pattern in self.exclude_files:
-            self.compiled_exclude_files.append(re.compile(pattern))
+            try:
+                self.compiled_exclude_files.append(re.compile(pattern))
+            except re.error as e:
+                raise ValueError("Bad python regex in exclude '%s': %s" % (pattern,str(e)))
 
     def exclude_file(self, file):
         """True if file should be exclude based on name pattern"""

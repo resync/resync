@@ -129,8 +129,9 @@ def main():
                    help="explicit datetime value used to filter updates in change list for "
                         "--incremental sync")
     opt.add_option('--exclude', type=str, action='append',
-                   help="exclude resources with URI or filename matching pattern "
-                        "(repeat option for multiple excludes)")
+                   help="exclude resources with URI or filename matching the python regex "
+                        "supplied (see: <https://docs.python.org/2/howto/regex.html> for regex "
+                        "information, repeat option for multiple excludes)")
     opt.add_option('--empty', action='store_true',
                    help="combine with --changelist to write and empty changelist, perhaps with links")
     opt.add_option('--multifile', '-m', action='store_true',
