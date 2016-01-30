@@ -23,7 +23,7 @@ class TestResourceListMultifile(unittest.TestCase):
 
     def test_01_read_local_filenames(self):
         rl = ResourceList()
-        rl.read('resync/test/testdata/sitemapindex2/sitemap.xml')
+        rl.read('tests/testdata/sitemapindex2/sitemap.xml')
         self.assertEqual( len(rl.resources), 17, '17 resources from 3 sitemaps listed')
         sr = sorted(rl.uris())
         self.assertEqual( sr[0], 'http://localhost:8888/resources/1' )
@@ -34,8 +34,8 @@ class TestResourceListMultifile(unittest.TestCase):
 
     def test_02_read_with_mapper(self):
         rl = ResourceList()
-        rl.mapper = Mapper(['http://localhost/=resync/test/testdata/sitemapindex2/'])
-        rl.read('resync/test/testdata/sitemapindex2/sitemap_mapper.xml')
+        rl.mapper = Mapper(['http://localhost/=tests/testdata/sitemapindex2/'])
+        rl.read('tests/testdata/sitemapindex2/sitemap_mapper.xml')
         self.assertEqual( len(rl.resources), 17, '17 resources from 3 sitemaps listed')
         sr = sorted(rl.uris())
         self.assertEqual( sr[0], 'http://localhost:8888/resources/1' )

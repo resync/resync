@@ -236,7 +236,7 @@ class TestSitemap(unittest.TestCase):
 
     def test_22_parse_sitemapindex_file(self):
         s=Sitemap()
-        fh=open('resync/test/testdata/sitemapindex1/sitemap.xml','r')
+        fh=open('tests/testdata/sitemapindex1/sitemap.xml','r')
         si = s.parse_xml( fh=fh, sitemapindex=True )
         self.assertTrue( s.parsed_index, 'was a sitemapindex')
         self.assertEqual( len(si.resources), 3, '3 sitemaps')
@@ -246,7 +246,7 @@ class TestSitemap(unittest.TestCase):
 
     def test_21_parse_multi_sitemapindex(self):
         s = Sitemap()
-        fh=open('resync/test/testdata/sitemapindex2/sitemap.xml','r')
+        fh=open('tests/testdata/sitemapindex2/sitemap.xml','r')
         si = s.parse_xml( fh=fh, sitemapindex=True )
         self.assertTrue( s.parsed_index, 'was a sitemapindex')
         self.assertEqual( len(si.resources), 3, '3 sitemaps listed')

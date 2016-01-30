@@ -21,7 +21,7 @@ class TestClientLinkOptions(unittest.TestCase):
 
     def test01_no_links(self):
         xml = run_resync(['--resourcelist',
-                          'http://example.org/t','resync/test/testdata/dir1'])
+                          'http://example.org/t','tests/testdata/dir1'])
         rl = ResourceList()
         rl.parse(fh=StringIO.StringIO(xml))
         self.assertEqual( len(rl), 2 )
@@ -32,7 +32,7 @@ class TestClientLinkOptions(unittest.TestCase):
                           '--describedby-link=a',
                           '--sourcedescription-link=b', #will be ignored
                           '--capabilitylist-link=c',
-                          'http://example.org/t','resync/test/testdata/dir1'])
+                          'http://example.org/t','tests/testdata/dir1'])
         rl = ResourceList()
         rl.parse(fh=StringIO.StringIO(xml))
         self.assertEqual( len(rl), 2 )

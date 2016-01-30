@@ -9,7 +9,7 @@ class TestUtill(unittest.TestCase):
 
     def test2_file(self):
         # Should be same as the string above
-        self.assertEqual( resync.utils.compute_md5_for_file('resync/test/testdata/a'),
+        self.assertEqual( resync.utils.compute_md5_for_file('tests/testdata/a'),
                           'j912liHgA/48DCHpkptJHg==')
 
 if __name__ == '__main__':
