@@ -4,7 +4,8 @@ import re
 import os
 import sys
 import logging
-from xml.etree.ElementTree import ElementTree, Element, parse, tostring
+from defusedxml.ElementTree import parse
+from xml.etree.ElementTree import ElementTree, Element, tostring
 import StringIO
 
 from resource import Resource

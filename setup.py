@@ -37,7 +37,8 @@ setup(
     url='http://github.com/resync/resync',
     install_requires=[
         "requests",
-        "python-dateutil>=1.5"
+        "python-dateutil>=1.5",
+        "defusedxml>=0.41"
     ],
     test_suite="resync.test",
 )

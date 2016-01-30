@@ -19,7 +19,7 @@ import re
 import time
 import logging
 from urllib import URLopener
-from xml.etree.ElementTree import parse
+from defusedxml.ElementTree import parse
 
 from resource import Resource
 from resource_list import ResourceList
