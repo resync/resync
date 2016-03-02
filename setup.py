@@ -38,7 +38,7 @@ setup(
     install_requires=[
         "requests",
         "python-dateutil>=1.5",
-        "defusedxml>=0.41"
+        "defusedxml>=0.4.1"
     ],
-    test_suite="resync.test",
+    test_suite="tests",
 )
