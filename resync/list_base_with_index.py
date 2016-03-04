@@ -11,14 +11,17 @@ from datetime import datetime
 import re
 import sys
 import itertools
-from urllib import URLopener
+try: #python3
+    from urllib.request import URLopener
+except ImportError: #python2
+    from urllib import URLopener
 
-from list_base import ListBase
-from resource import Resource
-from sitemap import Sitemap
-from mapper import Mapper, MapperError
-from url_authority import UrlAuthority
-from utils import compute_md5_for_file
+from .list_base import ListBase
+from .resource import Resource
+from .sitemap import Sitemap
+from .mapper import Mapper, MapperError
+from .url_authority import UrlAuthority
+from .utils import compute_md5_for_file
 
 class ListBaseIndexError(Exception):
     """Exception for problems with sitemapindexes"""
@@ -250,9 +253,9 @@ class ListBaseWithIndex(ListBase):
         """
         # Access resources through iterator only
         resources_iter = iter(self.resources)
-        ( chunk, next ) = self.get_resources_chunk(resources_iter)
+        ( chunk, nxt ) = self.get_resources_chunk(resources_iter)
         s = self.new_sitemap()
-        if (next is not None):
+        if (nxt is not None):
             # Have more than self.max_sitemap_entries => sitemapindex
             if (not self.allow_multifile):
                 raise ListBaseIndexError("Too many entries for a single sitemap but multifile disabled")
@@ -289,7 +292,7 @@ class ListBaseWithIndex(ListBase):
                               md5 = compute_md5_for_file(file) )
                 index.add(r)
                 # Get next chunk
-                ( chunk, next ) = self.get_resources_chunk(resources_iter,next)
+                ( chunk, nxt ) = self.get_resources_chunk(resources_iter,nxt)
             self.logger.info("Wrote %d sitemaps" % (len(index)))
             f = open(basename, 'w')
             self.logger.info("Writing sitemapindex %s..." % (basename))
@@ -335,10 +338,10 @@ class ListBaseWithIndex(ListBase):
                 break
         # Get next to see whether there are more resources
         try:
-            next = resource_iter.next()
+            nxt = next(resource_iter)
         except StopIteration:
-            next = None
-        return(chunk,next)
+            nxt = None
+        return(chunk,nxt)
 
     def part_name(self, basename='/tmp/sitemap.xml', part_number=0):
         """Name (file or URI) for one component sitemap

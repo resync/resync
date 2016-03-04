@@ -10,7 +10,7 @@ Described in specification at:
 http://www.openarchives.org/rs/resourcesync#ChangeDump
 """
 
-from resource_list import ResourceList
+from .resource_list import ResourceList
 
 class ChangeDump(ResourceList):
     """Class representing an Change Dump

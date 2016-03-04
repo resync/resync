@@ -1,7 +1,13 @@
 import unittest
 import re
 import logging
-import sys, StringIO, contextlib
+import sys, contextlib
+try: #python2
+    # Must try this first as io also exists in python2
+    # but in the wrong one!
+    import StringIO as io
+except ImportError: #python3
+    import io
 
 from resync.client import Client, ClientFatalError
 
@@ -12,7 +18,7 @@ class Data(object):
 @contextlib.contextmanager
 def capture_stdout():
     old = sys.stdout
-    capturer = StringIO.StringIO()
+    capturer = io.StringIO()
     sys.stdout = capturer
     data = Data()
     yield data

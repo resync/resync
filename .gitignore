@@ -2,6 +2,7 @@
 build
 dist
 MANIFEST
+.eggs
 # Testing
 .coverage
 htmlcov
@@ -18,5 +19,6 @@ resync.egg-info
 .DS_store
 *.pyc
 *~
+.cache
 rc
 re

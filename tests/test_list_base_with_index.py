@@ -1,6 +1,12 @@
 import sys
 import unittest
-import StringIO
+try: #python2
+    # Must try this first as io also exists in python2
+    # but in the wrong one!
+    import StringIO as io
+except ImportError: #python3
+    import io
+
 from resync.resource import Resource
 from resync.list_base_with_index import ListBaseWithIndex, ListBaseIndexError
 from resync.sitemap import Sitemap, SitemapIndexError
@@ -51,7 +57,7 @@ class TestListBaseWithIndex(unittest.TestCase):
 <url><loc>/tmp/rs_test/src/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length="32" /></url>\
 </urlset>'
         lb=ListBaseWithIndex()
-        lb.parse(fh=StringIO.StringIO(xml))
+        lb.parse(fh=io.StringIO(xml))
         self.assertEqual( len(lb.resources), 2, 'got 2 resources')
 
 if  __name__ == '__main__':

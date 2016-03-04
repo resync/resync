@@ -23,9 +23,9 @@ See: http://www.openarchives.org/rs/resourcesync#SourceDesc
 
 import collections
 
-from resource import Resource
-from resource_set import ResourceSet
-from list_base_with_index import ListBaseWithIndex
+from resync.resource import Resource
+from resync.resource_set import ResourceSet
+from resync.list_base_with_index import ListBaseWithIndex
 
 class SourceDescription(ListBaseWithIndex):
     """Class representing the set of Capability Lists supported

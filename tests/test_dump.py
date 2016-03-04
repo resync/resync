@@ -72,7 +72,7 @@ class TestDump(unittest.TestCase):
         
     def test03_dump_multi_file_max_size(self):
         rl=ResourceList()
-        for letter in map(chr,xrange(ord('a'),ord('l')+1)):
+        for letter in map(chr,range(ord('a'),ord('l')+1)):
             uri='http://ex.org/%s' % (letter)
             fname='tests/testdata/a_to_z/%s' % (letter)
             rl.add( Resource(uri, path=fname) )
@@ -118,7 +118,7 @@ class TestDump(unittest.TestCase):
 
     def test04_dump_multi_file_max_size(self):
         rl=ResourceList()
-        for letter in map(chr,xrange(ord('a'),ord('l')+1)):
+        for letter in map(chr,range(ord('a'),ord('l')+1)):
             uri='http://ex.org/%s' % (letter)
             fname='tests/testdata/a_to_z/%s' % (letter)
             rl.add( Resource(uri, path=fname) )

@@ -10,12 +10,20 @@ import os
 from datetime import datetime
 import re
 import sys
-import StringIO
+try: #python2
+    # Must try this first as io also exists in python2
+    # but in the wrong one!
+    import StringIO as io
+except ImportError: #python3
+    import io
 import logging
-from urllib import URLopener
+try: #python3
+    from urllib.request import URLopener
+except ImportError: #python2
+    from urllib import URLopener
 
-from resource_container import ResourceContainer
-from sitemap import Sitemap
+from .resource_container import ResourceContainer
+from .sitemap import Sitemap
 
 class ListBase(ResourceContainer):
     """Class that adds Sitemap based IO to ResourceContainer
@@ -88,7 +96,7 @@ class ListBase(ResourceContainer):
             except IOError as e:
                 raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,str(e)))
         elif (str is not None):
-            fh=StringIO.StringIO(str)
+            fh=io.StringIO(str)
         if (fh is None):
             raise Exception("Nothing to parse")
         s = self.new_sitemap()
@@ -113,7 +121,7 @@ class ListBase(ResourceContainer):
         Must be overridden to support multi-file lists.
         """
         self.default_capability()
-        fh = open(basename,'w')
+        fh = open(basename,'wb')
         s = self.new_sitemap()
         s.resources_as_xml(self,fh=fh,sitemapindex=self.sitemapindex)
         fh.close()

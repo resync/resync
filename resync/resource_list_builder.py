@@ -18,14 +18,17 @@ import os.path
 import re
 import time
 import logging
-from urllib import URLopener
+try: #python3
+    from urllib.request import URLopener
+except ImportError: #python2
+    from urllib import URLopener
 from defusedxml.ElementTree import parse
 
-from resource import Resource
-from resource_list import ResourceList
-from sitemap import Sitemap
-from utils import compute_md5_for_file
-from w3c_datetime import datetime_to_str
+from .resource import Resource
+from .resource_list import ResourceList
+from .sitemap import Sitemap
+from .utils import compute_md5_for_file
+from .w3c_datetime import datetime_to_str
 
 class ResourceListBuilder():
 

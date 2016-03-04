@@ -1,6 +1,12 @@
 import unittest
-import StringIO
+try: #python2
+    # Must try this first as io also exists in python2
+    # but in the wrong one!
+    import StringIO as io
+except ImportError: #python3
+    import io
 import re
+
 from resync.resource import Resource
 from resync.change_dump import ChangeDump
 from resync.sitemap import SitemapParseError
@@ -12,7 +18,7 @@ class TestChangeDump(unittest.TestCase):
         rd.add( Resource('a.zip',timestamp=1) )
         rd.add( Resource('b.zip',timestamp=2) )
         xml = rd.as_xml()
-        print xml
+        #print(xml)
         self.assertTrue( re.search(r'<rs:md .*capability="changedump"', xml), 'XML has capability' )
         self.assertTrue( re.search(r'<url><loc>a.zip</loc><lastmod>1970-01-01T00:00:01Z</lastmod></url>', xml), 'XML has resource a' ) 
 
@@ -24,7 +30,7 @@ class TestChangeDump(unittest.TestCase):
 <url><loc>http://example.com/b.zip</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length="56789" /></url>\
 </urlset>'
         rd=ChangeDump()
-        rd.parse(fh=StringIO.StringIO(xml))
+        rd.parse(fh=io.StringIO(xml))
         self.assertEqual( len(rd.resources), 2, 'got 2 resource dumps')
         self.assertEqual( rd.md['capability'], 'changedump', 'capability set' )
         self.assertEqual( rd.md_from, '2013-01-01' )
@@ -41,7 +47,7 @@ class TestChangeDump(unittest.TestCase):
 <url><loc>http://example.com/a.zip</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length="12" /></url>\
 </urlset>'
         rd=ChangeDump()
-        self.assertRaises( SitemapParseError, rd.parse, fh=StringIO.StringIO(xml) )
+        self.assertRaises( SitemapParseError, rd.parse, fh=io.StringIO(xml) )
 
     def test12_parse_bad_capability(self):
         # the <rs:md capability="bad_capability".. should give error
@@ -51,7 +57,7 @@ class TestChangeDump(unittest.TestCase):
 <url><loc>http://example.com/bad_res_1</loc><lastmod>2012-03-14T18:37:36Z</lastmod></url>\
 </urlset>'
         rd=ChangeDump()
-        self.assertRaises( SitemapParseError, rd.parse, fh=StringIO.StringIO(xml) )
+        self.assertRaises( SitemapParseError, rd.parse, fh=io.StringIO(xml) )
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestChangeDump)

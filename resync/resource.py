@@ -43,9 +43,13 @@ object that contains such information.
 """
 
 import re
-from urlparse import urlparse
+
+try: #python3
+    from urllib.parse import urlparse
+except: #python2
+    from urlparse import urlparse
 from posixpath import basename
-from w3c_datetime import str_to_datetime, datetime_to_str
+from .w3c_datetime import str_to_datetime, datetime_to_str
 
 
 class ChangeTypeError(Exception):
@@ -244,7 +248,8 @@ class Resource(object):
         """Provide access to the complete hash string
 
         The hash string may have zero or more hash values with
-        appropriate prefixes
+        appropriate prefixes. All hash values are assumed to be
+        strings
         """
         hashvals = []
         if (self.md5 is not None):

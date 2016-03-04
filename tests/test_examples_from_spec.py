@@ -812,8 +812,8 @@ class TestExamplesFromSpec(unittest.TestCase):
         ib=iter(bb)
         try:
             while (1):
-                self._assert_xml_elements_equal( self._xml_reorder_attributes(ia.next()), 
-                                                 self._xml_reorder_attributes(ib.next()), 
+                self._assert_xml_elements_equal( self._xml_reorder_attributes(next(ia)), 
+                                                 self._xml_reorder_attributes(next(ib)), 
                                                  context )
         except StopIteration:
             # all is good provided there were the same number of elements

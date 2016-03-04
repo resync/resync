@@ -33,8 +33,8 @@ class TestResourceContainer(unittest.TestCase):
         rc.prune_before(3)
         self.assertEqual( len(rc.resources), 2 )
         i = iter(rc)
-        self.assertEqual( i.next().uri, 'c' )
-        self.assertEqual( i.next().uri, 'd' )
+        self.assertEqual( next(i).uri, 'c' )
+        self.assertEqual( next(i).uri, 'd' )
         # put some more back out of order
         rc.resources.append( Resource('a',timestamp=1) )
         rc.resources.append( Resource('b',timestamp=2) )
@@ -42,8 +42,8 @@ class TestResourceContainer(unittest.TestCase):
         rc.prune_before(3.5)
         self.assertEqual( len(rc.resources), 2 )
         i = iter(rc)
-        self.assertEqual( i.next().uri, 'd' )
-        self.assertEqual( i.next().uri, 'e' )
+        self.assertEqual( next(i).uri, 'd' )
+        self.assertEqual( next(i).uri, 'e' )
 
     def test04_prune_dupes(self):
         rc = ResourceContainer()
@@ -60,13 +60,13 @@ class TestResourceContainer(unittest.TestCase):
         rc.prune_dupes()
         self.assertEqual( len(rc.resources), 3 )
         i = iter(rc)
-        i1 = i.next()
+        i1 = next(i)
         self.assertEqual( i1.uri, 'a' )
         self.assertEqual( i1.change, 'updated' )
-        i2 = i.next()
+        i2 = next(i)
         self.assertEqual( i2.uri, 'c' )
         self.assertEqual( i2.change, 'deleted' )
-        i3 = i.next()
+        i3 = next(i)
         self.assertEqual( i3.uri, 'd' )
         self.assertEqual( i3.change, 'created' )
 

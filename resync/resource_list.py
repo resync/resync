@@ -22,12 +22,15 @@ import os
 from datetime import datetime
 import re
 import sys
-from urllib import URLopener
+try: #python3
+    from urllib.request import URLopener
+except ImportError: #python2
+    from urllib import URLopener
 
-from list_base_with_index import ListBaseWithIndex
-from sitemap import Sitemap
-from mapper import Mapper, MapperError
-from url_authority import UrlAuthority
+from .list_base_with_index import ListBaseWithIndex
+from .sitemap import Sitemap
+from .mapper import Mapper, MapperError
+from .url_authority import UrlAuthority
 
 
 class ResourceListDict(dict):

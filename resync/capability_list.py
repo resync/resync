@@ -7,10 +7,10 @@ and links like other lists.
 
 import collections
 
-from resource import Resource
-from resource_set import ResourceSet
-from list_base import ListBase
-from sitemap import Sitemap
+from .resource import Resource
+from .resource_set import ResourceSet
+from .list_base import ListBase
+from .sitemap import Sitemap
 
 class CapabilitySet(ResourceSet):
     """Class for storage of resources in a Capability List
