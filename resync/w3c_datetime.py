@@ -32,6 +32,8 @@ def datetime_to_str(dt='now',no_fractions=False):
         dt = time.time()
     if (no_fractions):
         dt = int(dt)
+    else:
+        dt += 0.0000001 # improve rounding to microseconds
     return datetime.utcfromtimestamp(dt).isoformat() + 'Z'
 
 def str_to_datetime(s, context='datetime'):
