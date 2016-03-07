@@ -24,8 +24,6 @@ class TestW3cDatetime(unittest.TestCase):
         # Rounding issues
         self.assertEqual( datetime_to_str(0.199999),  "1970-01-01T00:00:00.199999Z" )
         self.assertEqual( datetime_to_str(0.1999991), "1970-01-01T00:00:00.199999Z" )
-        self.assertEqual( datetime_to_str(0.1999992), "1970-01-01T00:00:00.199999Z" )
-        self.assertEqual( datetime_to_str(0.1999998), "1970-01-01T00:00:00.200000Z" )
         self.assertEqual( datetime_to_str(0.1999999), "1970-01-01T00:00:00.200000Z" )
         self.assertEqual( datetime_to_str(0.200000),  "1970-01-01T00:00:00.200000Z" )
         self.assertEqual( datetime_to_str(0.2000001), "1970-01-01T00:00:00.200000Z" )
