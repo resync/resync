@@ -10,6 +10,7 @@ python:
 install:
   - pip install requests
   - pip install python-dateutil
+  - pip install coveralls pep257 restructuredtext_lint testfixtures
   - python setup.py install
 # command to run tests
 script:
