@@ -1,4 +1,4 @@
-"""Write and parse W3C datetime
+"""Write and parse W3C datetime.
 
 Each web resource is identified by a URI and may optionally have
 other metadata such as timestamp, size, md5. The lastmod property
@@ -14,7 +14,7 @@ from dateutil import parser as dateutil_parser
 import re
 
 def datetime_to_str(dt='now',no_fractions=False):
-    """The Last-Modified data in ISO8601 syntax, Z notation
+    """The Last-Modified data in ISO8601 syntax, Z notation.
 
     The lastmod is stored as unix timestamp which is already
     in UTC. At preesent this code will return 6 decimal digits
@@ -35,7 +35,7 @@ def datetime_to_str(dt='now',no_fractions=False):
     return datetime.utcfromtimestamp(dt).isoformat() + 'Z'
 
 def str_to_datetime(s, context='datetime'):
-    """Set timestamp from an W3C Datetime Last-Modified value
+    """Set timestamp from an W3C Datetime Last-Modified value.
 
     The sitemaps.org specification says that <lastmod> values
     must comply with the W3C Datetime format 
