@@ -2,6 +2,9 @@ language: python
 python:
   - "2.6"
   - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
 # command to install dependencies
 # need "python setup.py install" to install resync so that client tests work
 install:
@@ -9,4 +12,10 @@ install:
   - pip install python-dateutil
   - python setup.py install
 # command to run tests
-script: py.test
+script:
+  - py.test
+#  - pep257 *.py resync/*.py
+  - rst-lint README
+  - coverage run --source=resync setup.py test
+after_success:
+  - coveralls
