@@ -4,6 +4,7 @@ import tempfile
 import shutil
 import sys
 import zipfile
+
 from resync.dump import Dump, DumpError
 from resync.resource_list import ResourceList
 from resync.change_list import ChangeList
@@ -32,6 +33,12 @@ class TestDump(unittest.TestCase):
     @property
     def tmpdir(self):
         # read-only access to _tmpdir, just in case... The rmtree scares me
+        #
+        # FIXME - Hack to work on python2.6 where setUpClass is not called, will
+        # FIXME - not have proper tidy as tearDownClass will not be called.
+        # FIXME - Remove when 2.6 no longer supported
+        if (not self._tmpdir and sys.version_info < (2,7)):
+            self.setUpClass()
         return(self._tmpdir)
 
     def test00_dump_zip_resource_list(self):
