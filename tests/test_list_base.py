@@ -47,9 +47,18 @@ class TestListBase(unittest.TestCase):
 <url><loc>/tmp/rs_test/src/file_a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length="12" /></url>\
 <url><loc>/tmp/rs_test/src/file_b</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length="32" /></url>\
 </urlset>'
-        lb=ListBase()
-        lb.parse(fh=io.StringIO(xml))
-        self.assertEqual( len(lb.resources), 2, 'got 2 resources')
+        # parse from string
+        lb1=ListBase()
+        lb1.parse(str_data=xml)
+        self.assertEqual( len(lb1.resources), 2, 'got 2 resources')
+        # parse from fh
+        lb2=ListBase()
+        lb2.parse(fh=io.StringIO(xml))
+        self.assertEqual( len(lb2.resources), 2, 'got 2 resources')
+        # parse from string (LEGACY parameter name, to be removed)
+        lb3=ListBase()
+        lb3.parse(str=xml)
+        self.assertEqual( len(lb3.resources), 2, 'got 2 resources')
 
 if  __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestListBase)
