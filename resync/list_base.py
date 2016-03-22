@@ -86,7 +86,8 @@ class ListBase(ResourceContainer):
             try:
                 fh = URLopener().open(uri)
             except IOError as e:
-                raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,str(e)))
+                msg = __builtins__.str(e)
+                raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri, e))
         elif (str is not None):
             fh=StringIO.StringIO(str)
         if (fh is None):
