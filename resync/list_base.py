@@ -82,11 +82,11 @@ class ListBase(ResourceContainer):
         """
         self.parse(uri=uri)
 
-    def parse(self,uri=None,fh=None,str_data=None):
+    def parse(self,uri=None,fh=None,str=None):
         """Parse a single XML document for this list
 
         Accepts either a uri (uri or default if parameter not specified), 
-        or a filehandle (fh) or a string (str_data).
+        or a filehandle (fh) or a string (str).
 
         Does not handle the case of sitemapindex+sitemaps
         """
@@ -94,9 +94,10 @@ class ListBase(ResourceContainer):
             try:
                 fh = URLopener().open(uri)
             except IOError as e:
-                raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,str(e)))
-        elif (str_data is not None):
-            fh=StringIO.StringIO(str_data)
+                msg = __builtins__.str(e)
+                raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri, e))
+        elif (str is not None):
+            fh=StringIO.StringIO(str)
         if (fh is None):
             raise Exception("Nothing to parse")
         s = self.new_sitemap()
