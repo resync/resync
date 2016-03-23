@@ -6,6 +6,10 @@ resync
   :target: https://travis-ci.org/resync/resync
   :alt: Build status
 
+.. image:: https://coveralls.io/repos/github/resync/resync/badge.svg?branch=master 
+  :target: https://coveralls.io/github/resync/resync?branch=master
+  :alt: Test coverage
+
 **resync** is a ResourceSync client and library in python. `ResourceSync 
 <http://www.openarchives.org/rs/>`_ is a synchronization framework for 
 the web consisting of various capabilities that allow third party 
