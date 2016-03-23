@@ -2,9 +2,9 @@
 Updating resync on pypi
 =======================
 
-Notes to remind zimeon...
+Notes to remind @zimeon...
 
-resync is at https://pypi.python.org/pypi/resync
+resync is at <https://pypi.python.org/pypi/resync> on pypi
 
 Putting up a new version
 ------------------------

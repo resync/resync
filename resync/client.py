@@ -1,8 +1,12 @@
 """ResourceSync client implementation"""
 
 import sys
-import urllib
-import urlparse
+try: #python3
+    from urllib.request import urlopen, urlretrieve
+    from urllib.parse import urlparse, urlunparse
+except ImportError: #python2
+    from urllib import urlopen,urlretrieve
+    from urlparse import urlparse, urlunparse
 import os.path
 import datetime
 import distutils.dir_util 
@@ -11,20 +15,26 @@ import time
 import logging
 import requests
 
-from resync.resource_list_builder import ResourceListBuilder
-from resync.resource_list import ResourceList
-from resync.change_list import ChangeList
-from resync.capability_list import CapabilityList
-from resync.source_description import SourceDescription
-from resync.mapper import Mapper
-from resync.sitemap import Sitemap
-from resync.dump import Dump
-from resync.resource import Resource
-from resync.url_authority import UrlAuthority
-from resync.utils import compute_md5_for_file
-from resync.client_state import ClientState
-from resync.list_base_with_index import ListBaseIndexError
-from w3c_datetime import str_to_datetime,datetime_to_str
+from .resource_list_builder import ResourceListBuilder
+from .resource_list import ResourceList
+from .change_list import ChangeList
+from .capability_list import CapabilityList
+from .source_description import SourceDescription
+from .mapper import Mapper
+from .sitemap import Sitemap
+from .dump import Dump
+from .resource import Resource
+from .url_authority import UrlAuthority
+from .utils import compute_md5_for_file
+from .client_state import ClientState
+from .list_base_with_index import ListBaseIndexError
+from .w3c_datetime import str_to_datetime,datetime_to_str
+
+def url_or_file_open(uri):
+    """Wrapper around urlopen() to prepend file: if no scheme provided"""
+    if (not re.match(r'''\w+:''',uri)):
+        uri = 'file:'+uri
+    return(urlopen(uri))
 
 class ClientFatalError(Exception):
     """Non-recoverable error in client, should include message to user"""
@@ -110,8 +120,11 @@ class Client(object):
         # 1. Build from disk
         rlb = ResourceListBuilder(set_md5=self.checksum,mapper=self.mapper)
         rlb.set_path=set_path
-        rlb.add_exclude_files(self.exclude_patterns)
-        rl = rlb.from_disk(paths=paths)
+        try:
+            rlb.add_exclude_files(self.exclude_patterns)
+            rl = rlb.from_disk(paths=paths)
+        except ValueError as e:
+            raise ClientFatalError(str(e))
         # 2. Set defaults and overrides
         rl.allow_multifile = self.allow_multifile
         rl.pretty_xml = self.pretty_xml
@@ -203,7 +216,7 @@ class Client(object):
         self.logger.debug("Completed %s" % (action))
 
     def incremental(self, allow_deletion=False, change_list_uri=None, from_datetime=None):
-	"""Incremental synchronization
+        """Incremental synchronization
 
         Use Change List to do incremental sync
         """
@@ -349,7 +362,7 @@ class Client(object):
         else:
             # 1. GET
             try:
-                urllib.urlretrieve(resource.uri,file)
+                urlretrieve(resource.uri,file)
                 num_updated+=1
             except IOError as e:
                 msg = "Failed to GET %s -- %s" % (resource.uri,str(e))
@@ -418,14 +431,14 @@ class Client(object):
         s=Sitemap()
         self.logger.info("Reading sitemap(s) from %s ..." % (self.sitemap))
         try:
-            list = s.parse_xml(urllib.urlopen(self.sitemap))
+            list = s.parse_xml(url_or_file_open(self.sitemap))
         except IOError as e:
             raise ClientFatalError("Cannot read document (%s)" % str(e))
         num_entries = len(list.resources)
         capability = '(unknown capability)'
         if ('capability' in list.md):
             capability = list.md['capability']
-        print "Parsed %s document with %d entries" % (capability,num_entries)
+        print("Parsed %s document with %d entries" % (capability,num_entries))
         if (self.verbose):
             to_show = 100
             override_str = ' (override with --max-sitemap-entries)'
@@ -433,10 +446,10 @@ class Client(object):
                 to_show = self.max_sitemap_entries
                 override_str = ''
             if (num_entries>to_show):
-                print "Showing first %d entries sorted by URI%s..." % (to_show,override_str)
+                print("Showing first %d entries sorted by URI%s..." % (to_show,override_str))
             n=0
             for resource in list:
-                print '[%d] %s' % (n,str(resource))
+                print('[%d] %s' % (n,str(resource)))
                 n+=1
                 if ( n >= to_show ):
                     break
@@ -450,12 +463,12 @@ class Client(object):
         uri = None
         if (self.sitemap_name is not None):
             uri = self.sitemap
-            print "Taking location from --sitemap option"
+            print("Taking location from --sitemap option")
             acceptable_capabilities = None #ie. any
         elif (len(self.mapper)>0):
-            pu = urlparse.urlparse(self.mapper.default_src_uri())
-            uri = urlparse.urlunparse( [ pu[0], pu[1], '/.well-known/resourcesync', '', '', '' ] )
-            print "Will look for discovery information based on mappings"
+            pu = urlparse(self.mapper.default_src_uri())
+            uri = urlunparse( [ pu[0], pu[1], '/.well-known/resourcesync', '', '', '' ] )
+            print("Will look for discovery information based on mappings")
             acceptable_capabilities = [ 'capabilitylist', 'capabilitylistindex' ]
         else:
             raise ClientFatalError("Neither explicit sitemap nor mapping specified")
@@ -463,7 +476,7 @@ class Client(object):
         inp = None
         checks = None
         while (inp!='q'):
-            print
+            print()
             if (inp=='b'):
                 if (len(history)<2):
                     break #can't do this, exit
@@ -472,7 +485,7 @@ class Client(object):
                 acceptable_capabilities=None
             history.append(uri)
             (uri,checks,acceptable_capabilities,inp) = self.explore_uri(uri,checks,acceptable_capabilities,len(history)>1)
-        print "--explore done, bye..."
+        print("--explore done, bye...")
 
     def explore_uri(self, uri, checks, caps, show_back=True):
         """Interactive exploration of document at uri
@@ -480,20 +493,20 @@ class Client(object):
         Will flag warnings if the document is not of type listed in caps
         """
         s=Sitemap()
-        print "Reading %s" % (uri)
+        print("Reading %s" % (uri))
         options={}
         capability=None
         try:
             if (caps=='resource'):
                 self.explore_show_head(uri,check_headers=checks)
             else: 
-                list = s.parse_xml(urllib.urlopen(uri))
+                list = s.parse_xml(url_or_file_open(uri))
                 (options,capability)=self.explore_show_summary(list,s.parsed_index,caps)
         except IOError as e:
-            print "Cannot read %s (%s)\nGoing back" % (uri,str(e))
+            print("Cannot read %s (%s)\nGoing back" % (uri,str(e)))
             return('','','','b')
         except Exception as e:
-            print "Cannot parse %s (%s)\nGoing back" % (uri,str(e))
+            print("Cannot parse %s (%s)\nGoing back" % (uri,str(e)))
             return('','','','b')
         while (True):
             # don't offer number option for no resources/capabilities
@@ -534,9 +547,9 @@ class Client(object):
             capability = list.md['capability']
         if (parsed_index):
             capability += 'index'
-        print "Parsed %s document with %d entries:" % (capability,num_entries)
+        print("Parsed %s document with %d entries:" % (capability,num_entries))
         if (caps is not None and capability not in caps):
-            print "WARNING - expected a %s document" % (','.join(caps))
+            print("WARNING - expected a %s document" % (','.join(caps)))
         to_show = num_entries
         if (num_entries>21):
             to_show = 20
@@ -553,22 +566,22 @@ class Client(object):
         n=0
         if ('up' in list.ln):
             options['up']=list.ln['up']
-            print "[%s] %s" % ('up',list.ln['up'].uri)
+            print("[%s] %s" % ('up',list.ln['up'].uri))
         for r in list.resources:
             if (n>=to_show):
-                print "(not showing remaining %d entries)" % (num_entries-n)
+                print("(not showing remaining %d entries)" % (num_entries-n))
                 break
             n+=1
             options[str(n)]=r
-            print "[%d] %s" % (n,r.uri)
+            print("[%d] %s" % (n,r.uri))
             if (r.capability is not None):
                 warning = ''
                 if (r.capability not in entry_caps):
                     warning = " (EXPECTED %s)" % (' or '.join(entry_caps))
-                print "  %s%s" % (r.capability,warning)
+                print("  %s%s" % (r.capability,warning))
             elif (len(entry_caps)==1):
                 r.capability=entry_caps[0]
-                print "  capability not specified, should be %s" % (r.capability)
+                print("  capability not specified, should be %s" % (r.capability))
         return(options,capability)
 
     def explore_show_head(self,uri,check_headers=None):
@@ -577,9 +590,9 @@ class Client(object):
         Will also check headers against any values specified in 
         check_headers.
         """
-        print "HEAD %s" % (uri)
+        print("HEAD %s" % (uri))
         response = requests.head(uri)
-        print "  status: %s" % (response.status_code)
+        print("  status: %s" % (response.status_code))
         # generate normalized lastmod
 #        if ('last-modified' in response.headers):
 #            response.headers.add['lastmod'] = datetime_to_str(str_to_datetime(response.headers['last-modified']))
@@ -593,7 +606,7 @@ class Client(object):
                         check_str=' MATCHES EXPECTED VALUE'
                     else:
                         check_STR=' EXPECTED %s' % (check_headers[header])
-                print "  %s: %s%s" % (header, response.headers[header], check_str)
+                print("  %s: %s%s" % (header, response.headers[header], check_str))
 
     def write_resource_list(self,paths=None,outfile=None,links=None,dump=None):
         """Write a Resource List or a Resource Dump for files on local disk
@@ -617,7 +630,7 @@ class Client(object):
         else:
             if (outfile is None):
                 try:
-                    print rl.as_xml()
+                    print(rl.as_xml())
                 except ListBaseIndexError as e:
                     raise ClientFatalError("%s. Use --output option to specify base name for output files." % str(e))
             else:
@@ -654,7 +667,7 @@ class Client(object):
         if (self.max_sitemap_entries is not None):
             cl.max_sitemap_entries = self.max_sitemap_entries
         if (outfile is None):
-            print cl.as_xml()
+            print(cl.as_xml())
         else:
             cl.write(basename=outfile)
         self.write_dump_if_requested(cl,dump)
@@ -667,7 +680,7 @@ class Client(object):
             for name in capabilities.keys():
                 capl.add_capability(name=name, uri=capabilities[name])
         if (outfile is None):
-            print capl.as_xml()
+            print(capl.as_xml())
         else:
             capl.write(basename=outfile)
 
@@ -679,7 +692,7 @@ class Client(object):
             for uri in capability_lists:
                 rsd.add_capability_list(uri)
         if (outfile is None):
-            print rsd.as_xml()
+            print(rsd.as_xml())
         else:
             rsd.write(basename=outfile)
 
@@ -707,10 +720,10 @@ class Client(object):
                 to_show = self.max_sitemap_entries
                 override_str = ''
             if (num_entries>to_show):
-                print "Showing first %d entries sorted by URI%s..." % (to_show,override_str)
+                print("Showing first %d entries sorted by URI%s..." % (to_show,override_str))
             n=0
             for r in rl.resources:
-                print r
+                print(r)
                 n+=1
                 if ( n >= to_show ):
                     break

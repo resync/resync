@@ -6,7 +6,14 @@ core specification version. Versions 1.0.x implement the v1.0
 ResourceSync specification which was standardized as ANSI/NISO Z39.99-2014
 <http://www.openarchives.org/rs/1.0/toc>.
 
-v1.0.0 2014-06-XX
+v1.0.1 2016-03-22
+  * Work with Python 2 (2.6/2.7) and Python 3 (3.3/3.4/3.5)
+  * Improved test coverage
+  * Use defusedxml for safer XML parsing
+  * Changed parameter str to str_data in ListBase.parse(), str still supported
+    but deprecated. Issue pointed out by @uweschmitt
+
+v1.0.0 2014-06-18
   * Update for v1.0, Z39.99-2014 specification (http://www.openarchives.org/rs/1.0/)
   * Partial implementation of dump output (no read yet)
 

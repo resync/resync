@@ -18,7 +18,6 @@ class Dump(object):
        rl = ResourceList()
        # ... add items by whatever means, may have >50k items and/or
        # >100MB total size of files ...
-       d = Dump()
        d.write(resources=rl,basename="/tmp/rd_")
        # will create dump files /tmp/rd_00001.zip etc.
     """

@@ -10,12 +10,20 @@ import os
 from datetime import datetime
 import re
 import sys
-import StringIO
+try: #python2
+    # Must try this first as io also exists in python2
+    # but in the wrong one!
+    import StringIO as io
+except ImportError: #python3
+    import io
 import logging
-from urllib import URLopener
+try: #python3
+    from urllib.request import URLopener
+except ImportError: #python2
+    from urllib import URLopener
 
-from resource_container import ResourceContainer
-from sitemap import Sitemap
+from .resource_container import ResourceContainer
+from .sitemap import Sitemap
 
 class ListBase(ResourceContainer):
     """Class that adds Sitemap based IO to ResourceContainer
@@ -74,21 +82,29 @@ class ListBase(ResourceContainer):
         """
         self.parse(uri=uri)
 
-    def parse(self,uri=None,fh=None,str=None):
+    def parse(self,uri=None,fh=None,str_data=None,**kwargs):
         """Parse a single XML document for this list
 
         Accepts either a uri (uri or default if parameter not specified), 
-        or a filehandle (fh) or a string (str).
+        or a filehandle (fh) or a string (str_data). Note that this method
+        does not handle the case of a sitemapindex+sitemaps.
 
-        Does not handle the case of sitemapindex+sitemaps
+        LEGACY SUPPORT - the parameter str may be used in place of str_data
+        but is deprecated and will be removed in a later version.
         """
         if (uri is not None):
             try:
                 fh = URLopener().open(uri)
             except IOError as e:
                 raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,str(e)))
-        elif (str is not None):
-            fh=StringIO.StringIO(str)
+        elif (str_data is not None):
+            fh=io.StringIO(str_data)
+        elif ('str' in kwargs):
+            # Legacy support for str argument, see
+            # https://github.com/resync/resync/pull/21
+            # One test for this in tests/test_list_base.py
+            self.logger.warn("Legacy parse(str=...), use parse(str_data=...) instead")
+            fh = io.StringIO(kwargs['str'])
         if (fh is None):
             raise Exception("Nothing to parse")
         s = self.new_sitemap()
@@ -113,7 +129,7 @@ class ListBase(ResourceContainer):
         Must be overridden to support multi-file lists.
         """
         self.default_capability()
-        fh = open(basename,'w')
+        fh = open(basename,'wb')
         s = self.new_sitemap()
         s.resources_as_xml(self,fh=fh,sitemapindex=self.sitemapindex)
         fh.close()

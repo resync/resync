@@ -1,7 +1,13 @@
 import unittest
 import re
 import logging
-import sys, StringIO, contextlib
+import sys, contextlib
+try: #python2
+    # Must try this first as io also exists in python2
+    # but in the wrong one!
+    import StringIO as io
+except ImportError: #python3
+    import io
 
 from resync.client import Client, ClientFatalError
 
@@ -12,7 +18,7 @@ class Data(object):
 @contextlib.contextmanager
 def capture_stdout():
     old = sys.stdout
-    capturer = StringIO.StringIO()
+    capturer = io.StringIO()
     sys.stdout = capturer
     data = Data()
     yield data
@@ -61,25 +67,25 @@ class TestClient(unittest.TestCase):
         # document and identifies its type
         c = Client()
         with capture_stdout() as capturer:
-            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_1.xml'
+            c.sitemap_name='tests/testdata/examples_from_spec/resourcesync_ex_1.xml'
             c.parse_document()
         self.assertTrue( re.search(r'Parsed resourcelist document with 2 entries',capturer.result) )
         with capture_stdout() as capturer:
-            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_17.xml'
+            c.sitemap_name='tests/testdata/examples_from_spec/resourcesync_ex_17.xml'
             c.parse_document()
         self.assertTrue( re.search(r'Parsed resourcedump document with 3 entries',capturer.result) )
         with capture_stdout() as capturer:
-            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_19.xml'
+            c.sitemap_name='tests/testdata/examples_from_spec/resourcesync_ex_19.xml'
             c.parse_document()
         self.assertTrue( re.search(r'Parsed changelist document with 4 entries',capturer.result) )
         with capture_stdout() as capturer:
-            c.sitemap_name='resync/test/testdata/examples_from_spec/resourcesync_ex_22.xml'
+            c.sitemap_name='tests/testdata/examples_from_spec/resourcesync_ex_22.xml'
             c.parse_document()
         self.assertTrue( re.search(r'Parsed changedump document with 3 entries',capturer.result) )
 
     def test40_write_resource_list_mappings(self):
         c = Client()
-        c.set_mappings( ['http://example.org/','resync/test/testdata/'] )
+        c.set_mappings( ['http://example.org/','tests/testdata/'] )
         # with no explicit paths seting the mapping will be used
         with capture_stdout() as capturer:
             c.write_resource_list()
@@ -91,10 +97,10 @@ class TestClient(unittest.TestCase):
 
     def test41_write_resource_list_path(self):
         c = Client()
-        c.set_mappings( ['http://example.org/','resync/test/testdata/'] )
+        c.set_mappings( ['http://example.org/','tests/testdata/'] )
         # with an explicit paths setting only the specified paths will be included
         with capture_stdout() as capturer:
-            c.write_resource_list(paths='resync/test/testdata/dir1')
+            c.write_resource_list(paths='tests/testdata/dir1')
         sys.stderr.write(capturer.result)
         self.assertTrue( re.search(r'<rs:md at="\S+" capability="resourcelist"', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_a</loc>', capturer.result ) )

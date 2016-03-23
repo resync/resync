@@ -1,3 +1,4 @@
+"""Setup for ResurceSync library and client implementation."""
 from setuptools import setup
 # setuptools used instead of distutils.core so that 
 # dependencies can be handled automatically
@@ -37,7 +38,8 @@ setup(
     url='http://github.com/resync/resync',
     install_requires=[
         "requests",
-        "python-dateutil>=1.5"
+        "python-dateutil>=1.5",
+        "defusedxml>=0.4.1"
     ],
-    test_suite="resync.test",
+    test_suite="tests",
 )

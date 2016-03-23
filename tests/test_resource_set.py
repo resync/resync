@@ -21,10 +21,10 @@ class TestResourceSet(unittest.TestCase):
         rs.add( Resource('a3') )
         rs.add( Resource('a1') )
         i = iter(rs)
-        self.assertEqual( i.next().uri, 'a1' )
-        self.assertEqual( i.next().uri, 'a2' )
-        self.assertEqual( i.next().uri, 'a3' )
-        self.assertRaises( StopIteration, i.next )
+        self.assertEqual( next(i).uri, 'a1' )
+        self.assertEqual( next(i).uri, 'a2' )
+        self.assertEqual( next(i).uri, 'a3' )
+        self.assertRaises( StopIteration, next, i )
 
     def test03_dupe(self):
         rs = ResourceSet()

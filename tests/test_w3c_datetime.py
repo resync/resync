@@ -21,6 +21,14 @@ class TestW3cDatetime(unittest.TestCase):
         self.assertEqual( datetime_to_str(60*60*24*365), "1971-01-01T00:00:00Z" )
         #
         self.assertEqual( datetime_to_str(1234567890), "2009-02-13T23:31:30Z" )
+        # Rounding issues
+        self.assertEqual( datetime_to_str(0.199999),  "1970-01-01T00:00:00.199999Z" )
+        self.assertEqual( datetime_to_str(0.1999991), "1970-01-01T00:00:00.199999Z" )
+        self.assertEqual( datetime_to_str(0.1999999), "1970-01-01T00:00:00.200000Z" )
+        self.assertEqual( datetime_to_str(0.200000),  "1970-01-01T00:00:00.200000Z" )
+        self.assertEqual( datetime_to_str(0.2000001), "1970-01-01T00:00:00.200000Z" )
+        self.assertEqual( datetime_to_str(0.2000009), "1970-01-01T00:00:00.200001Z" )
+        self.assertEqual( datetime_to_str(0.200001),  "1970-01-01T00:00:00.200001Z" )
 
     def test2_str_to_datetime(self):
         """Reading..."""

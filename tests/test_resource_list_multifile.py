@@ -1,6 +1,5 @@
 import sys
 import unittest
-import StringIO
 import tempfile
 import os.path
 import shutil
@@ -23,7 +22,7 @@ class TestResourceListMultifile(unittest.TestCase):
 
     def test_01_read_local_filenames(self):
         rl = ResourceList()
-        rl.read('resync/test/testdata/sitemapindex2/sitemap.xml')
+        rl.read('tests/testdata/sitemapindex2/sitemap.xml')
         self.assertEqual( len(rl.resources), 17, '17 resources from 3 sitemaps listed')
         sr = sorted(rl.uris())
         self.assertEqual( sr[0], 'http://localhost:8888/resources/1' )
@@ -34,8 +33,8 @@ class TestResourceListMultifile(unittest.TestCase):
 
     def test_02_read_with_mapper(self):
         rl = ResourceList()
-        rl.mapper = Mapper(['http://localhost/=resync/test/testdata/sitemapindex2/'])
-        rl.read('resync/test/testdata/sitemapindex2/sitemap_mapper.xml')
+        rl.mapper = Mapper(['http://localhost/=tests/testdata/sitemapindex2/'])
+        rl.read('tests/testdata/sitemapindex2/sitemap_mapper.xml')
         self.assertEqual( len(rl.resources), 17, '17 resources from 3 sitemaps listed')
         sr = sorted(rl.uris())
         self.assertEqual( sr[0], 'http://localhost:8888/resources/1' )
@@ -66,14 +65,14 @@ class TestResourceListMultifile(unittest.TestCase):
         self.assertEquals( rl1.capability, 'resourcelist' )
         self.assertFalse( rl1.sitemapindex )
         i = iter(rl1)
-        self.assertEquals( i.next().uri, 'http://localhost/a' )
-        self.assertEquals( i.next().uri, 'http://localhost/b' )
+        self.assertEquals( next(i).uri, 'http://localhost/a' )
+        self.assertEquals( next(i).uri, 'http://localhost/b' )
         rl2 = ResourceList()
         rl2.read( os.path.join(tempdir,'sitemap00001.xml') )
         self.assertEquals( len(rl2), 2 )
         i = iter(rl2)
-        self.assertEquals( i.next().uri, 'http://localhost/c' )
-        self.assertEquals( i.next().uri, 'http://localhost/d' )
+        self.assertEquals( next(i).uri, 'http://localhost/c' )
+        self.assertEquals( next(i).uri, 'http://localhost/d' )
         # check the sitemapindex (read just as index)
         rli = ResourceList()
         rli.read( os.path.join(tempdir,'sitemap.xml'), index_only=True )
@@ -81,8 +80,8 @@ class TestResourceListMultifile(unittest.TestCase):
         i = iter(rli)
         self.assertEquals( rli.capability, 'resourcelist' )
         self.assertTrue( rli.sitemapindex )
-        self.assertEquals( i.next().uri, 'http://localhost/sitemap00000.xml' )
-        self.assertEquals( i.next().uri, 'http://localhost/sitemap00001.xml' )
+        self.assertEquals( next(i).uri, 'http://localhost/sitemap00000.xml' )
+        self.assertEquals( next(i).uri, 'http://localhost/sitemap00001.xml' )
         # check the sitemapindex and components
         rli = ResourceList( mapper=rl.mapper )
         rli.read( os.path.join(tempdir,'sitemap.xml') )
@@ -90,10 +89,10 @@ class TestResourceListMultifile(unittest.TestCase):
         self.assertEquals( rli.capability, 'resourcelist' )
         self.assertFalse( rli.sitemapindex )
         i = iter(rli)
-        self.assertEquals( i.next().uri, 'http://localhost/a' )
-        self.assertEquals( i.next().uri, 'http://localhost/b' )
-        self.assertEquals( i.next().uri, 'http://localhost/c' )
-        self.assertEquals( i.next().uri, 'http://localhost/d' )
+        self.assertEquals( next(i).uri, 'http://localhost/a' )
+        self.assertEquals( next(i).uri, 'http://localhost/b' )
+        self.assertEquals( next(i).uri, 'http://localhost/c' )
+        self.assertEquals( next(i).uri, 'http://localhost/d' )
         # cleanup tempdir
         shutil.rmtree(tempdir)
 

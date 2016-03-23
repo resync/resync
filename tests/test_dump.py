@@ -4,6 +4,7 @@ import tempfile
 import shutil
 import sys
 import zipfile
+
 from resync.dump import Dump, DumpError
 from resync.resource_list import ResourceList
 from resync.change_list import ChangeList
@@ -32,12 +33,18 @@ class TestDump(unittest.TestCase):
     @property
     def tmpdir(self):
         # read-only access to _tmpdir, just in case... The rmtree scares me
+        #
+        # FIXME - Hack to work on python2.6 where setUpClass is not called, will
+        # FIXME - not have proper tidy as tearDownClass will not be called.
+        # FIXME - Remove when 2.6 no longer supported
+        if (not self._tmpdir and sys.version_info < (2,7)):
+            self.setUpClass()
         return(self._tmpdir)
 
     def test00_dump_zip_resource_list(self):
         rl=ResourceDumpManifest()
-        rl.add( Resource('http://ex.org/a', length=7, path='resync/test/testdata/a') )
-        rl.add( Resource('http://ex.org/b', length=21, path='resync/test/testdata/b') )
+        rl.add( Resource('http://ex.org/a', length=7, path='tests/testdata/a') )
+        rl.add( Resource('http://ex.org/b', length=21, path='tests/testdata/b') )
         d=Dump()
         zipf=os.path.join(self.tmpdir,"test00_dump.zip")
         d.write_zip(resources=rl,dumpfile=zipf) # named args
@@ -50,8 +57,8 @@ class TestDump(unittest.TestCase):
 
     def test01_dump_zip_change_list(self):
         cl=ChangeDumpManifest()
-        cl.add( Resource('http://ex.org/a', length=7, path='resync/test/testdata/a', change="updated") )
-        cl.add( Resource('http://ex.org/b', length=21, path='resync/test/testdata/b', change="updated") )
+        cl.add( Resource('http://ex.org/a', length=7, path='tests/testdata/a', change="updated") )
+        cl.add( Resource('http://ex.org/b', length=21, path='tests/testdata/b', change="updated") )
         d=Dump()
         zipf=os.path.join(self.tmpdir,"test01_dump.zip")
         d.write_zip(cl,zipf) # positional args
@@ -64,17 +71,17 @@ class TestDump(unittest.TestCase):
 
     def test02_dump_check_files(self):
         cl=ChangeList()
-        cl.add( Resource('http://ex.org/a', length=7, path='resync/test/testdata/a', change="updated") )
-        cl.add( Resource('http://ex.org/b', length=21, path='resync/test/testdata/b', change="updated") )
+        cl.add( Resource('http://ex.org/a', length=7, path='tests/testdata/a', change="updated") )
+        cl.add( Resource('http://ex.org/b', length=21, path='tests/testdata/b', change="updated") )
         d=Dump(resources=cl)
         self.assertTrue(d.check_files())
         self.assertEqual(d.total_size, 28)
         
     def test03_dump_multi_file_max_size(self):
         rl=ResourceList()
-        for letter in map(chr,xrange(ord('a'),ord('l')+1)):
+        for letter in map(chr,range(ord('a'),ord('l')+1)):
             uri='http://ex.org/%s' % (letter)
-            fname='resync/test/testdata/a_to_z/%s' % (letter)
+            fname='tests/testdata/a_to_z/%s' % (letter)
             rl.add( Resource(uri, path=fname) )
         self.assertEqual( len(rl), 12 )
         #d=Dump(rl) 
@@ -118,9 +125,9 @@ class TestDump(unittest.TestCase):
 
     def test04_dump_multi_file_max_size(self):
         rl=ResourceList()
-        for letter in map(chr,xrange(ord('a'),ord('l')+1)):
+        for letter in map(chr,range(ord('a'),ord('l')+1)):
             uri='http://ex.org/%s' % (letter)
-            fname='resync/test/testdata/a_to_z/%s' % (letter)
+            fname='tests/testdata/a_to_z/%s' % (letter)
             rl.add( Resource(uri, path=fname) )
         self.assertEqual( len(rl), 12 )
         d2=Dump(rl) 
@@ -152,14 +159,28 @@ class TestDump(unittest.TestCase):
 
     def test10_no_path(self):
         rl=ResourceList()
-        rl.add( Resource('http://ex.org/a', length=7, path='resync/test/testdata/a') )
+        rl.add( Resource('http://ex.org/a', length=7, path='tests/testdata/a') )
         rl.add( Resource('http://ex.org/b', length=21 ) )
         d=Dump(rl)
         self.assertRaises( DumpError, d.check_files )
 
     def test11_bad_size(self):
         rl=ResourceList()
-        rl.add( Resource('http://ex.org/a', length=9999, path='resync/test/testdata/a') )
+        rl.add( Resource('http://ex.org/a', length=9999, path='tests/testdata/a') )
+        d=Dump(rl)
+        self.assertTrue( d.check_files(check_length=False) )
+        self.assertRaises( DumpError, d.check_files )
+
+    def test10_no_path(self):
+        rl=ResourceList()
+        rl.add( Resource('http://ex.org/a', length=7, path='tests/testdata/a') )
+        rl.add( Resource('http://ex.org/b', length=21 ) )
+        d=Dump(rl)
+        self.assertRaises( DumpError, d.check_files )
+
+    def test11_bad_size(self):
+        rl=ResourceList()
+        rl.add( Resource('http://ex.org/a', length=9999, path='tests/testdata/a') )
         d=Dump(rl)
         self.assertTrue( d.check_files(check_length=False) )
         self.assertRaises( DumpError, d.check_files )

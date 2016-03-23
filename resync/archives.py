@@ -9,11 +9,14 @@ Resource Dump Archive, and Change Dump Archive.
 """
 
 import collections
-from urllib import URLopener
+try: #python3
+    from urllib.request import URLopener
+except ImportError: #python2
+    from urllib import URLopener
 
-from list_base_with_index import ListBaseWithIndex
-from resource import Resource
-from sitemap import Sitemap
+from .list_base_with_index import ListBaseWithIndex
+from .resource import Resource
+from .sitemap import Sitemap
 
 class ResourceListArchive(ListBaseWithIndex):
     """Class representing an Change List Archive"""

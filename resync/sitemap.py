@@ -4,11 +4,17 @@ import re
 import os
 import sys
 import logging
-from xml.etree.ElementTree import ElementTree, Element, parse, tostring
-import StringIO
+from defusedxml.ElementTree import parse
+from xml.etree.ElementTree import ElementTree, Element, tostring
+try: #python2
+    # Must try this first as io also exists in python2
+    # but in the wrong one!
+    import StringIO as io
+except ImportError: #python3
+    import io
 
-from resource import Resource
-from resource_container import ResourceContainer
+from .resource import Resource
+from .resource_container import ResourceContainer
 
 SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9'
 RS_NS = 'http://www.openarchives.org/rs/terms/'
@@ -100,12 +106,14 @@ class Sitemap(object):
         tree = ElementTree(root);
         xml_buf=None
         if (fh is None):
-            xml_buf=StringIO.StringIO()
+            xml_buf=io.StringIO()
             fh=xml_buf
         if (sys.version_info < (2,7)):
             tree.write(fh,encoding='UTF-8')
-        else:
+        elif (sys.version_info < (3,0)):
             tree.write(fh,encoding='UTF-8',xml_declaration=True,method='xml')
+        else:
+            tree.write(fh,encoding="unicode",xml_declaration=True,method='xml')
         if (xml_buf is not None):
             return(xml_buf.getvalue())
 
@@ -240,16 +248,23 @@ class Sitemap(object):
             e.tail="\n"
         return(e)
 
-    def resource_as_xml(self,resource,indent=' '):
-        """Return string for the the resource as part of an XML sitemap
+    def resource_as_xml(self,resource):
+        """Return string for the resource as part of an XML sitemap
 
+        Returns a string with the XML snippet representing the resource,
+        without any XML declaration.
         """
         e = self.resource_etree_element(resource)
-        if (sys.version_info < (2,7)):
-            #must not specify method='xml' in python2.6
-            return(tostring(e, encoding='UTF-8'))
+        if (sys.version_info > (3,0)):
+            # python3.x
+            return(tostring(e, encoding='unicode', method='xml'))
+        elif (sys.version_info >= (2,7)):
+            s = tostring(e, encoding='UTF-8', method='xml')
         else:
-            return(tostring(e, encoding='UTF-8', method='xml'))
+            #must not specify method='xml' in python2.6
+            s = tostring(e, encoding='UTF-8')
+        # Chop off XML declaration that is added in 2.x... sigh
+        return(s.replace("<?xml version='1.0' encoding='UTF-8'?>\n",''))
 
     def resource_from_etree(self, etree, resource_class):
         """Construct a Resource from an etree

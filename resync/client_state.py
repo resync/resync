@@ -6,15 +6,16 @@ of the last change seen.
 """
 
 import sys
-import urllib
-import urlparse
 import os.path
 import datetime
 import distutils.dir_util 
 import re
 import time
 import logging
-import ConfigParser
+try: #python3
+    from configparser import ConfigParser
+except ImportError: #python2
+    import ConfigParser
 
 
 class ClientState(object):

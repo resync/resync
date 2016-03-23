@@ -11,7 +11,7 @@ only the data storage and manipulation, the ListBase class
 adds IO.
 """
 import collections
-from w3c_datetime import datetime_to_str
+from .w3c_datetime import datetime_to_str
 
 class ResourceContainer(object):
     """Class containing resource-like objects

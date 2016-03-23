@@ -1,6 +1,11 @@
 import sys
 import unittest
-import StringIO
+try: #python2
+    # Must try this first as io also exists in python2
+    # but in the wrong one!
+    import BytesIO as io
+except ImportError: #python3
+    import io
 
 sys.path.insert(0, '.')
 
@@ -21,9 +26,9 @@ class TestClientLinkOptions(unittest.TestCase):
 
     def test01_no_links(self):
         xml = run_resync(['--resourcelist',
-                          'http://example.org/t','resync/test/testdata/dir1'])
+                          'http://example.org/t','tests/testdata/dir1'])
         rl = ResourceList()
-        rl.parse(fh=StringIO.StringIO(xml))
+        rl.parse(fh=io.BytesIO(xml))
         self.assertEqual( len(rl), 2 )
         self.assertEqual( rl.link('describedby'), None )
 
@@ -32,9 +37,9 @@ class TestClientLinkOptions(unittest.TestCase):
                           '--describedby-link=a',
                           '--sourcedescription-link=b', #will be ignored
                           '--capabilitylist-link=c',
-                          'http://example.org/t','resync/test/testdata/dir1'])
+                          'http://example.org/t','tests/testdata/dir1'])
         rl = ResourceList()
-        rl.parse(fh=StringIO.StringIO(xml))
+        rl.parse(fh=io.BytesIO(xml))
         self.assertEqual( len(rl), 2 )
         self.assertNotEqual( rl.link('describedby'), None )
         self.assertEqual( rl.link('describedby')['href'], 'a' )
@@ -47,7 +52,7 @@ class TestClientLinkOptions(unittest.TestCase):
                           '--sourcedescription-link=b',
                           '--capabilitylist-link=c' ]) #will be ignored
         capl = CapabilityList()
-        capl.parse(fh=StringIO.StringIO(xml))
+        capl.parse(fh=io.BytesIO(xml))
         self.assertEqual( len(capl), 2 )
         self.assertNotEqual( capl.link('describedby'), None )
         self.assertEqual( capl.link('describedby')['href'], 'a' )

@@ -1,18 +1,20 @@
-"""
-util.py: A collection of common util functions used in source and/or client.
-
-"""
+"""util.py: A collection of common util functions used in source and/or client."""
 
 from logging import Formatter
 from datetime import datetime
 
 class UTCFormatter(Formatter):
-    # based on http://bit.ly/T2n3Xk
-    def formatTime(self, record, datefmt=None):
+    """Format datetime values as ISO8601 UTC Z form.
+
+    Based on http://bit.ly/T2n3Xk
+    """
+
+    def formatTime(self, record):
+        """Format datetime of record.created as ISO8601 UTC Z form."""
         timestamp = record.created
         return datetime.utcfromtimestamp(timestamp).isoformat() + 'Z'
 
-"""Compute digests for ResourceSync
+"""Compute digests for ResourceSync.
 
 These are all base64 encoded according to the rules of 
 http://www.ietf.org/rfc/rfc4648.txt
@@ -45,20 +47,26 @@ import base64
 import hashlib
 
 def compute_md5_for_string(string):
-    """Compute MD5 digest over some string payload"""
-    return base64.b64encode(hashlib.md5(string).digest())
+    """Compute MD5 digest over some string or byte payload.
+
+    Returns a string containing the digest.
+    """
+    if (type(string) != 'bytes'):
+        string = string.encode('utf-8') #make bytes
+    return base64.b64encode(hashlib.md5(string).digest()).decode('utf-8')
 
 def compute_md5_for_file(file, block_size=2**14):
-    """Compute MD5 digest for a file
+    """Compute MD5 digest for a file.
 
-    Optional block_size parameter controls memory used to do MD5 calculation.
-    This should be a multiple of 128 bytes.
+    Returns a string containing the digest. Optional block_size parameter
+    controls memory used to do MD5 calculation. This should be a multiple
+    of 128 bytes.
     """
-    f = open(file, 'r')
+    f = open(file, 'rb')
     md5 = hashlib.md5()
     while True:
         data = f.read(block_size)
         if not data:
             break
         md5.update(data)
-    return base64.b64encode(md5.digest())
+    return base64.b64encode(md5.digest()).decode('utf-8')

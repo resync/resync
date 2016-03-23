@@ -18,14 +18,17 @@ import os.path
 import re
 import time
 import logging
-from urllib import URLopener
-from xml.etree.ElementTree import parse
+try: #python3
+    from urllib.request import URLopener
+except ImportError: #python2
+    from urllib import URLopener
+from defusedxml.ElementTree import parse
 
-from resource import Resource
-from resource_list import ResourceList
-from sitemap import Sitemap
-from utils import compute_md5_for_file
-from w3c_datetime import datetime_to_str
+from .resource import Resource
+from .resource_list import ResourceList
+from .sitemap import Sitemap
+from .utils import compute_md5_for_file
+from .w3c_datetime import datetime_to_str
 
 class ResourceListBuilder():
 
@@ -63,7 +66,10 @@ class ResourceListBuilder():
         """Compile a set of regexps for files to be exlcuded from scans"""
         self.compiled_exclude_files = []
         for pattern in self.exclude_files:
-            self.compiled_exclude_files.append(re.compile(pattern))
+            try:
+                self.compiled_exclude_files.append(re.compile(pattern))
+            except re.error as e:
+                raise ValueError("Bad python regex in exclude '%s': %s" % (pattern,str(e)))
 
     def exclude_file(self, file):
         """True if file should be exclude based on name pattern"""

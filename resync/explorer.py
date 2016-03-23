@@ -7,7 +7,10 @@ look for and interpret capabilities.
 
 import sys
 import urllib
-import urlparse
+try: #python3
+    from urllib.parse import urlparse, urlunparse, urljoin
+except ImportError: #python2
+    from urlparse import urlparse, urlunparse, urljoin
 import os.path
 import datetime
 import distutils.dir_util 
@@ -16,12 +19,12 @@ import time
 import logging
 import requests
 
-from resync.mapper import Mapper
-from resync.sitemap import Sitemap
-from resync.client import Client,ClientFatalError
-from resync.client_state import ClientState
-from resync.resource import Resource
-from w3c_datetime import str_to_datetime,datetime_to_str
+from .mapper import Mapper
+from .sitemap import Sitemap
+from .client import Client,ClientFatalError
+from .client_state import ClientState
+from .resource import Resource
+from .w3c_datetime import str_to_datetime,datetime_to_str
 
 class XResource(object):
     """Information about a resource for the explorer
@@ -36,7 +39,7 @@ class XResource(object):
         context of base_uri, store the resulting full URI
     """
     def __init__(self, uri, acceptable_capabilities=None, checks=None, context=None):
-        self.uri=urlparse.urljoin(context,uri)
+        self.uri=urljoin(context,uri)
         self.acceptable_capabilities=acceptable_capabilities
         self.checks=checks
 
@@ -69,15 +72,15 @@ class Explorer(Client):
         # capabilities
         starts = []
         if (self.sitemap_name is not None):
-            print "Starting from explicit --sitemap %s" % (uri)
+            print("Starting from explicit --sitemap %s" % (uri))
             starts.append( XResource(uri) )
         elif (len(self.mapper)>0):
             uri = self.mapper.default_src_uri()
-            (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(uri)
+            (scheme, netloc, path, params, query, fragment) = urlparse(uri)
             if (not scheme and not netloc):
                 if (os.path.isdir(path)):
                     # have a dir, look for 'likely' file names
-                    print "Looking for capability documents in local directory %s" % (path)
+                    print("Looking for capability documents in local directory %s" % (path))
                     for name in ['resourcesync','capabilities.xml',
                                  'resourcelist.xml','changelist.xml']:
                         file = os.path.join(path,name)
@@ -88,20 +91,20 @@ class Explorer(Client):
                                                 (path) )
                 else:
                     # local file, might be anything (or not exist)
-                    print "Starting from local file %s" % (path)
+                    print("Starting from local file %s" % (path))
                     starts.append( XResource(path) )
             else:
                 # remote, can't tell whether we have a sitemap or a server name or something 
                 # else, build list of options depending on whether there is a path and whether
                 # there is an extension/name
-                well_known = urlparse.urlunparse( [ scheme,netloc,'/.well-known/resourcesync','','','' ] )
+                well_known = urlunparse( [ scheme,netloc,'/.well-known/resourcesync','','','' ] )
                 if (not path):
                     # root, just look for .well-known
                     starts.append( XResource(well_known, ['capabilitylist','capabilitylistindex']) )
                 else:
                     starts.append( XResource(uri) )
                     starts.append( XResource(well_known, ['capabilitylist','capabilitylistindex']) )
-                print "Looking for discovery information based on mappings"
+                print("Looking for discovery information based on mappings")
         else:
             raise ClientFatalError("No source information (server base uri or capability uri) specified, use -h for help")
         # 
@@ -121,7 +124,7 @@ class Explorer(Client):
                         history.append( new_xr )
         except ExplorerQuit:
             pass # expected way to exit
-        print "\nresync-explorer done, bye...\n"
+        print("\nresync-explorer done, bye...\n")
 
     def explore_uri(self, explorer_resource, show_back=True):
         """INTERACTIVE exploration of capabilities document(s) starting at a given URI
@@ -131,7 +134,7 @@ class Explorer(Client):
         uri = explorer_resource.uri
         caps = explorer_resource.acceptable_capabilities
         checks = explorer_resource.checks
-        print "Reading %s" % (uri)
+        print("Reading %s" % (uri))
         options={}
         capability=None
         try:
@@ -143,9 +146,9 @@ class Explorer(Client):
                 list = s.parse_xml(urllib.urlopen(uri))
                 (options,capability)=self.explore_show_summary(list,s.parsed_index,caps,context=uri)
         except IOError as e:
-            print "Cannot read %s (%s)" % (uri,str(e))
+            print("Cannot read %s (%s)" % (uri,str(e)))
         except Exception as e:
-            print "Cannot parse %s (%s)" % (uri,str(e))
+            print("Cannot parse %s (%s)" % (uri,str(e)))
         #
         # Loop until we have some valide input
         #
@@ -206,15 +209,15 @@ class Explorer(Client):
             capability = list.md['capability']
         if (index):
             capability += 'index'
-        print "Parsed %s document with %d entries:" % (capability,num_entries)
+        print("Parsed %s document with %d entries:" % (capability,num_entries))
         if (expected is not None and capability not in expected):
-            print "WARNING - expected a %s document" % (','.join(expected))
+            print("WARNING - expected a %s document" % (','.join(expected)))
         if (capability not in ['description','descriptionoindex','capabilitylist',
                                'resourcelist','resourcelistindex','changelist','changelistindex',
                                'resourcedump','resourcedumpindex','changedump','changedumpindex',
                                'resourcelist-archive', 'resourcedump-archive',
                                'changelist-archive', 'changedump-archive']):
-            print "WARNING - unknown %s document type" % (capability)
+            print("WARNING - unknown %s document type" % (capability))
         to_show = num_entries
         if (num_entries>21):
             to_show = 20
@@ -227,48 +230,48 @@ class Explorer(Client):
         if (ln_describedby):
             if ('href' in ln_describedby):
                 uri = ln_describedby['href']
-                print "[%s] rel='describedby' link to %s" % ('d',uri)
+                print("[%s] rel='describedby' link to %s" % ('d',uri))
                 uri = self.expand_relative_uri(context,uri)
                 options['d']=Resource(uri,capability='resource')
             else:
-                print "WARNING - describedby link with no href, ignoring"
+                print("WARNING - describedby link with no href, ignoring")
         ln_up = list.link('up')
         if (ln_up):
             if ('href' in ln_up):
                 uri = ln_up['href']
-                print "[%s] rel='up' link to %s" % ('u',uri)
+                print("[%s] rel='up' link to %s" % ('u',uri))
                 uri = self.expand_relative_uri(context,uri)
                 options['u']=Resource(uri)
             else:
-                print "WARNING - up link with no href, ignoring"
+                print("WARNING - up link with no href, ignoring")
         ln_index = list.link('index')
         if (ln_index):
             if ('href' in ln_index):
                 uri = ln_index['href']
-                print "[%s] rel='index' link to %s" % ('i',uri)
+                print("[%s] rel='index' link to %s" % ('i',uri))
                 uri = self.expand_relative_uri(context,uri)
                 options['i']=Resource(uri)
             else:
-                print "WARNING - index link with no href, ignoring"
+                print("WARNING - index link with no href, ignoring")
         # Show listed resources as numbered options
         for r in list.resources:
             if (n>=to_show):
-                print "(not showing remaining %d entries)" % (num_entries-n)
+                print("(not showing remaining %d entries)" % (num_entries-n))
                 break
             n+=1
             options[str(n)]=r
-            print "[%d] %s" % (n,r.uri)
+            print("[%d] %s" % (n,r.uri))
             if (self.verbose):
-                print "  " + str(r)
+                print("  " + str(r))
             r.uri = self.expand_relative_uri(context,r.uri)
             if (r.capability is not None):
                 warning = ''
                 if (r.capability not in entry_caps):
                     warning = " (EXPECTED %s)" % (' or '.join(entry_caps))
-                print "  %s%s" % (r.capability,warning)
+                print("  %s%s" % (r.capability,warning))
             elif (len(entry_caps)==1):
                 r.capability=entry_caps[0]
-                print "  capability not specified, should be %s" % (r.capability)
+                print("  capability not specified, should be %s" % (r.capability))
         return(options,capability)
 
     def explore_show_head(self,uri,check_headers=None):
@@ -277,14 +280,14 @@ class Explorer(Client):
         Will also check headers against any values specified in 
         check_headers.
         """
-        print "HEAD %s" % (uri)
+        print("HEAD %s" % (uri))
         if (re.match(r'^\w+:', uri)):
             # Looks like a URI
             response = requests.head(uri)
         else:
             # Mock up response if we have a local file
             response = self.head_on_file(uri)
-        print "  status: %s" % (response.status_code)
+        print("  status: %s" % (response.status_code))
         if (response.status_code=='200'):
             # generate normalized lastmod
 #        if ('last-modified' in response.headers):
@@ -299,7 +302,7 @@ class Explorer(Client):
                             check_str=' MATCHES EXPECTED VALUE'
                         else:
                             check_str=' EXPECTED %s' % (check_headers[header])
-                    print "  %s: %s%s" % (header, response.headers[header], check_str)
+                    print("  %s: %s%s" % (header, response.headers[header], check_str))
 
     def head_on_file(self,file):
         """Mock up requests.head(..) response on local file
@@ -341,8 +344,8 @@ class Explorer(Client):
         
         Prints warning if expansion happens
         """
-        full_uri = urlparse.urljoin(context,uri)
+        full_uri = urljoin(context,uri)
         if (full_uri != uri):
-            print "  WARNING - expanded relative URI to %s" % (full_uri)
+            print("  WARNING - expanded relative URI to %s" % (full_uri))
             uri = full_uri
         return(uri)

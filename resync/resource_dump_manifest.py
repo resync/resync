@@ -9,7 +9,7 @@ Described in specification at:
 http://www.openarchives.org/rs/resourcesync#ResourceDumpManifest
 """
 
-from resource_list import ResourceList
+from .resource_list import ResourceList
 
 class ResourceDumpManifest(ResourceList):
     """Class representing a Resource Dump Manifest

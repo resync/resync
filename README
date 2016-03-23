@@ -80,8 +80,7 @@ path (perhaps ``/usr/local/bin`` or ``/usr/bin`` depending on your system).
 The source code is maintained on `Github
 <https://github.com/resync/resync>`_
 and there may be branches/versions available there that are not 
-yet packaged for `PyPI
-<http://pypi.python.org/pypi/resync>`_.
+yet packaged for PyPI.
 
 See also
 --------
@@ -101,7 +100,7 @@ Thanks to:
 Copyright and License
 ---------------------
 
-Copyright 2012--2014 Simeon Warner
+Copyright 2012--2016 Simeon Warner
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
