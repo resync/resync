@@ -1,6 +1,7 @@
 import unittest
 import re
 import logging
+from testfixtures import LogCapture
 import sys, contextlib
 try: #python2
     # Must try this first as io also exists in python2
@@ -117,6 +118,26 @@ class TestClient(unittest.TestCase):
         # size but not the datestamp
         #self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_a</loc><lastmod>[\w\-:]+</lastmod><rs:md length="20" /></url>', capturer.result ) )
         #self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_b</loc><lastmod>[\w\-:]+</lastmod><rs:md length="45" /></url>', capturer.result ) )
+
+    def test50_log_status(self):
+        c = Client()
+        with LogCapture() as lc:
+            c.logger = logging.getLogger('resync.client')
+            c.log_status()
+            self.assertEqual( lc.records[-1].msg,
+                              'Status:         IN SYNC (created=0, updated=0, deleted=0)' )
+            c.log_status(created=123,updated=456,deleted=789)
+            self.assertEqual( lc.records[-1].msg,
+                              'Status:         IN SYNC (created=123, updated=456, deleted=789)' )
+            c.log_status(incremental=True)
+            self.assertEqual( lc.records[-1].msg,
+                              'Status:      NO CHANGES (created=0, updated=0, deleted=0)' )
+            c.log_status(audit=True)
+            self.assertEqual( lc.records[-1].msg,
+                              'Status:         IN SYNC (to create=0, to update=0, to delete=0)' )
+            c.log_status(in_sync=False)
+            self.assertEqual( lc.records[-1].msg,
+                              'Status:          SYNCED (created=0, updated=0, deleted=0)' )
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestClient)

@@ -39,7 +39,8 @@ setup(
     install_requires=[
         "requests",
         "python-dateutil>=1.5",
-        "defusedxml>=0.4.1"
+        "defusedxml>=0.4.1",
+        "testfixtures"
     ],
     test_suite="tests",
 )
