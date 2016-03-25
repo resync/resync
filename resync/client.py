@@ -761,6 +761,3 @@ class Client(object):
         self.logger.warning("Status: %15s (%s%s=%d, %s=%d, %s=%d)" %\
              (status, same, words['created'], created, 
               words['updated'], updated, words['deleted'], deleted))
-
-if __name__ == '__main__':
-    main()
