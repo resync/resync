@@ -43,6 +43,13 @@ class TestClient(unittest.TestCase):
         c.set_mappings( ['http://example.org/bbb','/tmp/this_does_not_exist'] )
         self.assertRaises( ClientFatalError, c.baseline_or_audit )
 
+    def test03_sitemap_uri(self):
+        c = Client()
+        c.set_mappings( ['http://example.org/c','/tmp/not_there_at_all'] )
+        self.assertEqual( c.sitemap_uri('abcd1'), 'http://example.org/c/abcd1' )
+        self.assertEqual( c.sitemap_uri('/abcd2'), '/abcd2' )
+        self.assertEqual( c.sitemap_uri('scheme:/abcd3'), 'scheme:/abcd3' )
+
     def test06_write_capability_list(self):
         c = Client()
         with capture_stdout() as capturer:
