@@ -1,4 +1,4 @@
-"""ResourceSync client implementation"""
+"""ResourceSync client implementation."""
 
 import sys
 try: #python3
@@ -31,17 +31,18 @@ from .list_base_with_index import ListBaseIndexError
 from .w3c_datetime import str_to_datetime,datetime_to_str
 
 def url_or_file_open(uri):
-    """Wrapper around urlopen() to prepend file: if no scheme provided"""
+    """Wrapper around urlopen() to prepend file: if no scheme provided."""
     if (not re.match(r'''\w+:''',uri)):
         uri = 'file:'+uri
     return(urlopen(uri))
 
 class ClientFatalError(Exception):
-    """Non-recoverable error in client, should include message to user"""
+    """Non-recoverable error in client, should include message to user."""
+
     pass
 
 class Client(object):
-    """Implementation of a ResourceSync client
+    """Implementation of a ResourceSync client.
 
     Logging is used for both console output and for detailed logs for
     automated analysis. Levels used:
@@ -51,7 +52,7 @@ class Client(object):
     """
 
     def __init__(self, checksum=False, verbose=False, dryrun=False):
-        super(Client, self).__init__()
+        """Initialize Client object with default parameters."""
         self.checksum = checksum
         self.verbose = verbose
         self.dryrun = dryrun
@@ -75,11 +76,11 @@ class Client(object):
 
 
     def set_mappings(self,mappings):
-        """Build and set Mapper object based on input mappings"""
+        """Build and set Mapper object based on input mappings."""
         self.mapper = Mapper(mappings, use_default_path=True)
 
     def sitemap_uri(self,basename):
-        """Get full URI (filepath) for sitemap based on basename"""
+        """Get full URI (filepath) for sitemap based on basename."""
         if (re.match(r"\w+:",basename)):
             # looks like URI
             return(basename)
@@ -92,13 +93,13 @@ class Client(object):
 
     @property
     def sitemap(self):
-        """Return the sitemap URI based on maps or explicit settings"""
+        """Return the sitemap URI based on maps or explicit settings."""
         if (self.sitemap_name is not None):
             return(self.sitemap_name)
         return(self.sitemap_uri(self.resource_list_name))
 
     def build_resource_list(self, paths=None, set_path=False):
-        """Return a resource list for files on local disk
+        """Return a resource list for files on local disk.
 
         The set of files is taken by disk scan from the paths specified or
         else defaults to the paths specified in the current mappings
@@ -134,16 +135,16 @@ class Client(object):
         return(rl)
 
     def log_event(self, change):
-        """Log a Resource object as an event for automated analysis"""
+        """Log a Resource object as an event for automated analysis."""
         self.logger.debug( "Event: "+repr(change) )
 
     def baseline_or_audit(self, allow_deletion=False, audit_only=False):
-        """Baseline synchonization or audit
-
-	Both functions implemented in this routine because audit is a prerequisite
-	for a baseline sync. In the case of baseline sync the last timestamp seen
+        """Baseline synchonization or audit.
+  
+        Both functions implemented in this routine because audit is a prerequisite
+        for a baseline sync. In the case of baseline sync the last timestamp seen
         is recorded as client state.
-	"""
+        """
         action = ( 'audit' if (audit_only) else 'baseline sync' ) 
         self.logger.debug("Starting "+action)
         ### 0. Sanity checks
@@ -216,7 +217,7 @@ class Client(object):
         self.logger.debug("Completed %s" % (action))
 
     def incremental(self, allow_deletion=False, change_list_uri=None, from_datetime=None):
-        """Incremental synchronization
+        """Incremental synchronization.
 
         Use Change List to do incremental sync
         """
@@ -339,7 +340,7 @@ class Client(object):
         self.logger.debug("Completed incremental sync")
 
     def update_resource(self, resource, file, change=None):
-        """Update resource from uri to file on local system
+        """Update resource from uri to file on local system.
 
         Update means three things:
         1. GET resources
@@ -389,7 +390,7 @@ class Client(object):
         return(num_updated)
 
     def delete_resource(self, resource, file, allow_deletion=False):
-        """Delete copy of resource in file on local system
+        """Delete copy of resource in file on local system.
 
         Will only actually do the deletion if allow_deletion is True. Regardless 
         of whether the deletion occurs, self.last_timestamp will be updated 
@@ -423,7 +424,7 @@ class Client(object):
         return(num_deleted)
 
     def parse_document(self):
-        """Parse any ResourceSync document and show information
+        """Parse any ResourceSync document and show information.
         
         Will use sitemap URI taken either from explicit self.sitemap_name
         or derived from the mappings supplied.
@@ -455,7 +456,7 @@ class Client(object):
                     break
 
     def explore(self):
-        """Explore capabilities of a server interactvely
+        """Explore capabilities of a server interactvely.
         
         Will use sitemap URI taken either from explicit self.sitemap_name
         or derived from the mappings supplied.
@@ -488,7 +489,7 @@ class Client(object):
         print("--explore done, bye...")
 
     def explore_uri(self, uri, checks, caps, show_back=True):
-        """Interactive exploration of document at uri
+        """Interactive exploration of document at uri.
 
         Will flag warnings if the document is not of type listed in caps
         """
@@ -536,7 +537,7 @@ class Client(object):
         return( options[inp].uri, checks, caps, inp )
 
     def explore_show_summary(self,list,parsed_index,caps):
-        """Show summary of one capability document
+        """Show summary of one capability document.
 
         Used as part of --explore.
         FIXME - should look for <rs:ln rel="up"...> link and show that
@@ -585,7 +586,7 @@ class Client(object):
         return(options,capability)
 
     def explore_show_head(self,uri,check_headers=None):
-        """Do HEAD on uri and show infomation
+        """Do HEAD on uri and show infomation.
 
         Will also check headers against any values specified in 
         check_headers.
@@ -609,7 +610,7 @@ class Client(object):
                 print("  %s: %s%s" % (header, response.headers[header], check_str))
 
     def write_resource_list(self,paths=None,outfile=None,links=None,dump=None):
-        """Write a Resource List or a Resource Dump for files on local disk
+        """Write a Resource List or a Resource Dump for files on local disk.
 
         Set of resources included is based on paths setting or else the mappings. 
         Optionally links can be added. Output will be to stdout unless outfile
@@ -638,7 +639,7 @@ class Client(object):
 
     def write_change_list(self,paths=None,outfile=None,ref_sitemap=None,newref_sitemap=None,
                           empty=None,links=None,dump=None):
-        """Write a change list
+        """Write a change list.
         
         Unless the both ref_sitemap and newref_sitemap are specified then the Change 
         List is calculated between the reference an the current state of files on
@@ -673,7 +674,7 @@ class Client(object):
         self.write_dump_if_requested(cl,dump)
 
     def write_capability_list(self,capabilities=None,outfile=None,links=None):
-        """Write a Capability List to outfile or STDOUT"""
+        """Write a Capability List to outfile or STDOUT."""
         capl = CapabilityList(ln=links)
         capl.pretty_xml = self.pretty_xml
         if (capabilities is not None):
@@ -685,7 +686,7 @@ class Client(object):
             capl.write(basename=outfile)
 
     def write_source_description(self,capability_lists=None,outfile=None,links=None):
-        """Write a ResourceSync Description document to outfile or STDOUT"""
+        """Write a ResourceSync Description document to outfile or STDOUT."""
         rsd = SourceDescription(ln=links)
         rsd.pretty_xml = self.pretty_xml
         if (capability_lists is not None):
@@ -697,18 +698,20 @@ class Client(object):
             rsd.write(basename=outfile)
 
     def write_dump_if_requested(self,resource_list,dump):
-        """Write a dump to the file dump"""
+        """Write a dump to the file dump."""
         if (dump is None):
             return
+        print("OOPS - FIXME - Wrinting dump to %s not yet implemented" % (dump))
+        return(1)
 
     def read_reference_resource_list(self,ref_sitemap,name='reference'):
-        """Read reference resource list and return the ResourceList object
+        """Read reference resource list and return the ResourceList object.
 
-        name parameter just uses in output messages to say what type
+        The name parameter is used just in output messages to say what type
         of resource list is being read.
         """
         rl = ResourceList()
-        self.logger.info("Reading reference %s resource list from %s ..." % (name,ref_sitemap))
+        self.logger.info("Reading %s resource list from %s ..." % (name,ref_sitemap))
         rl.mapper=self.mapper
         rl.read(uri=ref_sitemap,index_only=(not self.allow_multifile))
         num_entries = len(rl.resources)
@@ -731,7 +734,7 @@ class Client(object):
 
     def log_status(self, in_sync=True, incremental=False, audit=False,
                    same=None, created=0, updated=0, deleted=0, to_delete=0):
-        """Write log message regarding status in standard form
+        """Write log message regarding status in standard form.
         
         Split this off so all messages from baseline/audit/incremental
         are written in a consistent form.

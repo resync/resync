@@ -42,7 +42,7 @@ def main():
     rem = p.add_option_group('REMOTE MODES',
         'These modes use a remote source that is specified in a set of uri=path mappings '
         'and potentially also using an explicit --sitemap location. The default mode is '
-        '--baseline')
+        '--baseline. See also: resync-explorer for an interactive client.')
     rem.add_option('--baseline', '-b', action='store_true',
                    help='baseline sync of resources from remote source (src) to local filesystem (dst)')
     rem.add_option('--incremental', '--inc', '-i', action='store_true',
