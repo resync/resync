@@ -1,5 +1,6 @@
 """Setup for ResurceSync library and client implementation."""
-from setuptools import setup
+from setuptools import setup, Command
+import os
 # setuptools used instead of distutils.core so that 
 # dependencies can be handled automatically
 
@@ -15,6 +16,27 @@ if match:
     version = match.group(1)
 else:
     raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE))
+
+class Coverage(Command):
+    """Class to allow coverage run from setup."""
+
+    description = "run coverage"
+    user_options = []
+
+    def initialize_options(self):
+        """Empty initialize_options."""
+        pass
+
+    def finalize_options(self):
+        """Empty finalize_options."""
+        pass
+
+    def run(self):
+        """Run coverage program."""
+        os.system("coverage run --source=resync setup.py test")
+        os.system("coverage report")
+        os.system("coverage html")
+        print("See htmlcov/index.html for details.")
 
 setup(
     name='resync',
@@ -43,4 +65,7 @@ setup(
         "testfixtures"
     ],
     test_suite="tests",
+    cmdclass={
+        'coverage': Coverage,
+    },
 )
