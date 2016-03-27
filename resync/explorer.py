@@ -1,4 +1,4 @@
-"""ResourceSync explorer
+"""ResourceSync explorer.
 
 This is the guts of a client designed to 'explore' the ResourceSync
 facilities offered by a source. Will use standard practices to 
@@ -27,7 +27,7 @@ from .resource import Resource
 from .w3c_datetime import str_to_datetime,datetime_to_str
 
 class XResource(object):
-    """Information about a resource for the explorer
+    """Information about a resource for the explorer.
 
     Must have a uri but may also store:
     
@@ -38,23 +38,28 @@ class XResource(object):
     base_uri - on creation interpret any relative URI specified in the 
         context of base_uri, store the resulting full URI
     """
+
     def __init__(self, uri, acceptable_capabilities=None, checks=None, context=None):
+        """Initialize XResource object."""
         self.uri=urljoin(context,uri)
         self.acceptable_capabilities=acceptable_capabilities
         self.checks=checks
 
 class HeadResponse(object):
-    """Object to mock up requests.head(...) response"""
+    """Object to mock up requests.head(...) response."""
+
     def __init__(self):
+        """Initialize with no status_code and no headers."""
         self.status_code=None
         self.headers={}
 
 class ExplorerQuit(Exception):
-    """Exception raised when user quits normally, no error"""
+    """Exception raised when user quits normally, no error."""
+
     pass
 
 class Explorer(Client):
-    """Extension of the client code to explore a ResourceSync source
+    """Extension of the client code to explore a ResourceSync source.
 
     Designed to support a text-based command-line client that starts from
     a given URI, server, or local file, and then allows interactive 
@@ -62,7 +67,7 @@ class Explorer(Client):
     """
 
     def explore(self):
-        """INTERACTIVE exploration source capabilities
+        """INTERACTIVE exploration source capabilities.
         
         Will use sitemap URI taken either from explicit self.sitemap_name
         or derived from the mappings supplied.
@@ -127,9 +132,9 @@ class Explorer(Client):
         print("\nresync-explorer done, bye...\n")
 
     def explore_uri(self, explorer_resource, show_back=True):
-        """INTERACTIVE exploration of capabilities document(s) starting at a given URI
+        """INTERACTIVE exploration of capabilities document(s) starting at a given URI.
 
-        Will flag warnings if the document is not of type listed in caps
+        Will flag warnings if the document is not of type listed in caps.
         """
         uri = explorer_resource.uri
         caps = explorer_resource.acceptable_capabilities
@@ -189,7 +194,7 @@ class Explorer(Client):
         return( XResource(options[input].uri, caps, checks) )
 
     def explore_show_summary(self, list, index=False, expected=None, context=None):
-        """Show summary of one capability document
+        """Show summary of one capability document.
 
         Given a capability document or index (in list, index True if it is an 
         index), write out a simply textual summary of the document with all 
@@ -275,7 +280,7 @@ class Explorer(Client):
         return(options,capability)
 
     def explore_show_head(self,uri,check_headers=None):
-        """Do HEAD on uri and show infomation
+        """Do HEAD on uri and show infomation.
 
         Will also check headers against any values specified in 
         check_headers.
@@ -305,8 +310,7 @@ class Explorer(Client):
                     print("  %s: %s%s" % (header, response.headers[header], check_str))
 
     def head_on_file(self,file):
-        """Mock up requests.head(..) response on local file
-        """
+        """Mock up requests.head(..) response on local file."""
         response = HeadResponse()
         if (not os.path.isfile(file)):
             response.status_code='404'
@@ -317,7 +321,7 @@ class Explorer(Client):
         return(response)
 
     def allowed_entries(self,capability):
-        """Given a current capability document, return list of allowed entries
+        """Given a current capability document, return list of allowed entries.
 
         Includes handling of capability = *index where the only acceptable 
         entries are *.
@@ -340,9 +344,9 @@ class Explorer(Client):
         return([])
 
     def expand_relative_uri(self,context,uri):
-        """If uri is relative then expand in context
+        """If uri is relative then expand in context.
         
-        Prints warning if expansion happens
+        Prints warning if expansion happens.
         """
         full_uri = urljoin(context,uri)
         if (full_uri != uri):
