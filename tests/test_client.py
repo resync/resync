@@ -9,13 +9,12 @@ import sys
 import os.path
 
 from resync.client import Client, ClientFatalError
+from resync.resource_list import ResourceList
 from resync.change_list import ChangeList
 
-class TestClient(TestCase):
+logging.basicConfig(level=logging.INFO)
 
-    @classmethod
-    def extraSetUpClass(cls):
-        logging.basicConfig(level=logging.INFO)
+class TestClient(TestCase):
 
     def test01_make_resource_list_empty(self):
         c = Client()
@@ -34,25 +33,6 @@ class TestClient(TestCase):
         self.assertEqual( c.sitemap_uri('abcd1'), 'http://example.org/c/abcd1' )
         self.assertEqual( c.sitemap_uri('/abcd2'), '/abcd2' )
         self.assertEqual( c.sitemap_uri('scheme:/abcd3'), 'scheme:/abcd3' )
-
-    def test06_write_capability_list(self):
-        c = Client()
-        with capture_stdout() as capturer:
-            c.write_capability_list( { 'a':'uri_a', 'b':'uri_b' } )
-        self.assertTrue( re.search(r'<urlset ',capturer.result) )
-        self.assertTrue( re.search(r'<rs:md capability="capabilitylist" />',capturer.result) )
-        self.assertTrue( re.search(r'<url><loc>uri_a</loc><rs:md capability="a"',capturer.result) )
-        self.assertTrue( re.search(r'<url><loc>uri_b</loc><rs:md capability="b"',capturer.result) )
-
-    def test07_write_source_description(self):
-        c = Client()
-        with capture_stdout() as capturer:
-            c.write_source_description( [ 'a','b','c' ] )
-        #print capturer.result
-        self.assertTrue( re.search(r'<urlset ',capturer.result) )
-        self.assertTrue( re.search(r'<rs:md capability="description" />',capturer.result) )
-        self.assertTrue( re.search(r'<url><loc>a</loc><rs:md capability="capabilitylist" /></url>',capturer.result) )
-        self.assertTrue( re.search(r'<url><loc>b</loc><rs:md capability="capabilitylist" /></url>',capturer.result) )
 
     def test20_parse_document(self):
         # Key property of the parse_document() method is that it parses the
@@ -101,23 +81,65 @@ class TestClient(TestCase):
         # size but not the datestamp
         #self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_a</loc><lastmod>[\w\-:]+</lastmod><rs:md length="20" /></url>', capturer.result ) )
         #self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_b</loc><lastmod>[\w\-:]+</lastmod><rs:md length="45" /></url>', capturer.result ) )
+        # to file 
+        outfile = os.path.join(self.tmpdir,'rl_out.xml')
+        c.write_resource_list(paths='tests/testdata/dir1', outfile=outfile)
+        self.assertTrue( os.path.getsize(outfile)>100 )
+        # dump instead (default file)
+        c.default_resource_dump = os.path.join(self.tmpdir,'rl_out_dump_def')
+        outfile = c.default_resource_dump+'00000.zip'
+        self.assertFalse( os.path.exists(outfile) )
+        c.write_resource_list(paths='tests/testdata/dir1', dump=True)
+        self.assertTrue( os.path.getsize(outfile)>100 )
+        # (specific fuile)
+        outbase = os.path.join(self.tmpdir,'rl_out_dump')
+        outfile = outbase+'00000.zip'
+        self.assertFalse( os.path.exists(outfile) )
+        c.write_resource_list(paths='tests/testdata/dir1', dump=True, outfile=outbase)
+        self.assertTrue( os.path.getsize(outfile)>100 )
+
+    def test45_write_change_list(self):
+        c = Client()
+        ex1 = 'tests/testdata/examples_from_spec/resourcesync_ex_1.xml'
+        with capture_stdout() as capturer:
+            c.write_change_list(ref_sitemap=ex1, newref_sitemap=ex1)
+        self.assertTrue( re.search(r'<rs:md capability="changelist"', capturer.result) )
+        # compare ex1 with testdata on disk
+        c.set_mappings( ['http://example.org/','tests/testdata/'] )
+        with capture_stdout() as capturer:
+            c.write_change_list(ref_sitemap=ex1, paths='tests/testdata/dir1')
+        self.assertTrue( re.search(r'<rs:md capability="changelist"', capturer.result) )
+        self.assertTrue( re.search(r'<url><loc>http://example.com/res1</loc><rs:md change="deleted" /></url>', capturer.result) )
+        # to file 
+        outfile = os.path.join(self.tmpdir,'cl_out.xml')
+        c.write_change_list(ref_sitemap=ex1, newref_sitemap=ex1, outfile=outfile)
+        self.assertTrue( os.path.getsize(outfile)>100 )
 
     def test46_write_capability_list(self):
         c = Client()
-        caps = {'resourcelist': 'http://a.b/rl',
-                'changelist': 'http://a.b/cl'}
-        # to STDOUT
+        caps = { 'a':'uri_a', 'b':'uri_b' } 
+        # simple case to STDOUT
         with capture_stdout() as capturer:
-            c.write_capability_list(capabilities=caps)
-        self.assertTrue( re.search(r'http://a.b/rl', capturer.result ) )
+            c.write_capability_list( caps )
+        self.assertTrue( re.search(r'<urlset ',capturer.result) )
+        self.assertTrue( re.search(r'<rs:md capability="capabilitylist" />',capturer.result) )
+        self.assertTrue( re.search(r'<url><loc>uri_a</loc><rs:md capability="a"',capturer.result) )
+        self.assertTrue( re.search(r'<url><loc>uri_b</loc><rs:md capability="b"',capturer.result) )
         # to file (just check that something is written)
-        outfile = os.path.join(self.tmpdir,'cl_out.xml')
+        outfile = os.path.join(self.tmpdir,'caps_out.xml')
         c.write_capability_list(capabilities=caps, outfile=outfile)
         self.assertTrue( os.path.getsize(outfile)>100 )
 
     def test47_write_source_description(self):
         c = Client()
-        # to STDOUT
+        # simple case to STDOUT
+        with capture_stdout() as capturer:
+            c.write_source_description( [ 'a','b','c' ] )
+        self.assertTrue( re.search(r'<urlset ',capturer.result) )
+        self.assertTrue( re.search(r'<rs:md capability="description" />',capturer.result) )
+        self.assertTrue( re.search(r'<url><loc>a</loc><rs:md capability="capabilitylist" /></url>',capturer.result) )
+        self.assertTrue( re.search(r'<url><loc>b</loc><rs:md capability="capabilitylist" /></url>',capturer.result) )
+        # more complex case to STDOUT
         with capture_stdout() as capturer:
             c.write_source_description(capability_lists=['http://a.b/'], links=[{'rel':'c','href':'d'}])
         self.assertTrue( re.search(r'http://a.b/', capturer.result ) )
