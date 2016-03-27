@@ -1,4 +1,4 @@
-"""ResourceSync Source Description object
+"""ResourceSync Source Description object.
 
 A ResourceSync Source Description enumerates the Capability 
 Lists offered by a Source. Since a Source has one Capability 
@@ -28,7 +28,7 @@ from resync.resource_set import ResourceSet
 from resync.list_base_with_index import ListBaseWithIndex
 
 class SourceDescription(ListBaseWithIndex):
-    """Class representing the set of Capability Lists supported
+    """Class representing the set of Capability Lists supported.
 
     Will admit only one resource with any given URI.
 
@@ -38,13 +38,14 @@ class SourceDescription(ListBaseWithIndex):
     """
 
     def __init__(self, resources=None, md=None, ln=None):
+        """Initialize based on superclass ListBaseWithIndex."""
         super(SourceDescription, self).__init__(resources=resources, md=md, ln=ln,
                                                 capability_name='description',
                                                 resources_class=ResourceSet)
         self.md['from']=None #usually don't want a from date
 
     def add(self, resource, replace=False):
-        """Add a resource or an iterable collection of resources
+        """Add a resource or an iterable collection of resources.
 
         Will throw a ValueError if the resource (ie. same uri) already
         exists in the capability_list, unless replace=True.
@@ -56,7 +57,7 @@ class SourceDescription(ListBaseWithIndex):
             self.resources.add(resource,replace)
 
     def add_capability_list(self,capability_list=None):
-        """Add a capability list
+        """Add a capability list.
 
         Adds either a CapabiltyList object specified in capability_list
         or else creates a Resource with the URI given in capability_list
