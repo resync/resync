@@ -1,4 +1,4 @@
-"""Dump handler for ResourceSync"""
+"""Dump handler for ResourceSync."""
 
 import logging
 import os.path
@@ -6,10 +6,12 @@ from zipfile import ZipFile, ZIP_STORED, ZIP_DEFLATED
 from resync.resource_dump_manifest import ResourceDumpManifest
 
 class DumpError(Exception):
+    """Error class used by Dump() objects."""
+    
     pass
 
 class Dump(object):
-    """Dump of content for a Resource Dump or Change Dump
+    """Dump of content for a Resource Dump or Change Dump.
 
     The resources itearable must be comprised of Resource objects
     which have the path attributes set to indicate the local
@@ -18,11 +20,13 @@ class Dump(object):
        rl = ResourceList()
        # ... add items by whatever means, may have >50k items and/or
        # >100MB total size of files ...
-       d.write(resources=rl,basename="/tmp/rd_")
-       # will create dump files /tmp/rd_00001.zip etc.
+       d = Dump(resources=rl)
+       d.write(basename="/tmp/rd_")
+       # will create dump files /tmp/rd_00000.zip etc.
     """
 
     def __init__(self, resources=None, format=None, compress=True):
+        """Initialize Dump object and set defaults."""
         self.resources = resources
         self.format = ('zip' if (format is None) else format)
         self.compress = compress
@@ -33,7 +37,7 @@ class Dump(object):
         self.logger = logging.getLogger('resync.dump')
         
     def write(self, basename=None, write_separate_manifests=True):
-        """Write one or more dump files to complete this dump
+        """Write one or more dump files to complete this dump.
 
         Returns the number of dump/archive files written.
         """
@@ -55,7 +59,7 @@ class Dump(object):
         return(n)
 
     def write_zip(self, resources=None, dumpfile=None):
-        """Write a ZIP format dump file
+        """Write a ZIP format dump file.
 
         Writes a ZIP file containing the resources in the iterable resources along with
         a manifest file manifest.xml (written first). No checks on the size of files
@@ -79,7 +83,7 @@ class Dump(object):
         self.logger.info("Wrote ZIP file dump %s with size %d bytes" % (dumpfile,zipsize))
         
     def write_warc(self, resources=None, dumpfile=None):
-        """Write a WARC dump file
+        """Write a WARC dump file.
 
         WARC support is not part of ResourceSync v1.0 (Z39.99 2014) but is left
         in this library for experimentation.
@@ -107,7 +111,9 @@ class Dump(object):
         self.logging.info("Wrote WARC file dump %s with size %d bytes" % (dumpfile,warcsize))
         
     def check_files(self,set_length=True,check_length=True):
-        """Go though and check all files in self.resources, add up size, and find
+        """Check all files in self.resources, find longest common prefix.
+
+        Go though and check all files in self.resources, add up size, and find
         longest common path that can be used when writing the dump file. Saved in 
         self.path_prefix.
 
@@ -142,7 +148,7 @@ class Dump(object):
         return True
 
     def partition_dumps(self):
-        """Yeild a set of manifest object that parition the dumps
+        """Yeild a set of manifest object that parition the dumps.
 
         Simply adds resources/files to a manifest until their are either the
         the correct number of files or the size limit is exceeded, then yields
@@ -167,7 +173,7 @@ class Dump(object):
 
 
     def archive_path(self,real_path):
-        """Return the archive path for file with real_path
+        """Return the archive path for file with real_path.
 
         Mapping is based on removal of self.path_prefix which is determined
         by self.check_files().
