@@ -194,18 +194,18 @@ class Client(object):
         num_deleted=0
         for resource in created:
             uri = resource.uri
-            file = self.mapper.src_to_dst(uri)
-            self.logger.info("created: %s -> %s" % (uri,file))
-            num_created+=self.update_resource(resource,file,'created')
+            filename = self.mapper.src_to_dst(uri)
+            self.logger.info("created: %s -> %s" % (uri,filename))
+            num_created+=self.update_resource(resource,filename,'created')
         for resource in updated:
             uri = resource.uri
-            file = self.mapper.src_to_dst(uri)
-            self.logger.info("updated: %s -> %s" % (uri,file))
-            num_updated+=self.update_resource(resource,file,'updated')
+            filename = self.mapper.src_to_dst(uri)
+            self.logger.info("updated: %s -> %s" % (uri,filename))
+            num_updated+=self.update_resource(resource,filename,'updated')
         for resource in deleted:
             uri = resource.uri
-            file = self.mapper.src_to_dst(uri)
-            num_deleted+=self.delete_resource(resource,file,allow_deletion)
+            filename = self.mapper.src_to_dst(uri)
+            num_deleted+=self.delete_resource(resource,filename,allow_deletion)
         ### 6. Store last timestamp to allow incremental sync
         if (not audit_only and self.last_timestamp>0):
             ClientState().set_state(self.sitemap,self.last_timestamp)
@@ -316,17 +316,17 @@ class Client(object):
         num_created = 0
         for resource in src_change_list:
             uri = resource.uri
-            file = self.mapper.src_to_dst(uri)
+            filename = self.mapper.src_to_dst(uri)
             if (resource.change == 'updated'):
-                self.logger.info("updated: %s -> %s" % (uri,file))
-                self.update_resource(resource,file,'updated')
+                self.logger.info("updated: %s -> %s" % (uri,filename))
+                self.update_resource(resource,filename,'updated')
                 num_updated+=1
             elif (resource.change == 'created'):
-                self.logger.info("created: %s -> %s" % (uri,file))
-                self.update_resource(resource,file,'created')
+                self.logger.info("created: %s -> %s" % (uri,filename))
+                self.update_resource(resource,filename,'created')
                 num_created+=1
             elif (resource.change == 'deleted'):
-                num_deleted+=self.delete_resource(resource,file,allow_deletion)
+                num_deleted+=self.delete_resource(resource,filename,allow_deletion)
             else:
                 raise ClientError("Unknown change type %s" % (resource.change) )
         ### 7. Report status and planned actions
@@ -339,8 +339,8 @@ class Client(object):
         ### 9. Done
         self.logger.debug("Completed incremental sync")
 
-    def update_resource(self, resource, file, change=None):
-        """Update resource from uri to file on local system.
+    def update_resource(self, resource, filename, change=None):
+        """Update resource from uri to filename on local system.
 
         Update means three things:
         1. GET resources
@@ -355,15 +355,15 @@ class Client(object):
 
         Returns the number of resources updated/created (0 or 1)
         """
-        path = os.path.dirname(file)
+        path = os.path.dirname(filename)
         distutils.dir_util.mkpath(path)
         num_updated=0
         if (self.dryrun):
-            self.logger.info("dryrun: would GET %s --> %s" % (resource.uri,file))
+            self.logger.info("dryrun: would GET %s --> %s" % (resource.uri,filename))
         else:
             # 1. GET
             try:
-                urlretrieve(resource.uri,file)
+                urlretrieve(resource.uri,filename)
                 num_updated+=1
             except IOError as e:
                 msg = "Failed to GET %s -- %s" % (resource.uri,str(e))
@@ -375,22 +375,22 @@ class Client(object):
             # 2. set timestamp if we have one
             if (resource.timestamp is not None):
                 unixtime = int(resource.timestamp) #no fractional
-                os.utime(file,(unixtime,unixtime))
+                os.utime(filename,(unixtime,unixtime))
                 if (resource.timestamp > self.last_timestamp):
                     self.last_timestamp = resource.timestamp
             self.log_event(Resource(resource=resource, change=change))
             # 3. sanity check
-            length = os.stat(file).st_size
-            if (resource.length != length):
+            length = os.stat(filename).st_size
+            if (resource.length is not None and resource.length != length):
                 self.logger.info("Downloaded size for %s of %d bytes does not match expected %d bytes" % (resource.uri,length,resource.length))
             if (self.checksum and resource.md5 is not None):
-                file_md5 = compute_md5_for_file(file)
+                file_md5 = compute_md5_for_file(filename)
                 if (resource.md5 != file_md5):
                     self.logger.info("MD5 mismatch for %s, got %s but expected %s bytes" % (resource.uri,file_md5,resource.md5))
         return(num_updated)
 
-    def delete_resource(self, resource, file, allow_deletion=False):
-        """Delete copy of resource in file on local system.
+    def delete_resource(self, resource, filename, allow_deletion=False):
+        """Delete copy of resource in filename on local system.
 
         Will only actually do the deletion if allow_deletion is True. Regardless 
         of whether the deletion occurs, self.last_timestamp will be updated 
@@ -405,20 +405,20 @@ class Client(object):
             self.last_timestamp = resource.timestamp
         if (allow_deletion):
             if (self.dryrun):
-                self.logger.info("dryrun: would delete %s -> %s" % (uri,file))
+                self.logger.info("dryrun: would delete %s -> %s" % (uri,filename))
             else:
                 try:
-                    os.unlink(file)
+                    os.unlink(filename)
                     num_deleted+=1
+                    self.logger.info("deleted: %s -> %s" % (uri,filename))
+                    self.log_event(Resource(resource=resource, change="deleted"))
                 except OSError as e:
-                    msg = "Failed to DELETE %s -> %s : %s" % (uri,file,str(e))
+                    msg = "Failed to DELETE %s -> %s : %s" % (uri,filename,str(e))
                     #if (self.ignore_failures):
                     self.logger.warning(msg)
                     #    return
                     #else:
                     #    raise ClientFatalError(msg)
-                self.logger.info("deleted: %s -> %s" % (uri,file))
-                self.log_event(Resource(resource=resource, change="deleted"))
         else:
             self.logger.info("nodelete: would delete %s (--delete to enable)" % uri)
         return(num_deleted)

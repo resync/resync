@@ -9,6 +9,7 @@ import sys
 import os.path
 
 from resync.client import Client, ClientFatalError
+from resync.resource import Resource
 from resync.resource_list import ResourceList
 from resync.change_list import ChangeList
 
@@ -34,6 +35,78 @@ class TestClient(TestCase):
         self.assertEqual( c.sitemap_uri('/abcd2'), '/abcd2' )
         self.assertEqual( c.sitemap_uri('scheme:/abcd3'), 'scheme:/abcd3' )
 
+    def test18_update_resource(self):
+        c = Client()
+        resource = Resource(uri='http://example.org/dir/2')
+        filename = os.path.join(self.tmpdir,'dir/resource2')
+        # dryrun
+        with LogCapture() as lc:
+            c.dryrun = True
+            c.logger = logging.getLogger('resync.client') 
+            n = c.update_resource( resource, filename )
+            self.assertEqual( n, 0 )
+            self.assertTrue( lc.records[-1].msg.startswith('dryrun: would GET http://example.org/dir/2 ') )
+        c.dryrun = False
+        # get from file uri that does not exist
+        resource = Resource(uri='tests/testdata/i_do_not_exist')
+        with LogCapture() as lc:
+            c.logger = logging.getLogger('resync.client') 
+            self.assertRaises( ClientFatalError, c.update_resource, resource, filename )
+        # get from file uri
+        resource = Resource(uri='tests/testdata/examples_from_spec/resourcesync_ex_1.xml')
+        with LogCapture() as lc:
+            c.logger = logging.getLogger('resync.client') 
+            n = c.update_resource( resource, filename )
+            self.assertEqual( n, 1 )
+            self.assertTrue( lc.records[-1].msg.startswith('Event: {') )
+
+    def test19_delete_resource(self):
+        c = Client()
+        resource = Resource(uri='http://example.org/1')
+        filename = os.path.join(self.tmpdir,'resource1')
+        c.last_timestamp = 5
+        # no delete, no timestamp update
+        with LogCapture() as lc:
+            c.logger = logging.getLogger('resync.client') 
+            n = c.delete_resource( resource, filename )
+            self.assertEqual( n, 0 )
+            self.assertEqual( lc.records[-1].msg,
+                              'nodelete: would delete http://example.org/1 (--delete to enable)' ) 
+            self.assertEqual( c.last_timestamp, 5 )
+        # no delete but timestamp update
+        resource.timestamp = 10
+        with LogCapture() as lc:
+            c.logger = logging.getLogger('resync.client') 
+            n = c.delete_resource( resource, filename )
+            self.assertEqual( n, 0 )
+            self.assertEqual( lc.records[-1].msg,
+                              'nodelete: would delete http://example.org/1 (--delete to enable)' ) 
+            self.assertEqual( c.last_timestamp, 10 )
+        # allow delete but dryrun
+        with LogCapture() as lc:
+            c.dryrun = True
+            c.logger = logging.getLogger('resync.client') 
+            n = c.delete_resource( resource, filename, allow_deletion=True )
+            self.assertEqual( n, 0 )
+            self.assertTrue( lc.records[-1].msg.startswith('dryrun: would delete http://example.org/1') )
+        c.dryrun = False
+        # allow delete but no resource present
+        with LogCapture() as lc:
+            c.logger = logging.getLogger('resync.client') 
+            n = c.delete_resource( resource, filename, allow_deletion=True )
+            self.assertEqual( n, 0 )
+            self.assertTrue( lc.records[-1].msg.startswith('Failed to DELETE http://example.org/1') )
+        # successful deletion, first make file...
+        with open(filename, 'w') as fh:
+            fh.write('delete me')
+            fh.close()
+        with LogCapture() as lc:
+            c.logger = logging.getLogger('resync.client') 
+            n = c.delete_resource( resource, filename, allow_deletion=True )
+            self.assertEqual( n, 1 )
+            self.assertTrue( lc.records[-1].msg.startswith('Event: {') ) 
+            self.assertTrue( lc.records[-2].msg.startswith('deleted: http://example.org/1 ->') ) 
+
     def test20_parse_document(self):
         # Key property of the parse_document() method is that it parses the
         # document and identifies its type
@@ -54,6 +127,18 @@ class TestClient(TestCase):
             c.sitemap_name='tests/testdata/examples_from_spec/resourcesync_ex_22.xml'
             c.parse_document()
         self.assertTrue( re.search(r'Parsed changedump document with 3 entries',capturer.result) )
+        # Document that doesn't exist
+        c.sitemap_name='/does_not_exist'
+        self.assertRaises( ClientFatalError, c.parse_document )
+        # and verbose with truncation...
+        with capture_stdout() as capturer:
+            c.verbose = True
+            c.sitemap_name = 'tests/testdata/examples_from_spec/resourcesync_ex_1.xml'
+            c.max_sitemap_entries = 1 
+            c.parse_document()
+        self.assertTrue( re.search(r'Showing first 1 entries', capturer.result ) )
+        self.assertTrue( re.search(r'\[0\] ', capturer.result ) )
+        self.assertFalse( re.search(r'\[1\] ', capturer.result ) )
 
     def test40_write_resource_list_mappings(self):
         c = Client()
@@ -70,13 +155,17 @@ class TestClient(TestCase):
     def test41_write_resource_list_path(self):
         c = Client()
         c.set_mappings( ['http://example.org/','tests/testdata/'] )
+        links=[{'rel':'uri_c','href':'uri_d'}]
         # with an explicit paths setting only the specified paths will be included
         with capture_stdout() as capturer:
-            c.write_resource_list(paths='tests/testdata/dir1')
+            c.write_resource_list(paths='tests/testdata/dir1', links=links)
         self.assertTrue( re.search(r'<rs:md at="\S+" capability="resourcelist"', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_a</loc>', capturer.result ) )
         self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_b</loc>', capturer.result ) )
         self.assertFalse( re.search(r'<url><loc>http://example.org/dir2/file_x</loc>', capturer.result ) )
+        # check link present
+        self.assertTrue( re.search(r'rel="uri_c"', capturer.result ) )
+        self.assertTrue( re.search(r'href="uri_d"', capturer.result ) )
         # Travis CI does not preserve timestamps from github so test here for the file
         # size but not the datestamp
         #self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_a</loc><lastmod>[\w\-:]+</lastmod><rs:md length="20" /></url>', capturer.result ) )
@@ -91,7 +180,7 @@ class TestClient(TestCase):
         self.assertFalse( os.path.exists(outfile) )
         c.write_resource_list(paths='tests/testdata/dir1', dump=True)
         self.assertTrue( os.path.getsize(outfile)>100 )
-        # (specific fuile)
+        # (specific file)
         outbase = os.path.join(self.tmpdir,'rl_out_dump')
         outfile = outbase+'00000.zip'
         self.assertFalse( os.path.exists(outfile) )
