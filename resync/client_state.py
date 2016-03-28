@@ -13,9 +13,9 @@ import re
 import time
 import logging
 try: #python3
-    from configparser import ConfigParser
+    from configparser import ConfigParser, NoSectionError, NoOptionError
 except ImportError: #python2
-    import ConfigParser
+    from ConfigParser import SafeConfigParser as ConfigParser, NoSectionError, NoOptionError
 
 
 class ClientState(object):
@@ -30,7 +30,7 @@ class ClientState(object):
         
         FIXME - should have some file lock to avoid race
         """
-        parser = ConfigParser.SafeConfigParser()
+        parser = ConfigParser()
         parser.read(self.status_file)
         status_section = 'incremental'
         if (not parser.has_section(status_section)):
@@ -39,21 +39,21 @@ class ClientState(object):
             parser.remove_option(status_section, self.config_site_to_name(site))
         else:
             parser.set(status_section, self.config_site_to_name(site), str(timestamp))
-        with open(self.status_file, 'wb') as configfile:
+        with open(self.status_file, 'w') as configfile:
             parser.write(configfile)
             configfile.close()
 
     def get_state(self,site):
         """Read client status file and return dict."""
-        parser = ConfigParser.SafeConfigParser()
+        parser = ConfigParser()
         status_section = 'incremental'
         parser.read(self.status_file)
         timestamp = None
         try:
             timestamp = float(parser.get(status_section,self.config_site_to_name(site)))
-        except ConfigParser.NoSectionError as e:
+        except NoSectionError as e:
             pass
-        except ConfigParser.NoOptionError as e:
+        except NoOptionError as e:
             pass
         return(timestamp)
 
