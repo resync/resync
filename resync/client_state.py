@@ -1,4 +1,4 @@
-"""ResourceSync client state class
+"""ResourceSync client state class.
 
 The client requires memory of state to support incremental
 synchronization. At minimum it must store the source timestamp
@@ -19,14 +19,14 @@ except ImportError: #python2
 
 
 class ClientState(object):
-    """
-    """
+    """Read and store client state on disk."""
 
     def __init__(self):
+        """Initialize ClientState object with default status file name."""
         self.status_file = '.resync-client-status.cfg'
 
     def set_state(self,site,timestamp=None):
-        """Write status dict to client status file
+        """Write status dict to client status file.
         
         FIXME - should have some file lock to avoid race
         """
@@ -44,7 +44,7 @@ class ClientState(object):
             configfile.close()
 
     def get_state(self,site):
-        """Read client status file and return dict"""
+        """Read client status file and return dict."""
         parser = ConfigParser.SafeConfigParser()
         status_section = 'incremental'
         parser.read(self.status_file)
@@ -58,4 +58,10 @@ class ClientState(object):
         return(timestamp)
 
     def config_site_to_name(self, name):
+        """Convert site name to safe string for config.
+
+        Simply replaces any non-word chars with underscore. This could
+        lead to multiple site names mapping to one config name but
+        probably not too likely.
+        """
         return( re.sub(r"[^\w]",'_',name) )
