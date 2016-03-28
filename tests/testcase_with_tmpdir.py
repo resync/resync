@@ -1,4 +1,5 @@
 """Extension of unittest.TestCase to create a temp directory tmpdir."""
+import sys
 import os.path
 import unittest
 import tempfile
