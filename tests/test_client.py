@@ -48,12 +48,12 @@ class TestClient(TestCase):
             self.assertTrue( lc.records[-1].msg.startswith('dryrun: would GET http://example.org/dir/2 ') )
         c.dryrun = False
         # get from file uri that does not exist
-        resource = Resource(uri='tests/testdata/i_do_not_exist')
+        resource = Resource(uri='file:tests/testdata/i_do_not_exist')
         with LogCapture() as lc:
             c.logger = logging.getLogger('resync.client') 
             self.assertRaises( ClientFatalError, c.update_resource, resource, filename )
         # get from file uri
-        resource = Resource(uri='tests/testdata/examples_from_spec/resourcesync_ex_1.xml',
+        resource = Resource(uri='file:tests/testdata/examples_from_spec/resourcesync_ex_1.xml',
                             length=355, md5='abc',
                             timestamp=10)
         c.last_timestamp = 0

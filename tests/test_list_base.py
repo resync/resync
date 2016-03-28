@@ -1,4 +1,7 @@
+from tests.testcase_with_tmpdir import TestCase
+
 import sys
+import os.path
 import unittest
 try: #python2
     # Must try this first as io also exists in python2
@@ -20,9 +23,9 @@ else:
     from xml.etree.ElementTree import ParseError
     etree_error_class = ParseError
 
-class TestListBase(unittest.TestCase):
+class TestListBase(TestCase):
 
-    def test_01_len_count(self):
+    def test01_len_count(self):
         # count sets explicit number of resources, len(resources) not used
         lb = ListBase()
         self.assertEqual( len(lb), 0 )
@@ -31,7 +34,7 @@ class TestListBase(unittest.TestCase):
         lb = ListBase( count=100 )
         self.assertEqual( len(lb), 100 )
 
-    def test_02_print(self):
+    def test02_print(self):
         lb = ListBase()
         lb.add( Resource(uri='a',lastmod='2001-01-01',length=1234) )
         lb.add( Resource(uri='b',lastmod='2002-02-02',length=56789) )
@@ -40,7 +43,7 @@ class TestListBase(unittest.TestCase):
         x = lb.as_xml()
         self.assertEqual( x, '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/"><rs:md capability="unknown" /><url><loc>a</loc><lastmod>2001-01-01T00:00:00Z</lastmod><rs:md length="1234" /></url><url><loc>b</loc><lastmod>2002-02-02T00:00:00Z</lastmod><rs:md length="56789" /></url><url><loc>c</loc><lastmod>2003-03-03T00:00:00Z</lastmod><rs:md length="0" /></url></urlset>' )
 
-    def test_03_parse(self):
+    def test03_parse(self):
         xml = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
 <rs:md capability="unknown" from="2013-02-12T14:09:00Z" />\
@@ -59,6 +62,20 @@ class TestListBase(unittest.TestCase):
         lb3=ListBase()
         lb3.parse(str=xml)
         self.assertEqual( len(lb3.resources), 2, 'got 2 resources')
+
+    def test04_write(self):
+        lb = ListBase(capability_name = 'special')
+        lb.add( Resource(uri='http://example.org/lemon') )
+        lb.add( Resource(uri='http://example.org/orange') )
+        basename = os.path.join(self.tmpdir,'lb.xml')
+        lb.write(basename=basename)
+        self.assertTrue( os.path.exists(basename) )
+        # and now parse back
+        fh = open(basename,'r')
+        lb2 = ListBase(capability_name = 'special')
+        lb2.parse(fh=fh)
+        self.assertEqual( lb2.capability, 'special' )
+        self.assertEqual( len(lb2), 2 )
 
 if  __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestListBase)

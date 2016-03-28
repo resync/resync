@@ -129,7 +129,7 @@ class ListBase(ResourceContainer):
         Must be overridden to support multi-file lists.
         """
         self.default_capability()
-        fh = open(basename,'wb')
+        fh = open(basename,'w')
         s = self.new_sitemap()
         s.resources_as_xml(self,fh=fh,sitemapindex=self.sitemapindex)
         fh.close()
