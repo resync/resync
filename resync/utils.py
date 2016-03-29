@@ -4,6 +4,7 @@ from logging import Formatter
 from datetime import datetime
 
 class UTCFormatter(Formatter):
+    
     """Format datetime values as ISO8601 UTC Z form.
 
     Based on http://bit.ly/T2n3Xk

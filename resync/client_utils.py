@@ -1,9 +1,9 @@
-"""Client Utilities
+"""ResourceSync Client Utilities.
 
 Factor out code shared by both the resync and resync-explorer
 clients.
 
-Copyright 2012,2013 Simeon Warner
+Copyright 2012-2016 Simeon Warner
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ from resync.utils import UTCFormatter
 def init_logging(to_file=False, logfile=None, default_logfile='/tmp/resync.log',
                  human=True, verbose=False, eval_mode=False, 
                  default_logger='client', extra_loggers=None):
-    """Initialize logging
+    """Initialize logging.
 
     Use of log levels:
     DEBUG - very verbose, for evaluation of output (-e)
@@ -41,7 +41,6 @@ def init_logging(to_file=False, logfile=None, default_logfile='/tmp/resync.log',
     a file. This will be logfile if set, else default_logfile (which may
     also be overridden).
     """
-    
     fmt = '%(asctime)s | %(name)s | %(levelname)s | %(message)s'
     formatter = UTCFormatter(fmt)
     
@@ -75,7 +74,7 @@ def init_logging(to_file=False, logfile=None, default_logfile='/tmp/resync.log',
 
 
 def count_true_args(*args):
-    """Count number of list of arguments that evaluate True"""
+    """Count number of list of arguments that evaluate True."""
     count=0
     for arg in args:
         if (arg):
@@ -83,6 +82,10 @@ def count_true_args(*args):
     return(count)
 
 def parse_links(args_link):
+    """Parse --link options.
+
+    Uses parse_link() to parse each option.
+    """
     links=[]
     if (args_link is not None):
         for link_str in args_link:
@@ -93,7 +96,7 @@ def parse_links(args_link):
     return(links)
 
 def parse_link(link_str):
-    """Parse --link option to add to <rs:ln> links
+    """Parse one --link option to add to <rs:ln> links.
 
     Input string of the form: rel,href,att1=val1,att2=val2
     """
@@ -120,7 +123,7 @@ def parse_link(link_str):
     return(atts)
 
 def parse_capabilities(caps_str):
-    """Parse list of capabilities in --capabilitylist option
+    """Parse list of capabilities in --capabilitylist option.
 
     Input string of the form: cap_name=uri,cap_name=uri
     """
@@ -135,7 +138,7 @@ def parse_capabilities(caps_str):
     return(capabilities)
 
 def parse_capability_lists(cls_str):
-    """Parse list of capability lists in --capabilitylistindex option
+    """Parse list of capability lists in --capabilitylistindex option.
 
     Input string of the form: uri,uri
     """

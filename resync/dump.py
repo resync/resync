@@ -5,12 +5,8 @@ import os.path
 from zipfile import ZipFile, ZIP_STORED, ZIP_DEFLATED
 from resync.resource_dump_manifest import ResourceDumpManifest
 
-class DumpError(Exception):
-    """Error class used by Dump() objects."""
-    
-    pass
-
 class Dump(object):
+    
     """Dump of content for a Resource Dump or Change Dump.
 
     The resources itearable must be comprised of Resource objects
@@ -182,3 +178,10 @@ class Dump(object):
             return(real_path)
         else:
             return( os.path.relpath(real_path,self.path_prefix) )
+
+
+class DumpError(Exception):
+    
+    """Error class used by Dump() objects."""
+    
+    pass

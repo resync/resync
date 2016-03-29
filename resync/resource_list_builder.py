@@ -1,17 +1,4 @@
-"""ResourceListBuilder to create ResourceList objects
-
-Currently implements build from files on disk only. 
-
-Attributes:
-- set_path set true to add path attribute for each resource
-- set_md5 set true to calculate MD5 sums for all files
-- set_length set true to include file length in resource_list (defaults true)
-- exclude_dirs is a list of directory names to exclude
-  (defaults to ['CVS','.git'))
-
-FIXME - should add options to set sha1 and sha256 in addition or as
-alternatives to md5.
-"""
+"""ResourceListBuilder to create ResourceList objects."""
 
 import os
 import os.path
@@ -32,8 +19,23 @@ from .w3c_datetime import datetime_to_str
 
 class ResourceListBuilder():
 
+    """ResourceListBuilder to create ResourceList objects.
+
+    Currently implements build from files on disk only. 
+
+    Attributes:
+    - set_path set true to add path attribute for each resource
+    - set_md5 set true to calculate MD5 sums for all files
+    - set_length set true to include file length in resource_list (defaults true)
+    - exclude_dirs is a list of directory names to exclude
+      (defaults to ['CVS','.git'))
+
+    FIXME - should add options to set sha1 and sha256 in addition or as
+    alternatives to md5.
+    """
+
     def __init__(self, mapper=None, set_md5=False, set_length=True, set_path=False):
-        """Create ResourceListBuilder object, optionally set options
+        """Create ResourceListBuilder object, optionally set options.
 
         The mapper attribute must be set before a call to from_disk() in order to
         map between local filenames and URIs.
@@ -58,12 +60,12 @@ class ResourceListBuilder():
         self.compiled_exclude_files = []
 
     def add_exclude_files(self, exclude_patterns):
-        """Add more patterns of files to exclude while building resource_list"""
+        """Add more patterns of files to exclude while building resource_list."""
         for pattern in exclude_patterns:
             self.exclude_files.append(pattern)
 
     def compile_excludes(self):
-        """Compile a set of regexps for files to be exlcuded from scans"""
+        """Compile a set of regexps for files to be exlcuded from scans."""
         self.compiled_exclude_files = []
         for pattern in self.exclude_files:
             try:
@@ -72,14 +74,14 @@ class ResourceListBuilder():
                 raise ValueError("Bad python regex in exclude '%s': %s" % (pattern,str(e)))
 
     def exclude_file(self, file):
-        """True if file should be exclude based on name pattern"""
+        """True if file should be exclude based on name pattern."""
         for pattern in self.compiled_exclude_files:
             if (pattern.match(file)):
                 return(True)
         return(False)
 
     def from_disk(self, resource_list=None, paths=None):
-        """Create or extend resource_list with resources from disk scan
+        """Create or extend resource_list with resources from disk scan.
 
         Assumes very simple disk path to URL mapping (in self.mapping): chop 
         path and replace with url_path. Returns the new or extended ResourceList
@@ -126,8 +128,7 @@ class ResourceListBuilder():
         return(resource_list)
 
     def from_disk_add_path(self, path=None, resource_list=None):
-        """Add to resource_list with resources from disk scan starting at path
-        """
+        """Add to resource_list with resources from disk scan starting at path."""
         # sanity
         if (path is None or resource_list is None or self.mapper is None):
             raise ValueError("Must specify path, resource_list and mapper")
@@ -151,7 +152,7 @@ class ResourceListBuilder():
             self.add_file(resource_list=resource_list,file=path)
 
     def add_file(self, resource_list=None, dir=None, file=None):
-        """Add a single file to resource_list
+        """Add a single file to resource_list.
         
         Follows object settings of set_path, set_md5 and set_length.
         """

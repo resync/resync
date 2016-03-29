@@ -19,6 +19,7 @@ except ImportError: #python2
 
 
 class ClientState(object):
+    
     """Read and store client state on disk."""
 
     def __init__(self):

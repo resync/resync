@@ -1,4 +1,4 @@
-"""ResourceSync Archive objects
+"""ResourceSync Archive objects.
 
 The ResourceSync Archives specification
 http://www.openarchives.org/rs/archives specifies capabilities
@@ -19,10 +19,12 @@ from .resource import Resource
 from .sitemap import Sitemap
 
 class ResourceListArchive(ListBaseWithIndex):
-    """Class representing an Change List Archive"""
+
+    """Class representing an Resource List Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
                  resources_class=None):
+        """Initialize ResourceListArchive."""
         self.resources_class = list if resources_class is None else resources_class
         if (resources is None):
             resources = self.resources_class()
@@ -30,27 +32,33 @@ class ResourceListArchive(ListBaseWithIndex):
                                                   capability_name='resourcelist-archive')
 
 class ChangeListArchive(ListBaseWithIndex):
-    """Class representing an Change List Archive"""
+
+    """Class representing an Change List Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
                  resources_class=None):
+        """Initialize ChangeListArchive."""
         super(ChangeListArchive, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
                                                 capability_name='changelist-archive')
 
 class ResourceDumpArchive(ListBaseWithIndex):
-    """Class representing an Resource Dump Archive"""
+
+    """Class representing an Resource Dump Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
                  resources_class=None):
+        """Initialize ResourceDumpArchive."""
         super(ResourceDumpArchive, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
                                                   capability_name='resourcedump-archive',
                                                   resources_class=resources_class)
 
 class ChangeDumpArchive(ListBaseWithIndex):
-    """Class representing an Change Dump Archive"""
+
+    """Class representing an Change Dump Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
                  resources_class=None):
+        """Initialize ChangeDumpArchive."""
         super(ChangeDumpArchive, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
                                                 capability_name='changedump-archive',
                                                 resources_class=resources_class)

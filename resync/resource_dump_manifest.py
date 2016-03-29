@@ -1,4 +1,4 @@
-"""ResourceSync ResourceDumpManifest object
+"""ResourceSync ResourceDumpManifest object.
 
 A ResourceDumpManifest lists the set of files/resources included 
 within a content package that is included in a ResourceDump.
@@ -12,7 +12,8 @@ http://www.openarchives.org/rs/resourcesync#ResourceDumpManifest
 from .resource_list import ResourceList
 
 class ResourceDumpManifest(ResourceList):
-    """Class representing a Resource Dump Manifest
+
+    """Class representing a Resource Dump Manifest.
 
     A ResourceDumpManifest comprises a set of files/resources
     in a content package. Properties much Like a ResourceList
@@ -20,5 +21,6 @@ class ResourceDumpManifest(ResourceList):
     """
 
     def __init__(self, resources=None, md=None, ln=None, uri=None, allow_multifile=None, mapper=None):
+        """Initialize ResourceDumpManifest."""
         super(ResourceDumpManifest, self).__init__(resources=resources, md=md, ln=ln, uri=uri, mapper=mapper)
         self.capability_name = 'resourcedump-manifest'
