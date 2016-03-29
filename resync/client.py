@@ -359,7 +359,7 @@ class Client(object):
                 msg = "Failed to GET %s -- %s" % (resource.uri,str(e))
                 if (self.ignore_failures):
                     self.logger.warning(msg)
-                    return
+                    return(num_updated)
                 else:
                     raise ClientFatalError(msg)
             # 2. set timestamp if we have one
