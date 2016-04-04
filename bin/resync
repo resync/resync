@@ -23,7 +23,6 @@ import sys
 from resync import __version__
 from resync.client import Client, ClientFatalError
 from resync.client_utils import init_logging,count_true_args,parse_links,parse_capabilities,parse_capability_lists
-from resync.utils import UTCFormatter
 
 DEFAULT_LOGFILE = 'resync-client.log'
 
