@@ -18,13 +18,20 @@ Copyright 2012-2016 Simeon Warner
    limitations under the License
 """
 
+try: #python3
+    from urllib.request import urlopen
+except ImportError: #python2
+    from urllib import urlopen
 import logging
 import logging.config
 from datetime import datetime
+import re
 
-from resync.client import ClientFatalError
-from resync.explorer import Explorer
+class ClientFatalError(Exception):
 
+    """Non-recoverable error in client, should include message to user."""
+
+    pass
 
 class UTCFormatter(logging.Formatter):
     """Format datetime values as ISO8601 UTC Z form.
@@ -153,3 +160,10 @@ def parse_capability_lists(cls_str):
     Input string of the form: uri,uri
     """
     return(cls_str.split(','))
+  
+def url_or_file_open(uri):
+    """Wrapper around urlopen() to prepend file: if no scheme provided."""
+    if (not re.match(r'''\w+:''',uri)):
+        uri = 'file:'+uri
+    return(urlopen(uri))
+

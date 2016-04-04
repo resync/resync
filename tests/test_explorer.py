@@ -5,7 +5,8 @@ import re
 import logging
 import sys
 
-from resync.client import Client, ClientFatalError
+from resync.client import Client
+from resync.client_utils import ClientFatalError
 from resync.capability_list import CapabilityList
 from resync.explorer import Explorer, XResource, HeadResponse, ExplorerQuit
 from resync.resource import Resource

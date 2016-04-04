@@ -6,7 +6,6 @@ look for and interpret capabilities.
 """
 
 import sys
-import urllib
 try: #python3
     from urllib.parse import urlparse, urlunparse, urljoin
 except ImportError: #python2
@@ -23,6 +22,7 @@ from .mapper import Mapper
 from .sitemap import Sitemap
 from .client import Client,ClientFatalError
 from .client_state import ClientState
+from .client_utils import ClientFatalError, url_or_file_open
 from .resource import Resource
 from .w3c_datetime import str_to_datetime,datetime_to_str
 
@@ -117,7 +117,7 @@ class Explorer(Client):
                 self.explore_show_head(uri,check_headers=checks)
             else: 
                 s=Sitemap()
-                list = s.parse_xml(urllib.urlopen(uri))
+                list = s.parse_xml(url_or_file_open(uri))
                 (options,capability)=self.explore_show_summary(list,s.parsed_index,caps,context=uri)
         except IOError as e:
             print("Cannot read %s (%s)" % (uri,str(e)))

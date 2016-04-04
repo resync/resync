@@ -2,10 +2,10 @@
 
 import sys
 try: #python3
-    from urllib.request import urlopen, urlretrieve
+    from urllib.request import urlretrieve
     from urllib.parse import urlparse, urlunparse
 except ImportError: #python2
-    from urllib import urlopen,urlretrieve
+    from urllib import urlretrieve
     from urlparse import urlparse, urlunparse
 import os.path
 import datetime
@@ -27,6 +27,7 @@ from .resource import Resource
 from .url_authority import UrlAuthority
 from .utils import compute_md5_for_file
 from .client_state import ClientState
+from .client_utils import ClientFatalError, url_or_file_open
 from .list_base_with_index import ListBaseIndexError
 from .w3c_datetime import str_to_datetime,datetime_to_str
 
@@ -600,19 +601,3 @@ class Client(object):
         self.logger.warning("Status: %15s (%s%s=%d, %s=%d, %s=%d)" %\
              (status, same, words['created'], created, 
               words['updated'], updated, words['deleted'], deleted))
-
-
-class ClientFatalError(Exception):
-
-    """Non-recoverable error in client, should include message to user."""
-
-    pass
-
-##### Misc functions. #####
-  
-def url_or_file_open(uri):
-    """Wrapper around urlopen() to prepend file: if no scheme provided."""
-    if (not re.match(r'''\w+:''',uri)):
-        uri = 'file:'+uri
-    return(urlopen(uri))
-
