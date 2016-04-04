@@ -20,12 +20,22 @@ Copyright 2012,2013 Simeon Warner
 
 import logging
 import logging.config
-import optparse
-import sys
+from datetime import datetime
 
 from resync.client import ClientFatalError
 from resync.explorer import Explorer
-from resync.utils import UTCFormatter
+
+
+class UTCFormatter(logging.Formatter):
+    """Format datetime values as ISO8601 UTC Z form.
+
+    Based on http://bit.ly/T2n3Xk
+    """
+
+    def formatTime(self, record, datefmt=None):
+        """Format datetime of record.created as ISO8601 UTC Z form."""
+        timestamp = record.created
+        return datetime.utcfromtimestamp(timestamp).isoformat() + 'Z'
 
 def init_logging(to_file=False, logfile=None, default_logfile='/tmp/resync.log',
                  human=True, verbose=False, eval_mode=False, 
@@ -88,8 +98,8 @@ def parse_links(args_link):
         for link_str in args_link:
             try:
                 links.append(parse_link(link_str))
-            except ValueError as e:
-                raise ClientFatalError("Bad --link option '%s' (%s)"%(link_str,str(e)))
+            except ClientFatalError as e:
+                raise ClientFatalError("Bad --link option '%s' (%s)" % (link_str,str(e)))
     return(links)
 
 def parse_link(link_str):
