@@ -3,6 +3,7 @@ build
 dist
 MANIFEST
 .eggs
+*.egg
 # Testing
 .coverage
 htmlcov
