@@ -77,8 +77,8 @@ class Explorer(Client):
         # capabilities
         starts = []
         if (self.sitemap_name is not None):
-            print("Starting from explicit --sitemap %s" % (uri))
-            starts.append( XResource(uri) )
+            print("Starting from explicit --sitemap %s" % (self.sitemap_name))
+            starts.append( XResource(self.sitemap_name) )
         elif (len(self.mapper)>0):
             uri = self.mapper.default_src_uri()
             (scheme, netloc, path, params, query, fragment) = urlparse(uri)
@@ -155,18 +155,21 @@ class Explorer(Client):
         except Exception as e:
             print("Cannot parse %s (%s)" % (uri,str(e)))
         #
-        # Loop until we have some valide input
+        # Loop until we have some valid input
         #
         while (True):
             # don't offer number option for no resources/capabilities
             num_prompt = '' if (len(options)==0) else 'number, '
             up_prompt = 'b(ack), ' if (show_back) else ''
-            input = raw_input( "Follow [%s%sq(uit)]?" % (num_prompt,up_prompt) )
-            if (input in options.keys()):
+            if (self.fake_input):
+                inp = self.fake_input
+            else:
+                inp = raw_input( "Follow [%s%sq(uit)]?" % (num_prompt,up_prompt) )
+            if (inp in options.keys()):
                 break
-            if (input == 'q'):
+            if (inp == 'q'):
                 raise ExplorerQuit()
-            if (input == 'b'):
+            if (inp == 'b'):
                 return(None)
         #
         # Got input that is one of the options
@@ -294,10 +297,7 @@ class Explorer(Client):
             response = self.head_on_file(uri)
         print("  status: %s" % (response.status_code))
         if (response.status_code=='200'):
-            # generate normalized lastmod
-#        if ('last-modified' in response.headers):
-#            response.headers.add['lastmod'] = datetime_to_str(str_to_datetime(response.headers['last-modified']))
-        # print some of the headers
+            # print some of the headers
             for header in ['content-length','last-modified','lastmod','content-type','etag']:
                 if header in response.headers:
                     check_str=''
@@ -321,19 +321,19 @@ class Explorer(Client):
         return(response)
 
     def allowed_entries(self,capability):
-        """Given a current capability document, return list of allowed entries.
+        """Return list of allowed entries for given capability document.
 
         Includes handling of capability = *index where the only acceptable 
         entries are *.
         """
         index = re.match(r'(.+)index$',capability)
-        archive = re.match('r(.+)\-archive$',capability)
+        archive = re.match(r'(.+)\-archive$',capability)
         if (capability == 'capabilitylistindex'):
             return([]) #not allowed so no valid references
         elif (index):
-            return(index.group(0)) #name without index ending
+            return([index.group(1)]) #name without index ending
         elif (archive):
-            return(archive.group(0)) #name without -archive ending
+            return([archive.group(1)]) #name without -archive ending
         elif (capability == 'description'):
             return(['capabilitylist'])
         elif (capability == 'capabilitylist'):
