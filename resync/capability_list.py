@@ -1,4 +1,4 @@
-"""ResourceSync Capability List object
+"""ResourceSync Capability List object.
 
 An Capability List is a set of capabilitys with some metadata for 
 each capability. The Capability List object may also contain metadata 
@@ -13,7 +13,8 @@ from .list_base import ListBase
 from .sitemap import Sitemap
 
 class CapabilitySet(ResourceSet):
-    """Class for storage of resources in a Capability List
+
+    """Class for storage of resources in a Capability List.
 
     Extends the ResourceSet to add checks to ensure that there are 
     never two entries for the same resource, and that values are 
@@ -21,13 +22,14 @@ class CapabilitySet(ResourceSet):
     """
 
     def __init__(self):
+        """Initialize CpabilitySet."""
         self.order = [ 'resourcelist', 'resourcedump',
                        'changelist', 'changedump',
                        'resourcelist-archive', 'resourcedump-archive',
                        'changelist-archive', 'changedump-archive' ]
 
     def __iter__(self):
-        """Iterator over all the resources in capability order
+        """Iterator over all the resources in capability order.
 
         Deals with the case of unknown capabilities or duplicate entries
         by using uri order for duplicates and adding any unknown ones 
@@ -62,7 +64,8 @@ class CapabilitySet(ResourceSet):
 
 
 class CapabilityList(ListBase):
-    """Class representing a Capability List
+
+    """Class representing a Capability List.
 
     An Capability List will admit only one resource with any given 
     URI. The iterator over resources is expected to return them in
@@ -71,13 +74,14 @@ class CapabilityList(ListBase):
     """
 
     def __init__(self, resources=None, md=None, ln=None, uri=None):
+        """Initialize CapabilityList."""
         if (resources is None):
             resources = CapabilitySet()
         super(CapabilityList, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
                                              capability_name='capabilitylist')
 
     def add(self, resource, replace=False):
-        """Add a resource or an iterable collection of resources
+        """Add a resource or an iterable collection of resources.
 
         Will throw a ValueError if the resource (ie. same uri) already
         exists in the capability_list, unless replace=True.
@@ -89,7 +93,7 @@ class CapabilityList(ListBase):
             self.resources.add(resource,replace)
 
     def add_capability(self,capability=None,uri=None,name=None):
-        """Specific add function for capabilities
+        """Specific add function for capabilities.
         
         Takes either:
         - a capability object (derived from ListBase) as the first argument 
@@ -105,13 +109,13 @@ class CapabilityList(ListBase):
         self.add( Resource(uri=uri,capability=name) )
 
     def has_capability(self,name=None):
-        """True if the Capability List includes the named capability"""
+        """True if the Capability List includes the named capability."""
         return( self.capability_info(name) is not None )
 
     def capability_info(self,name=None):
-        """Return information about the requested capability from this list
+        """Return information about the requested capability from this list.
 
-        Will return None if there is no information about the requested capability
+        Will return None if there is no information about the requested capability.
         """
         for r in self.resources:
             if (r.capability == name):

@@ -1,8 +1,9 @@
+"""Module config for resync."""
+
 from resync._version import __version__
 
-"""Enable easy import for core classes, e.g.
-from  import Resource
-"""
+# Enable easy import for core classes, e.g.
+# from resync import Resource
 from resync.source_description import SourceDescription
 from resync.capability_list import CapabilityList
 from resync.resource_list import ResourceList

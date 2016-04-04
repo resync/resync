@@ -1,4 +1,4 @@
-"""Base class for ResourceSync capabilities with list of resources
+"""Base class for ResourceSync capabilities with list of resources.
 
 Adds Sitemap based IO to the ResourceContainer class and is
 intended as the base class for ResourceList, ChangeList,
@@ -26,7 +26,8 @@ from .resource_container import ResourceContainer
 from .sitemap import Sitemap
 
 class ListBase(ResourceContainer):
-    """Class that adds Sitemap based IO to ResourceContainer
+
+    """Class that adds Sitemap based IO to ResourceContainer.
 
     resources - an iterable of resources
 
@@ -43,6 +44,7 @@ class ListBase(ResourceContainer):
 
     def __init__(self, resources=None, count=None, md=None, ln=None, uri=None, 
                  capability_name='unknown'):
+        """Initialize ListBase."""
         super(ListBase, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
                                        capability_name=capability_name)
         self.count = count
@@ -54,11 +56,11 @@ class ListBase(ResourceContainer):
         self.parsed_index = None
 
     def __iter__(self):
-        """Default to iterator provided by resources object"""
+        """Default to iterator provided by resources object."""
         return(iter(self.resources))
 
     def __len__(self):
-        """Number of entries in this list
+        """Number of entries in this list.
 
         To handle the case where self.resources is a generator or an iterator and
         thus cannot provide len(...) we first check to see whether an explicit
@@ -75,7 +77,7 @@ class ListBase(ResourceContainer):
     ##### INPUT #####
 
     def read(self,uri=None):
-        """Default case is just to parse document at this URI
+        """Default case is just to parse document at this URI.
 
         Intention is that the read() method may be overridden to support reading
         of compound documents in more then one sitemapindex/sitemap.
@@ -83,7 +85,7 @@ class ListBase(ResourceContainer):
         self.parse(uri=uri)
 
     def parse(self,uri=None,fh=None,str_data=None,**kwargs):
-        """Parse a single XML document for this list
+        """Parse a single XML document for this list.
 
         Accepts either a uri (uri or default if parameter not specified), 
         or a filehandle (fh) or a string (str_data). Note that this method
@@ -114,7 +116,7 @@ class ListBase(ResourceContainer):
     ##### OUTPUT #####
 
     def as_xml(self):
-        """Return XML serialization of this list
+        """Return XML serialization of this list.
 
         This code does not support the case where the list is too big for 
         a single XML document.
@@ -124,7 +126,7 @@ class ListBase(ResourceContainer):
         return s.resources_as_xml(self,sitemapindex=self.sitemapindex)
 
     def write(self,basename="/tmp/resynclist.xml"):
-        """Write a single sitemap or sitemapindex XML document
+        """Write a single sitemap or sitemapindex XML document.
 
         Must be overridden to support multi-file lists.
         """
@@ -137,5 +139,5 @@ class ListBase(ResourceContainer):
     ##### UTILITY #####
 
     def new_sitemap(self):
-        """Create new Sitemap object with default settings"""
+        """Create new Sitemap object with default settings."""
         return Sitemap(pretty_xml=self.pretty_xml)

@@ -1,4 +1,5 @@
-"""Map between source URIs and destination paths"""
+"""Map between source URIs and destination paths."""
+
 import os
 import os.path
 import re
@@ -8,23 +9,26 @@ except ImportError: #python2
     from urlparse import urlparse
 import logging
 
-class MapperError(Exception):
-    pass
-
 class Mapper():
     
+    """Mapper object to map between source URIs and destination paths.
+
+    Implemented as a list of Map objects.
+    """
+
     def __init__(self, mappings=None, use_default_path=False):
+        """Initialize Mapper."""
         self.logger = logging.getLogger('resync.mapper')
         self.mappings=[]
         if (mappings):
             self.parse(mappings, use_default_path)
 
     def __len__(self):
-        """Length is number of mappings"""
+        """Length is number of mappings."""
         return(len(self.mappings))
 
     def parse(self, mappings, use_default_path=False):
-        """Parse a list of map strings (mappings)
+        """Parse a list of map strings (mappings).
 
         Accepts two distinct formats:
         1. If there are exactly two entries then these may be the source base URI
@@ -63,7 +67,7 @@ class Mapper():
                 self.mappings.append(Map(src_uri, dst_path))
 
     def default_src_uri(self):
-        """Default src_uri from mapping
+        """Default src_uri from mapping.
 
         This is take just to be the src_uri of the first entry
         """
@@ -72,7 +76,7 @@ class Mapper():
         raise MapperError("Can't get default source URI from empty mapping")
 
     def unsafe(self):
-        """True is one or more mapping is unsafe
+        """True is one or more mapping is unsafe.
 
         See Map.unsafe() for logic. Provide this as a test rather than 
         building into object creation/parse because it is useful to 
@@ -84,7 +88,7 @@ class Mapper():
         return(False)
 
     def dst_to_src(self,dst_file):
-        """Map destination path to source URI"""
+        """Map destination path to source URI."""
         for map in self.mappings:
             src_uri = map.dst_to_src(dst_file)
             if (src_uri is not None):
@@ -93,7 +97,7 @@ class Mapper():
         raise MapperError("Unable to translate destination path (%s) into a source URI." % (dst_file))
 
     def src_to_dst(self,src_uri):
-        """Map source URI to destination path"""
+        """Map source URI to destination path."""
         for map in self.mappings:
             dst_path = map.src_to_dst(src_uri)
             if (dst_path is not None):
@@ -102,7 +106,7 @@ class Mapper():
         raise MapperError("Unable to translate source URI (%s) into a destination path." % (src_uri))
 
     def path_from_uri(self,uri):
-        """Make a safe path name from uri
+        """Make a safe path name from uri.
 
         In the case that uri is already a local path then the same path
         is returned.
@@ -118,6 +122,7 @@ class Mapper():
         return(path)
 
     def __repr__(self):
+        """Human readable dump of all Maps in the Mapper."""
         s = 'Mapper with %d maps:\n' % (len(self.mappings))
         for map in self.mappings:
             s += str(map) + '\n'
@@ -125,7 +130,8 @@ class Mapper():
 
 
 class Map:
-    """A single map from source URI to destination path
+
+    """A single map from source URI to destination path.
 
     Both URI and destination paths are assumed to use / as the path
     separator. No account is take for other path separators used
@@ -134,18 +140,19 @@ class Map:
     """
 
     def __init__(self,src_uri=None,dst_path=None):
+        """Initialize Map object, strip trailing slashes from src_uri and dst_path."""
         self.src_uri  = self.strip_trailing_slashes(src_uri)
         self.dst_path = self.strip_trailing_slashes(dst_path)
 
     def strip_trailing_slashes(self,path):
-        """Return input path minus any trailing slashes"""
+        """Return input path minus any trailing slashes."""
         m=re.match(r"(.*)/+$",path)
         if (m is None):
             return(path)
         return(m.group(1))
 
     def dst_to_src(self,dst_file):
-        """Return the src URI from the dst filepath
+        """Return the src URI from the dst filepath.
 
         This does not rely on the destination filepath actually existing on the local
         filesystem, just on pattern matching. Return source URI on success, None on 
@@ -158,7 +165,7 @@ class Map:
         return(self.src_uri+'/'+rel_path)
         
     def src_to_dst(self,src_uri):
-        """Return the dst filepath from the src URI
+        """Return the dst filepath from the src URI.
         
         Returns None on failure, destination path on success.
         """
@@ -169,7 +176,7 @@ class Map:
         return(self.dst_path+'/'+rel_path)
 
     def unsafe(self):
-        """True is the mapping is unsafe for an update
+        """True is the mapping is unsafe for an update.
 
         Applies only to local source. Returns True if the paths for source and 
         destination are the same, or if one is a component of the other path.
@@ -183,4 +190,12 @@ class Map:
         return(s == lcp or d == lcp)
 
     def __repr__(self):
+        """Human readable string for one map."""
         return("Map( %s -> %s )" % (self.src_uri, self.dst_path))
+
+
+class MapperError(Exception):
+
+    """Exception for errors in Mapper class."""
+
+    pass

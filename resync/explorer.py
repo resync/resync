@@ -26,39 +26,8 @@ from .client_state import ClientState
 from .resource import Resource
 from .w3c_datetime import str_to_datetime,datetime_to_str
 
-class XResource(object):
-    """Information about a resource for the explorer.
-
-    Must have a uri but may also store:
-    
-    acceptable_capabilities - None for any acceptable, 'resource' if a 
-        resource rather than a capability document is expected, else 
-        a list of capability names
-    checks - a set of information to check when then XResource is inspected
-    base_uri - on creation interpret any relative URI specified in the 
-        context of base_uri, store the resulting full URI
-    """
-
-    def __init__(self, uri, acceptable_capabilities=None, checks=None, context=None):
-        """Initialize XResource object."""
-        self.uri=urljoin(context,uri)
-        self.acceptable_capabilities=acceptable_capabilities
-        self.checks=checks
-
-class HeadResponse(object):
-    """Object to mock up requests.head(...) response."""
-
-    def __init__(self):
-        """Initialize with no status_code and no headers."""
-        self.status_code=None
-        self.headers={}
-
-class ExplorerQuit(Exception):
-    """Exception raised when user quits normally, no error."""
-
-    pass
-
 class Explorer(Client):
+    
     """Extension of the client code to explore a ResourceSync source.
 
     Designed to support a text-based command-line client that starts from
@@ -353,3 +322,41 @@ class Explorer(Client):
             print("  WARNING - expanded relative URI to %s" % (full_uri))
             uri = full_uri
         return(uri)
+
+
+class XResource(object):
+
+    """Information about a resource for the explorer.
+
+    Must have a uri but may also store:
+    
+    acceptable_capabilities - None for any acceptable, 'resource' if a 
+        resource rather than a capability document is expected, else 
+        a list of capability names
+    checks - a set of information to check when then XResource is inspected
+    base_uri - on creation interpret any relative URI specified in the 
+        context of base_uri, store the resulting full URI
+    """
+
+    def __init__(self, uri, acceptable_capabilities=None, checks=None, context=None):
+        """Initialize XResource object."""
+        self.uri=urljoin(context,uri)
+        self.acceptable_capabilities=acceptable_capabilities
+        self.checks=checks
+
+
+class HeadResponse(object):
+
+    """Object to mock up requests.head(...) response."""
+
+    def __init__(self):
+        """Initialize with no status_code and no headers."""
+        self.status_code=None
+        self.headers={}
+
+
+class ExplorerQuit(Exception):
+    
+    """Exception raised when user quits normally, no error."""
+
+    pass

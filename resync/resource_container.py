@@ -1,4 +1,4 @@
-"""ResourceSync Resource Container object
+"""ResourceSync Resource Container object.
 
 All documents in ResourceSync have the same types of information:
 they have some top-level metadata and links, and then a list of
@@ -14,7 +14,8 @@ import collections
 from .w3c_datetime import datetime_to_str
 
 class ResourceContainer(object):
-    """Class containing resource-like objects
+
+    """Class containing resource-like objects.
 
     Core functionality::
     - resources property that is the set/list of resources
@@ -31,6 +32,7 @@ class ResourceContainer(object):
     """
 
     def __init__(self, resources=None, md=None, ln=None, uri=None, capability_name=None):
+        """Initialize ResourceContainer."""
         self.resources=(resources if (resources is not None) else [])
         self.md=(md if (md is not None) else {})
         self.ln=(ln if (ln is not None) else [])
@@ -38,19 +40,19 @@ class ResourceContainer(object):
         self.capability_name=capability_name
 
     def __iter__(self):
-        """Iterator over all the resources in this resource list
+        """Iterator over all the resources in this resource list.
 
-        Baseline implementation use iterator given by resources property
+        Baseline implementation use iterator given by resources property.
         """
         return(iter(self.resources))
 
     def __getitem__(self,index):
-        """Feed through for __getitem__ of resources property"""
+        """Feed through for __getitem__ of resources property."""
         return(self.resources[index])
 
     @property
     def capability(self):
-        """Get/set the <rs:md capability="" .../> attribute"""
+        """Get/set the <rs:md capability="" .../> attribute."""
         if ('capability' in self.md):
             return(self.md['capability'])
         else:
@@ -62,7 +64,7 @@ class ResourceContainer(object):
 
     @property
     def md_from(self):
-        """Get/set the <rs:md from="" .../> attribute"""
+        """Get/set the <rs:md from="" .../> attribute."""
         if ('md_from' in self.md):
             return(self.md['md_from'])
         else:
@@ -74,7 +76,7 @@ class ResourceContainer(object):
 
     @property
     def md_until(self):
-        """Get/set the <rs:md until="" .../> attribute"""
+        """Get/set the <rs:md until="" .../> attribute."""
         if ('md_until' in self.md):
             return(self.md['md_until'])
         else:
@@ -86,7 +88,7 @@ class ResourceContainer(object):
 
     @property
     def md_at(self):
-        """Get/set the <rs:md at="" attribute"""
+        """Get/set the <rs:md at="" attribute."""
         if ('md_at' in self.md):
             return(self.md['md_at'])
         else:
@@ -98,7 +100,7 @@ class ResourceContainer(object):
 
     @property
     def md_completed(self):
-        """Get/set the <rs:md completed="" .../> attribute"""
+        """Get/set the <rs:md completed="" .../> attribute."""
         if ('md_completed' in self.md):
             return(self.md['md_completed'])
         else:
@@ -109,7 +111,7 @@ class ResourceContainer(object):
         self.md['md_completed']=self._str_datetime_now(md_completed)
 
     def link(self,rel):
-        """Look for link with specified rel, return else None"""
+        """Look for link with specified rel, return else None."""
         for link in self.ln:
             if ('rel' in link and
                 link['rel']==rel):
@@ -117,14 +119,14 @@ class ResourceContainer(object):
         return(None)
 
     def link_href(self,rel):
-        """Look for link with specified rel, return href from it or None"""
+        """Look for link with specified rel, return href from it or None."""
         link = self.link(rel)
         if (link is not None):
             link = link['href']
         return(link)
 
     def link_set(self,rel,href,**atts):
-        """Set/create link with specified rel, set href and any other attributes
+        """Set/create link with specified rel, set href and any other attributes.
 
         Any link element must have both rel and href values, the specification
         also defines the type attributes and others are permitted also. See 
@@ -145,36 +147,36 @@ class ResourceContainer(object):
 
     @property
     def describedby(self):
-        """Convenient access to <rs:ln rel="describedby" href="uri">"""
+        """Convenient access to <rs:ln rel="describedby" href="uri">."""
         return(self.link_href('describedby'))
 
     @describedby.setter
     def describedby(self,uri):
-        """Set ResourceSync Description link to given URI"""
+        """Set ResourceSync Description link to given URI."""
         self.link_set('describedby',uri)
 
     @property
     def up(self):
-        """Get the URI of any ResourceSync rel="up" link"""
+        """Get the URI of any ResourceSync rel="up" link."""
         return(self.link_href('up'))
 
     @up.setter
     def up(self,uri):
-        """Set ResourceSync rel="up" link to given URI"""
+        """Set ResourceSync rel="up" link to given URI."""
         self.link_set('up',uri)
 
     @property
     def index(self):
-        """Get the URI of and ResourceSync rel="index" link"""
+        """Get the URI of and ResourceSync rel="index" link."""
         return(self.link_href('index'))
 
     @index.setter
     def index(self,uri):
-        """Set index link to given URI"""
+        """Set index link to given URI."""
         self.link_set('index',uri)
 
     def default_capability(self):
-        """Set capability name in md
+        """Set capability name in md.
 
         Every ResourceSync document should have the top-level
         capability attributes.
@@ -183,9 +185,9 @@ class ResourceContainer(object):
             self.md['capability']=self.capability_name
 
     def add(self, resource):
-        """Add a resource or an iterable collection of resources to this container
+        """Add a resource or an iterable collection of resources to this container.
 
-        Must be implemented in derived class
+        Must be implemented in derived class.
         """
         if isinstance(resource, collections.Iterable):
             for r in resource:
@@ -194,14 +196,14 @@ class ResourceContainer(object):
             self.resources.append(resource)
 
     def uris(self):
-        """Return list of all URIs, possibly including dupes"""
+        """Return list of all URIs, possibly including dupes."""
         uris = []
         for r in self.resources:
             uris.append(r.uri)
         return(uris)
 
     def prune_before(self, timestamp):
-        """Remove all resources with timestamp earlier than that given
+        """Remove all resources with timestamp earlier than that given.
         
         Returns the number of entries removed. Will raise an excpetion
         if there are any entries without a timestamp.
@@ -219,7 +221,7 @@ class ResourceContainer(object):
         return(n)
 
     def prune_dupes(self):
-        """Remove all but the last entry for a given resource URI
+        """Remove all but the last entry for a given resource URI.
         
         Returns the number of entries removed. Also removes all entries for a 
         given URI where the first entry is a create and the last entry is a
@@ -250,14 +252,14 @@ class ResourceContainer(object):
         return(n)
 
     def __str__(self):
-        """Return string of all resources in order given by interator"""
+        """Return string of all resources in order given by interator."""
         s = ''
         for resource in self:
             s += str(resource) + "\n"
         return(s)
 
     def _str_datetime_now(self, x=None):
-        """Return datetime string for use with time attributes
+        """Return datetime string for use with time attributes.
         
         Handling depends on input:
           'now'   - returns datetime for now

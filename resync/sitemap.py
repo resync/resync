@@ -1,4 +1,4 @@
-"""Read and write ResourceSync documents as sitemaps"""
+"""Read and write ResourceSync documents as sitemaps."""
 
 import re
 import os
@@ -28,28 +28,37 @@ XML_ATT_NAME = {
 }
 
 class SitemapIndexError(Exception):
-    """Exception on attempt to read a sitemapindex instead of sitemap 
-    or vice-versa
+
+    """Exception if sitemapindex read instead of sitemap or vice-versa.
 
     Provides both a message and a place to store the etree so that
-    the parse tree may be reused as a sitemapingex.
+    the parse tree may be reused as a sitemapindex.
     """
 
     def __init__(self, message=None, etree=None):
+        """Initialize SitemapIndexError with supplied parameters."""
         self.message = message
         self.etree = etree
 
     def __repr__(self):
+        """Return just the message attribute."""
         return(self.message)
 
 class SitemapParseError(Exception):
+
+    """Exception for sitemap parsing structural error."""
+
     pass
 
 class SitemapDupeError(Exception):
+
+    """Exception for case of duplicate resources in sitemap."""
+
     pass
 
 class Sitemap(object):
-    """Read and write sitemaps
+
+    """Read and write sitemaps.
 
     Implemented as a separate class that uses ResourceContainer 
     (ResourceList or ChangeList) and Resource classes as data objects. 
@@ -62,6 +71,7 @@ class Sitemap(object):
     """
 
     def __init__(self, pretty_xml=False):
+        """Initialize Sitemap object."""
         self.logger = logging.getLogger('resync.sitemap')
         self.pretty_xml=pretty_xml
         # Classes used when parsing
@@ -74,7 +84,7 @@ class Sitemap(object):
     ##### Write the XML for a sitemap or sitemapindex #####
 
     def resources_as_xml(self, resources, sitemapindex=False, fh=None):
-        """Write or return XML for a set of resources in sitemap format
+        """Write or return XML for a set of resources in sitemap format.
         
         Arguments:
         - resources - either an iterable or iterator of Resource objects;
@@ -121,9 +131,10 @@ class Sitemap(object):
     ##### Read/parse an XML sitemap or sitemapindex #####
 
     def parse_xml(self, fh=None, etree=None, resources=None, capability=None, sitemapindex=None):
-        """Parse XML Sitemap from fh or etree and add resources to a
-        resorces object (which must support the add method). Returns 
-        the resources object.
+        """Parse XML Sitemap and add to resources object.
+
+        Reads from fh or etree and adds resources to a resorces object 
+        (which must support the add method). Returns the resources object.
 
         Also sets self.resources_created to be the number of resources created. 
         We adopt a very lax approach here. The parsing is properly namespace 
@@ -215,7 +226,7 @@ class Sitemap(object):
     ##### Resource methods #####
 
     def resource_etree_element(self, resource, element_name='url'):
-        """Return xml.etree.ElementTree.Element representing the resource
+        """Return xml.etree.ElementTree.Element representing the resource.
 
         Returns and element for the specified resource, of the form <url> 
         with enclosed properties that are based on the sitemap with extensions
@@ -249,7 +260,7 @@ class Sitemap(object):
         return(e)
 
     def resource_as_xml(self,resource):
-        """Return string for the resource as part of an XML sitemap
+        """Return string for the resource as part of an XML sitemap.
 
         Returns a string with the XML snippet representing the resource,
         without any XML declaration.
@@ -267,7 +278,7 @@ class Sitemap(object):
         return(s.replace("<?xml version='1.0' encoding='UTF-8'?>\n",''))
 
     def resource_from_etree(self, etree, resource_class):
-        """Construct a Resource from an etree
+        """Construct a Resource from an etree.
 
         Parameters:
          etree - the etree to parse
@@ -326,7 +337,7 @@ class Sitemap(object):
         return(resource)
 
     def md_from_etree(self, md_element, context=''):
-        """Parse rs:md attributes returning a dict of the data
+        """Parse rs:md attributes returning a dict of the data.
 
         Parameters:
             md_element  - etree element <rs:md>
@@ -359,7 +370,7 @@ class Sitemap(object):
 
 
     def ln_from_etree(self,ln_element,context=''):
-        """Parse rs:ln element from an etree, returning a dict of the data
+        """Parse rs:ln element from an etree, returning a dict of the data.
 
         Parameters:
             md_element - etree element <rs:md>
@@ -399,7 +410,7 @@ class Sitemap(object):
     ##### Metadata and link elements #####
 
     def add_element_with_atts_to_etree(self, etree, name, atts):
-        """Add element with name and atts to etree iff there are any atts
+        """Add element with name and atts to etree iff there are any atts.
 
         Parameters:
             etree - an etree object
@@ -418,7 +429,7 @@ class Sitemap(object):
             etree.append(e)
 
     def _xml_att_name(self,att):
-        """Get XML attribute name corresponding to supplied Resource object attribute
+        """Get XML attribute name corresponding to supplied Resource object attribute.
 
         We cannot use the XML attribute names in Python because 'from' and others
         conflict with Python reserved words. To be consistent all the extra timestamps

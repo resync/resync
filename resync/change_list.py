@@ -1,4 +1,4 @@
-"""ResourceSync ChangeList object
+"""ResourceSync ChangeList object.
 
 A ChangeList is a list of resource descriptions which includes
 both metadata associated with the resource at some point in
@@ -26,24 +26,25 @@ from .resource import Resource,ChangeTypeError
 from .sitemap import Sitemap
 
 class ChangeList(ListBaseWithIndex):
-    """Class representing an Change List"""
+
+    """Class representing an Change List."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
                  mapper=None, resources_class=list):
+        """Initialize ChangeList."""
         super(ChangeList, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
                                          capability_name='changelist', mapper=mapper,
                                          resources_class=resources_class)
 
     def add_if_changed(self, resource):
-        """Add resource if change is not None else ChangeTypeError"""
+        """Add resource if change is not None else ChangeTypeError."""
         if (resource.change is not None):
             self.resources.append(resource)    
         else:
             raise ChangeTypeError(resource.change)
 
     def add(self, resource):
-        """Add a resource change or an iterable collection of them to 
-        this ChangeList
+        """Add a resource change or an iterable collection of them.
       
         Allows multiple resource_change objects for the same 
         resource (ie. URI) and preserves the order of addition.
@@ -55,7 +56,7 @@ class ChangeList(ListBaseWithIndex):
             self.add_if_changed(resource)
 
     def add_changed_resources(self, resources, change=None):
-        """Add items from a ResourceContainer resources to this ChangeList
+        """Add items from a ResourceContainer resources.
 
         If change is specified then the attribute is set in the Resource 
         objects created.

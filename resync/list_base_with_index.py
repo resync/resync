@@ -1,7 +1,7 @@
-"""Base class for ResourceSync capabilities with lists of resources including 
-support for both sitemaps and sitemapindexes.
+"""Base class for ResourceSync capabilities with large lists of resources.
 
-Extends ListBase to add support for sitemapindexes.
+Handles possibly large lists by including support for both sitemaps and
+sitemapindexes. Extends ListBase to add the support for sitemapindexes.
 """
 
 import collections
@@ -23,12 +23,9 @@ from .mapper import Mapper, MapperError
 from .url_authority import UrlAuthority
 from .utils import compute_md5_for_file
 
-class ListBaseIndexError(Exception):
-    """Exception for problems with sitemapindexes"""
-    pass
-
 class ListBaseWithIndex(ListBase):
-    """Class that add handling of sitemapindexes to ListBase
+
+    """Class that add handling of sitemapindexes to ListBase.
 
     Splitting of a list into multiple sitemaps with a sitemapindex is currently
     handled based solely on the number of entries in the list. The configurable
@@ -56,6 +53,7 @@ class ListBaseWithIndex(ListBase):
     def __init__(self, resources=None, count=None, md=None, ln=None, uri=None, 
                  capability_name='unknown', allow_multifile=None, mapper=None,
                  resources_class=None):
+        """Initialize ListBaseWithIndex."""
         self.resources_class = list if resources_class is None else resources_class
         if (resources is None):
             resources = self.resources_class()
@@ -73,7 +71,7 @@ class ListBaseWithIndex(ListBase):
     ##### INPUT #####
 
     def read(self, uri=None, resources=None, index_only=False):
-        """Read sitemap from a URI including handling sitemapindexes
+        """Read sitemap from a URI including handling sitemapindexes.
 
         If index_only is True then individual sitemaps references in a sitemapindex
         will not be read. This will result in no resources being returned and is
@@ -123,7 +121,7 @@ class ListBaseWithIndex(ListBase):
 
 
     def read_component_sitemap(self, sitemapindex_uri, sitemap_uri, sitemap, sitemapindex_is_file):
-        """Read a component sitemap of a Resource List with index
+        """Read a component sitemap of a Resource List with index.
 
         Each component must be a sitemap with the 
         """
@@ -162,7 +160,7 @@ class ListBaseWithIndex(ListBase):
     ##### OUTPUT #####
 
     def requires_multifile(self):
-        """Returns False or the number of component sitemaps required
+        """Return False or the number of component sitemaps required.
         
         In the case that no len() is available for self.resources then
         then self.count must be set beforehand to avoid an exception.
@@ -173,7 +171,7 @@ class ListBaseWithIndex(ListBase):
         return( int( math.ceil( len(self) / float(self.max_sitemap_entries) ) ) )
 
     def as_xml(self, allow_multifile=False, basename="/tmp/sitemap.xml"):
-        """Return XML serialization of this list
+        """Return XML serialization of this list.
 
         If this list can be serialized as a single sitemap then the 
         superclass method is used.
@@ -192,7 +190,7 @@ class ListBaseWithIndex(ListBase):
             raise ListBaseIndexError("Attempt to write single XML string for list with %d entries when max_sitemap_entries is set to %d" % (len(self),self.max_sitemap_entries))
 
     def as_xml_index(self, basename="/tmp/sitemap.xml"):
-        """Return a string of the index for a large list that is split
+        """Return a string of the index for a large list that is split.
         
         All we need to do is determine the number of component sitemaps will
         be is and generate their URIs based on a pattern.
@@ -215,7 +213,10 @@ class ListBaseWithIndex(ListBase):
         return( index.as_xml() )
 
     def as_xml_part(self, basename="/tmp/sitemap.xml", part_number=0):
-        """Return a string of component sitemap part_number for a large list that is split
+        """Return a string of component sitemap number part_number.
+
+        Used in the case of a large list that is split into component
+        sitemaps.
         
         basename is used to create "index" links to the sitemapindex
         
@@ -237,7 +238,7 @@ class ListBaseWithIndex(ListBase):
         return( s.resources_as_xml(part) )
 
     def write(self, basename='/tmp/sitemap.xml'):
-        """Write one or a set of sitemap files to disk
+        """Write one or a set of sitemap files to disk.
 
         resources is a ResourceContainer that may be an ResourceList or
         a ChangeList. This may be a generator so data is read as needed
@@ -307,9 +308,7 @@ class ListBaseWithIndex(ListBase):
             self.logger.info("Wrote sitemap %s" % (basename))
 
     def index_as_xml(self):
-        """Return XML serialization of this list taken to be sitemapindex entries
-
-        """
+        """XML serialization of this list taken to be sitemapindex entries."""
         self.default_capability()
         s = self.new_sitemap()
         return s.resources_as_xml(self,sitemapindex=True)
@@ -317,7 +316,7 @@ class ListBaseWithIndex(ListBase):
     ##### Utility #####
 
     def get_resources_chunk(self, resource_iter, first=None):
-        """Return next chunk of resources from resource_iter, and next item
+        """Return next chunk of resources from resource_iter, and next item.
         
         If first parameter is specified then this will be prepended to
         the list.
@@ -344,7 +343,7 @@ class ListBaseWithIndex(ListBase):
         return(chunk,nxt)
 
     def part_name(self, basename='/tmp/sitemap.xml', part_number=0):
-        """Name (file or URI) for one component sitemap
+        """Name (file or URI) for one component sitemap.
         
         Works for both filenames and URIs because manipulates only the end
         of the string.
@@ -362,9 +361,16 @@ class ListBaseWithIndex(ListBase):
         return( sitemap_prefix + ( "%05d" % (part_number) ) + sitemap_suffix )
  
     def is_file_uri(self, uri):
-        """Return true if uri looks like a local file URI, false otherwise
+        """Return true if uri looks like a local file URI, false otherwise.
         
         Test is to see whether have either an explicit file: URI or whether
         there is no scheme name.
         """
         return(re.match('file:',uri) or not re.match('\w{3,4}:',uri))
+
+
+class ListBaseIndexError(Exception):
+
+    """Exception for problems with sitemapindexes in ListBaseIndex."""
+
+    pass
