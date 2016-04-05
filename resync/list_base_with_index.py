@@ -176,10 +176,10 @@ class ListBaseWithIndex(ListBase):
         If this list can be serialized as a single sitemap then the 
         superclass method is used.
 
-        There is no single XML serailization sense in the case that the 
-        number of list resources is more than is allowed in a single sitemap
-        so will raise an exception unless allow_multifile is set True.
-        If allow_multifile is set true then will return the sitemapindex
+        If there is no single XML serialization (in the case that the 
+        number of list resources is more than is allowed in a single sitemap)
+        then raise an exception unless allow_multifile is set True.
+        If allow_multifile is set True then will return the sitemapindex
         for the set of component sitemaps.
         """
         if (not self.requires_multifile()):
@@ -249,7 +249,7 @@ class ListBaseWithIndex(ListBase):
 
         Uses self.max_sitemap_entries to determine whether the resource_list can 
         be written as one sitemap. If there are more entries and 
-        self.allow_multifile is set true then a set of sitemap files, 
+        self.allow_multifile is set True then a set of sitemap files, 
         with an sitemapindex, will be written.
         """
         # Access resources through iterator only
