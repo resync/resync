@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">
+<rs:md capability="unknown" from="2013-02-12T14:09:00Z" />
+<url><loc>r1</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length="12" /></url>
+<url><loc>r2</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length="32" /></url>
+</urlset>

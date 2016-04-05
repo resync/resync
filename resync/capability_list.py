@@ -85,6 +85,8 @@ class CapabilityList(ListBase):
 
         Will throw a ValueError if the resource (ie. same uri) already
         exists in the capability_list, unless replace=True.
+
+        See add_capability() for normal method of adding capabilities.
         """
         if isinstance(resource, collections.Iterable):
             for r in resource:

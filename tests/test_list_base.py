@@ -43,7 +43,13 @@ class TestListBase(TestCase):
         x = lb.as_xml()
         self.assertEqual( x, '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/"><rs:md capability="unknown" /><url><loc>a</loc><lastmod>2001-01-01T00:00:00Z</lastmod><rs:md length="1234" /></url><url><loc>b</loc><lastmod>2002-02-02T00:00:00Z</lastmod><rs:md length="56789" /></url><url><loc>c</loc><lastmod>2003-03-03T00:00:00Z</lastmod><rs:md length="0" /></url></urlset>' )
 
-    def test03_parse(self):
+    def test03_read(self):
+        # just does parse
+        lb=ListBase()
+        lb.read(uri='tests/testdata/unknown/unknown1.xml')
+        self.assertEqual( len(lb.resources), 2 )
+
+    def test04_parse(self):
         xml = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
 <rs:md capability="unknown" from="2013-02-12T14:09:00Z" />\
@@ -62,6 +68,12 @@ class TestListBase(TestCase):
         lb3=ListBase()
         lb3.parse(str=xml)
         self.assertEqual( len(lb3.resources), 2, 'got 2 resources')
+        # file that doesn't exits
+        lb4 = ListBase()
+        self.assertRaises( Exception, lb4.parse,
+                           uri='tests/testdata/does_not_exist' )
+        # nothing
+        self.assertRaises( Exception, lb4.parse )
 
     def test04_write(self):
         lb = ListBase(capability_name = 'special')

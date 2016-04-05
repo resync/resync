@@ -8,22 +8,29 @@ except ImportError: #python3
 import re
 
 from resync.resource import Resource
-from resync.change_list import ChangeList
+from resync.change_list import ChangeList, ChangeTypeError
 from resync.resource_list import ResourceList
 from resync.sitemap import SitemapParseError
 
 class TestChangeList(unittest.TestCase):
 
-    def test1_set_with_repeats(self):
-        src = ChangeList()
-        src.add( Resource('a',timestamp=1,change='updated') )
-        src.add( Resource('b',timestamp=1,change='created') )
-        src.add( Resource('c',timestamp=1,change='deleted') )
-        src.add( Resource('a',timestamp=2,change='deleted') )
-        src.add( Resource('b',timestamp=2,change='updated') )
-        self.assertEqual(len(src), 5, "5 changes in change_list")
+    def test01_add_if_changed(self):
+        cl = ChangeList()
+        cl.add_if_changed( Resource('a',timestamp=1,change='updated') )
+        self.assertEqual( len(cl), 1 )
+        self.assertRaises( ChangeTypeError, cl.add_if_changed,
+                           Resource('c',timestamp=3) )
 
-    def test2_with_repeats_again(self):
+    def test02_set_with_repeats(self):
+        cl = ChangeList()
+        cl.add( Resource('a',timestamp=1,change='updated') )
+        cl.add( Resource('b',timestamp=1,change='created') )
+        cl.add( Resource('c',timestamp=1,change='deleted') )
+        cl.add( Resource('a',timestamp=2,change='deleted') )
+        cl.add( Resource('b',timestamp=2,change='updated') )
+        self.assertEqual(len(cl), 5, "5 changes in change_list")
+
+    def test03_with_repeats_again(self):
         r1 = Resource(uri='a',length=1,change='created')
         r2 = Resource(uri='b',length=2,change='created')
         i = ChangeList()
@@ -35,16 +42,16 @@ class TestChangeList(unittest.TestCase):
         i.add(r1d)
         self.assertEqual( len(i), 3 )
 
-    def test3_change_list(self):
-        src = ChangeList()
-        src.add( Resource('a',timestamp=1,change='created') )
-        src.add( Resource('b',timestamp=2,change='created') )
-        src.add( Resource('c',timestamp=3,change='created') )
-        src.add( Resource('d',timestamp=4,change='created') ) 
-        src.add( Resource('e',timestamp=5,change='created') )
-        self.assertEqual(len(src), 5, "5 things in src")
+    def test04_change_list(self):
+        cl = ChangeList()
+        cl.add( Resource('a',timestamp=1,change='created') )
+        cl.add( Resource('b',timestamp=2,change='created') )
+        cl.add( Resource('c',timestamp=3,change='created') )
+        cl.add( Resource('d',timestamp=4,change='created') ) 
+        cl.add( Resource('e',timestamp=5,change='created') )
+        self.assertEqual(len(cl), 5, "5 things in src")
 
-    def test4_iter(self):
+    def test05_iter(self):
         i = ChangeList()
         i.add( Resource('a',timestamp=1,change='created') )
         i.add( Resource('b',timestamp=2,change='created') )
@@ -57,7 +64,7 @@ class TestChangeList(unittest.TestCase):
         self.assertEqual( resources[0].uri, 'a')
         self.assertEqual( resources[3].uri, 'd')
 
-    def test5_add_changed_resources(self):
+    def test06_add_changed_resources(self):
         added = ResourceList()
         added.add( Resource('a',timestamp=1,change='created') )
         added.add( Resource('d',timestamp=4,change='created') )
@@ -91,7 +98,7 @@ class TestChangeList(unittest.TestCase):
         self.assertEqual(dst.resources['d'].timestamp, 4)
         self.assertEqual(dst.resources['d'].change, 'created')
 
-    def test20_as_xml(self):
+    def test07_as_xml(self):
         cl = ChangeList()
         cl.md_from = '1970-01-01T00:00:00Z'
         cl.add( Resource('a',timestamp=1,change='updated') )
@@ -101,7 +108,7 @@ class TestChangeList(unittest.TestCase):
         self.assertTrue( re.search(r'<rs:md .*from="\d\d\d\d\-\d\d\-\d\dT\d\d:\d\d:\d\dZ"', xml), 'XML has from to seconds precision (and not more)' )
         self.assertTrue( re.search(r'<url><loc>a</loc><lastmod>1970-01-01T00:00:01Z</lastmod>', xml), 'XML has resource a' ) 
 
-    def test30_parse(self):
+    def test08_parse(self):
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
 <rs:md capability="changelist" from="2013-01-01"/>\
@@ -114,7 +121,7 @@ class TestChangeList(unittest.TestCase):
         self.assertEqual( cl.md['capability'], 'changelist', 'capability set' )
         self.assertEqual( cl.md['md_from'], '2013-01-01' )
 
-    def test31_parse_no_capability(self):
+    def test09_parse_no_capability(self):
         # missing capability is an error for changelist
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
@@ -123,7 +130,7 @@ class TestChangeList(unittest.TestCase):
         cl=ChangeList()
         self.assertRaises( SitemapParseError, cl.parse, fh=io.StringIO(xml) )
 
-    def test32_parse_bad_capability(self):
+    def test10_parse_bad_capability(self):
         # the <rs:md capability="bad_capability".. should give error
         xml='<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
