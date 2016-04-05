@@ -2,12 +2,12 @@
 resync
 ======
 
-.. image:: https://travis-ci.org/resync/resync.png?branch=master
+.. image:: https://travis-ci.org/resync/resync.png?branch=develop
   :target: https://travis-ci.org/resync/resync
   :alt: Build status
 
-.. image:: https://coveralls.io/repos/github/resync/resync/badge.svg?branch=master 
-  :target: https://coveralls.io/github/resync/resync?branch=master
+.. image:: https://coveralls.io/repos/github/resync/resync/badge.svg?branch=develop
+  :target: https://coveralls.io/github/resync/resync
   :alt: Test coverage
 
 **resync** is a ResourceSync client and library in python. `ResourceSync 
