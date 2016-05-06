@@ -10,6 +10,7 @@ try: #python3
     from urllib.parse import urlparse, urlunparse, urljoin
 except ImportError: #python2
     from urlparse import urlparse, urlunparse, urljoin
+    input = raw_input
 import os.path
 import datetime
 import distutils.dir_util 
@@ -89,7 +90,7 @@ class Explorer(Client):
                 history = [ start ]
                 input = None
                 while (len(history)>0):
-                    print
+                    print()
                     xr = history.pop()
                     new_xr = self.explore_uri(xr,len(history)>0)
                     if (new_xr):
@@ -133,7 +134,7 @@ class Explorer(Client):
             if (self.fake_input):
                 inp = self.fake_input
             else:
-                inp = raw_input( "Follow [%s%sq(uit)]?" % (num_prompt,up_prompt) )
+                inp = input( "Follow [%s%sq(uit)]?" % (num_prompt,up_prompt) )
             if (inp in options.keys()):
                 break
             if (inp == 'q'):
@@ -144,7 +145,7 @@ class Explorer(Client):
         # Got input that is one of the options
         #
         checks = {}
-        r = options[input]
+        r = options[inp]
         if ( r.capability is None ):
             if (capability in ['resourcelist','changelist',
                                'resourcedump','changedump']):
@@ -163,7 +164,7 @@ class Explorer(Client):
         if (r.mime_type is not None):
             checks['content-type']=r.mime_type
         # FIXME - could add fixity checks here too
-        return( XResource(options[input].uri, caps, checks) )
+        return( XResource(r.uri, caps, checks) )
 
     def explore_show_summary(self, list, index=False, expected=None, context=None):
         """Show summary of one capability document.

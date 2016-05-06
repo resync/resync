@@ -91,7 +91,7 @@ def main():
     init_logging( to_file=args.logger, logfile=args.logfile, default_logfile=DEFAULT_LOGFILE,
                   verbose=args.verbose )
 
-    print "----- ResourceSync Explorer -----"
+    print("----- ResourceSync Explorer -----")
     c = Explorer( checksum=args.checksum,
                   verbose=args.verbose )
 

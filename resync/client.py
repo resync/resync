@@ -60,6 +60,7 @@ class Client(object):
         self.max_sitemap_entries = None
         self.ignore_failures = False
         self.pretty_xml = True
+        self.fake_input = None
         # Default file names
         self.status_file = '.resync-client-status.cfg'
         self.default_resource_dump = 'resourcedump.zip'
