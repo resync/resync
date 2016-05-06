@@ -14,8 +14,8 @@ install:
   - python setup.py install
 # command to run tests
 script:
-  - py.test
-#  - pep257 *.py resync/*.py
+  - python setup.py test
+  - pep257 resync
   - rst-lint README
   - coverage run --source=resync setup.py test
 after_success:

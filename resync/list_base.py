@@ -26,7 +26,6 @@ from .resource_container import ResourceContainer
 from .sitemap import Sitemap
 
 class ListBase(ResourceContainer):
-
     """Class that adds Sitemap based IO to ResourceContainer.
 
     resources - an iterable of resources

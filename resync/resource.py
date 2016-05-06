@@ -1,28 +1,28 @@
 """ResourceSync Resources - information about a web resource and changes."""
 
 import re
-try: #python3
+try:  # python3
     from urllib.parse import urlparse
-except: #python2
+except:  # python2
     from urlparse import urlparse
 from posixpath import basename
 from .w3c_datetime import str_to_datetime, datetime_to_str
 
-class Resource(object):
 
+class Resource(object):
     """ResourceSync Resource object.
 
-    Each web resource is identified by a URI and may optionally 
+    Each web resource is identified by a URI and may optionally
     have other metadata such as timestamp, length, md5, etc..
 
-    The lastmod property provides ISO8601 format string access 
-    to the timestamp. The timestamp is stored internally as a 
-    unix timestamp value in UTC. This limits the range of 
+    The lastmod property provides ISO8601 format string access
+    to the timestamp. The timestamp is stored internally as a
+    unix timestamp value in UTC. This limits the range of
     possible lastmod values but covers all web-era values for
     a good way into the future.
 
-    This object is optimized for size in the case whether there 
-    is not large a large amount of data in the attributes. This 
+    This object is optimized for size in the case whether there
+    is not large a large amount of data in the attributes. This
     is done using __slots__ for the core attributes so that there
     is no __dict__ defined for a Resource object. Core attributes
     are:
@@ -30,48 +30,48 @@ class Resource(object):
         uri - Resource URI
         timestamp - Last-Modification time, has lastmod accessor
         length - size in bytes
-        mime_type - MIME type 
+        mime_type - MIME type
         md5, sha1, sha256 - digests, have hash accessor
         change - change type
         path - path in dump
 
-    If non-core attributes are needed then the '_extra' attribute 
+    If non-core attributes are needed then the '_extra' attribute
     has a dict of values. The ones explicitly used here are:
 
-        capability - Capability name
-        ts_at - at time, has md_at accessor 
-        ts_completed - completed time, has md_completed accessor 
-        ts_from - from time, has md_from accessor 
-        ts_until - until time, has md_until accessor 
+        capability - Capability nam
+        ts_at - at time, has md_at accessor
+        ts_completed - completed time, has md_completed accessor
+        ts_from - from time, has md_from accessor
+        ts_until - until time, has md_until accessor
 
-    The accessor names mime_type, md_from etc. are used to avoid conflict 
-    with Python built-in functions and keywords type(), from etc..
+    The accessor names mime_type, md_from etc. are used to avoid conflict
+    with Python built-in functions and keywords type(), from etc...
 
-    The 'ln' attribute is used when it is necessary to add links 
-    or other information to the object. Use of non-core attributes 
-    or links results in dicts being created which is convenient 
-    but will significantly increase the size of each Resource 
+    The 'ln' attribute is used when it is necessary to add links
+    or other information to the object. Use of non-core attributes
+    or links results in dicts being created which is convenient
+    but will significantly increase the size of each Resource
     object that contains such information.
     """
 
-    __slots__=('uri', 'timestamp', 'length', 'mime_type', 
-               'md5', 'sha1', 'sha256', 'change', 'path',
-               '_extra', 'ln' )
+    __slots__ = ('uri', 'timestamp', 'length', 'mime_type',
+                 'md5', 'sha1', 'sha256', 'change', 'path',
+                 '_extra', 'ln')
 
     CHANGE_TYPES = ['created', 'updated', 'deleted']
-    
-    def __init__(self, uri = None, timestamp = None, length = None, 
-                 md5 = None, sha1 = None, sha256 = None, mime_type = None,
-                 change = None, path = None, lastmod = None, 
-                 capability = None,
-                 ts_at = None, md_at = None,
-                 ts_completed = None, md_completed = None,
-                 ts_from = None, md_from = None,
-                 ts_until = None, md_until = None,
-                 resource = None, ln = None):
+
+    def __init__(self, uri=None, timestamp=None, length=None,
+                 md5=None, sha1=None, sha256=None, mime_type=None,
+                 change=None, path=None, lastmod=None,
+                 capability=None,
+                 ts_at=None, md_at=None,
+                 ts_completed=None, md_completed=None,
+                 ts_from=None, md_from=None,
+                 ts_until=None, md_until=None,
+                 resource=None, ln=None):
         """Initialize Resource object.
 
-        Initialize either from parameters specified or from an existing 
+        Initialize either from parameters specified or from an existing
         Resource object. If explicit parameters are specified then they
         will override values copied from a Resource object supplied.
         """
@@ -89,11 +89,11 @@ class Resource(object):
         self.ln = None
         # Create from a Resource-like object? Copy any relevant attributes
         if (resource is not None):
-            for att in ['uri','timestamp','length','md5','sha1','sha256',
-                        'change','path', 'capability',
-                        'ts_at','md_at', 'ts_completed', 'md_completed',
-                        'ts_from','md_from','ts_until','md_until','ln']:
-                if hasattr(resource,att):
+            for att in ['uri', 'timestamp', 'length', 'md5', 'sha1', 'sha256',
+                        'change', 'path', 'capability',
+                        'ts_at', 'md_at', 'ts_completed', 'md_completed',
+                        'ts_from', 'md_from', 'ts_until', 'md_until', 'ln']:
+                if hasattr(resource, att):
                     setattr(self, att, getattr(resource, att))
         # Any arguments will then override
         if (uri is not None):
@@ -128,15 +128,15 @@ class Resource(object):
             self.ln = ln
         # Timestamp setters
         if (lastmod is not None):
-            self.lastmod=lastmod
+            self.lastmod = lastmod
         if (md_at is not None):
-            self.md_at=md_at
+            self.md_at = md_at
         if (md_completed is not None):
-            self.md_completed=md_completed
+            self.md_completed = md_completed
         if (md_from is not None):
-            self.md_from=md_from
+            self.md_from = md_from
         if (md_until is not None):
-            self.md_until=md_until
+            self.md_until = md_until
         # Sanity check
         if (self.uri is None):
             raise ValueError("Cannot create resource without a URI")
@@ -144,13 +144,13 @@ class Resource(object):
     def __setattr__(self, prop, value):
         """Attribute setter with check and support for extra attributes.
 
-        Because this class is optimized to use __slots__ it cannot 
+        Because this class is optimized to use __slots__ it cannot
         ordinarily be dynamically extended. We implement extension with
         the idea of extra properties.
         """
         # Add validity check for self.change
         if (prop == 'change' and Resource.CHANGE_TYPES and
-            value is not None and not value in Resource.CHANGE_TYPES):
+                value is not None and value not in Resource.CHANGE_TYPES):
             raise ChangeTypeError(value)
         else:
             try:
@@ -160,12 +160,12 @@ class Resource(object):
                 self._set_extra(prop, value)
 
     def _set_extra(self, prop, value):
-        # Use self._extra dict to hold non-core attributes to 
+        # Use self._extra dict to hold non-core attributes to
         # save space
         if (self._extra is None):
             self._extra = dict()
         self._extra[prop] = value
-    
+
     def _get_extra(self, prop):
         # Returns None for a property not set
         if (self._extra is None):
@@ -190,7 +190,9 @@ class Resource(object):
     @md_at.setter
     def md_at(self, md_at):
         """Set at value from a W3C Datetime value."""
-        self._set_extra( 'ts_at', str_to_datetime(md_at, context='md_at datetime') )
+        self._set_extra(
+            'ts_at',
+            str_to_datetime(md_at, context='md_at datetime'))
 
     @property
     def md_completed(self):
@@ -200,7 +202,9 @@ class Resource(object):
     @md_completed.setter
     def md_completed(self, md_completed):
         """Set md_completed value from a W3C Datetime value."""
-        self._set_extra( 'ts_completed', str_to_datetime(md_completed, context='md_completed datetime') )
+        self._set_extra(
+            'ts_completed',
+            str_to_datetime(md_completed, context='md_completed datetime'))
 
     @property
     def md_from(self):
@@ -210,7 +214,9 @@ class Resource(object):
     @md_from.setter
     def md_from(self, md_from):
         """Set md_from value from a W3C Datetime value."""
-        self._set_extra( 'ts_from', str_to_datetime(md_from, context='md_from datetime') )
+        self._set_extra(
+            'ts_from',
+            str_to_datetime(md_from, context='md_from datetime'))
 
     @property
     def md_until(self):
@@ -220,7 +226,9 @@ class Resource(object):
     @md_until.setter
     def md_until(self, md_until):
         """Set md_until value from a W3C Datetime value."""
-        self._set_extra( 'ts_until', str_to_datetime(md_until, context='md_until datetime') )
+        self._set_extra(
+            'ts_until',
+            str_to_datetime(md_until, context='md_until datetime'))
 
     @property
     def capability(self):
@@ -247,7 +255,7 @@ class Resource(object):
             hashvals.append('sha-1:'+self.sha1)
         if (self.sha256 is not None):
             hashvals.append('sha-256:'+self.sha256)
-        if (len(hashvals)>0):
+        if (len(hashvals) > 0):
             return(' '.join(hashvals))
         return(None)
 
@@ -267,54 +275,54 @@ class Resource(object):
         hash_seen = set()
         errors = []
         for entry in hash.split():
-            ( hash_type, value ) = entry.split(':',1)
+            (hash_type, value) = entry.split(':', 1)
             if (hash_type in hash_seen):
                 errors.append("Ignored duplicate hash type %s" % (hash_type))
             else:
                 hash_seen.add(hash_type)
                 if (hash_type == 'md5'):
-                    self.md5=value
+                    self.md5 = value
                 elif (hash_type == 'sha-1'):
-                    self.sha1=value
+                    self.sha1 = value
                 elif (hash_type == 'sha-256'):
-                    self.sha256=value
+                    self.sha256 = value
                 else:
-                    errors.append("Ignored unsupported hash type (%s)" % (hash_type))
-        if (len(errors)>0):
+                    errors.append("Ignored unsupported hash type (%s)" %
+                                  (hash_type))
+        if (len(errors) > 0):
             raise ValueError(". ".join(errors))
 
-    def link(self,rel):
+    def link(self, rel):
         """Look for link with specified rel, return else None.
 
         Searches through dicts in self.ln looking for one with the
-        specified rel value. If there are multiple links with the 
+        specified rel value. If there are multiple links with the
         same rel then just the first will be returned
         """
         if (self.ln is None):
             return(None)
         for link in self.ln:
-            if ('rel' in link and
-                link['rel']==rel):
+            if ('rel' in link and link['rel'] == rel):
                 return(link)
         return(None)
 
-    def link_href(self,rel):
+    def link_href(self, rel):
         """Look for link with specified rel, return href from it or None."""
         link = self.link(rel)
         if (link is not None):
             link = link['href']
         return(link)
 
-    def link_set(self,rel,href,allow_duplicates=False,**atts):
+    def link_set(self, rel, href, allow_duplicates=False, **atts):
         """Set/create link with specified rel, set href and any other attributes.
 
         Any link element must have both rel and href values, the specification
-        also defines the type attributes and others are permitted also. See 
+        also defines the type attributes and others are permitted also. See
         description of allowed formats in
 
         http://www.openarchives.org/rs/resourcesync.html#DocumentFormats
 
-        Be aware that adding links to a Resource object will 
+        Be aware that adding links to a Resource object will
         significantly increase the size of the object.
         """
         if (self.ln is None):
@@ -328,14 +336,17 @@ class Resource(object):
             link['href'] = href
         else:
             # create new link
-            link = {'rel':rel,'href':href}
+            link = {'rel': rel, 'href': href}
             self.ln.append(link)
         for k in atts:
             link[k] = atts[k]
 
-    def link_add(self,rel,href,**atts):
-        """Create an link with specified rel even if one with that rel already exists."""
-        self.link_set(rel,href,allow_duplicates=True,**atts)
+    def link_add(self, rel, href, **atts):
+        """Create an link with specified rel.
+
+        Will add a link even if one with that rel already exists.
+        """
+        self.link_set(rel, href, allow_duplicates=True, **atts)
 
     @property
     def describedby(self):
@@ -343,9 +354,9 @@ class Resource(object):
         return(self.link_href('describedby'))
 
     @describedby.setter
-    def describedby(self,uri):
+    def describedby(self, uri):
         """Set ResourceSync Description link to given URI."""
-        self.link_set('describedby',uri)
+        self.link_set('describedby', uri)
 
     @property
     def up(self):
@@ -353,9 +364,9 @@ class Resource(object):
         return(self.link_href('up'))
 
     @up.setter
-    def up(self,uri):
+    def up(self, uri):
         """Set rel="up" link to given URI."""
-        self.link_set('up',uri)
+        self.link_set('up', uri)
 
     @property
     def index(self):
@@ -363,9 +374,9 @@ class Resource(object):
         return(self.link_href('index'))
 
     @index.setter
-    def index(self,uri):
+    def index(self, uri):
         """Set rel="index" link to given URI."""
-        self.link_set('index',uri)
+        self.link_set('index', uri)
 
     @property
     def contents(self):
@@ -373,12 +384,12 @@ class Resource(object):
         return(self.link_href('index'))
 
     @contents.setter
-    def contents(self,uri,type='application/xml'):
+    def contents(self, uri, type='application/xml'):
         """Set rel="contents" link to given URI.
 
         Will also set the type="application/xml" unless overridden
         """
-        self.link_set('contents',uri,type=type)
+        self.link_set('contents', uri, type=type)
 
     @property
     def basename(self):
@@ -387,79 +398,79 @@ class Resource(object):
         For example from http://example.com/resource/1 returns 1
         """
         parse_object = urlparse(self.uri)
-        return basename(parse_object.path)
+        return(basename(parse_object.path))
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         """Equality test for resources allowing <1s difference in timestamp.
-        
+
         See equal(...) for more details of equality test
         """
-        return( self.equal(other,delta=1.0) )
+        return(self.equal(other, delta=1.0))
 
-    def equal(self,other,delta=0.0):
+    def equal(self, other, delta=0.0):
         """Equality or near equality test for resources.
-        
+
         Equality means:
         1. same uri, AND
         2. same timestamp WITHIN delta if specified for either, AND
         3. same md5 if specified for both, AND
         4. same length if specified for both
         """
-        if (other is None): return False
-        
+        if (other is None):
+            return False
         if (self.uri != other.uri):
             return(False)
-        if ( self.timestamp is not None or other.timestamp is not None ):
+        if (self.timestamp is not None or other.timestamp is not None):
             # not equal if only one timestamp specified
-            if ( self.timestamp is None or 
-                 other.timestamp is None or
-                 abs(self.timestamp-other.timestamp)>=delta ):
+            if (self.timestamp is None or
+                    other.timestamp is None or
+                    abs(self.timestamp-other.timestamp) >= delta):
                 return(False)
-        if ( ( self.md5 is not None and other.md5 is not None ) and
-             self.md5 != other.md5 ):
+        if ((self.md5 is not None and other.md5 is not None) and
+                self.md5 != other.md5):
             return(False)
-        if ( ( self.length is not None and other.length is not None ) and
-             self.length != other.length ):
+        if ((self.length is not None and other.length is not None) and
+                self.length != other.length):
             return(False)
         return(True)
-    
+
     def __str__(self):
         """Return a human readable string for this resource.
 
         Includes only the parts necessary for synchronizaion and
         designed to support logging.
         """
-        s = [ str(self.uri), str(self.lastmod), str(self.length),
-              str(self.md5 if self.md5 else self.sha1) ]
+        s = [str(self.uri), str(self.lastmod), str(self.length),
+             str(self.md5 if self.md5 else self.sha1)]
         if (self.change is not None):
             s.append(str(self.change))
         if (self.path is not None):
             s.append(str(self.path))
         return "[ " + " | ".join(s) + " ]"
-                                         
+
     def __repr__(self):
         """Return an unambigous representation of this resource.
 
-        Uses format like Python's representation of a dict() for 
-        attributes. Includes only those attributes with values that 
+        Uses format like Python's representation of a dict() for
+        attributes. Includes only those attributes with values that
         are not None. Order defined by __slots__.
         """
         s = []
         for attr in self.__slots__:
             val = getattr(self, attr, None)
             if (val is not None):
-                s.append( repr(attr) + ': ' + repr(val) )
+                s.append(repr(attr) + ': ' + repr(val))
         return "{" + ", ".join(s) + "}"
 
-class ChangeTypeError(Exception):
 
+class ChangeTypeError(Exception):
     """Exception class raised by Resource for bad change attribute.
 
     The change attribute of a Resource object may be either None
     or one of the values in Resource.CHANGE_TYPES. Checking is
     disabled by setting Resource.CHANGE_TYPES False.
     """
-    
+
     def __init__(self, val):
         """Initialize ChangeTypeError, store val."""
         self.supplied = val
@@ -467,7 +478,7 @@ class ChangeTypeError(Exception):
     def __repr__(self):
         """Helpful error message."""
         return "<ChangeTypeError: got %s, expected one of %s>" % \
-               (self.supplied,str(Resource.CHANGE_TYPES))
+               (self.supplied, str(Resource.CHANGE_TYPES))
 
     def __str__(self):
         """Helpful error message."""

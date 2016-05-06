@@ -13,7 +13,6 @@ http://www.openarchives.org/rs/resourcesync#ChangeDump
 from .resource_list import ResourceList
 
 class ChangeDump(ResourceList):
-
     """Class representing an Change Dump.
 
     A ChangeDump comprises a set of content dump packages that

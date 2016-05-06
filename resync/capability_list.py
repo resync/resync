@@ -13,7 +13,6 @@ from .list_base import ListBase
 from .sitemap import Sitemap
 
 class CapabilitySet(ResourceSet):
-
     """Class for storage of resources in a Capability List.
 
     Extends the ResourceSet to add checks to ensure that there are 
@@ -64,7 +63,6 @@ class CapabilitySet(ResourceSet):
 
 
 class CapabilityList(ListBase):
-
     """Class representing a Capability List.
 
     An Capability List will admit only one resource with any given 

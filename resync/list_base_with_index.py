@@ -24,7 +24,6 @@ from .url_authority import UrlAuthority
 from .utils import compute_md5_for_file
 
 class ListBaseWithIndex(ListBase):
-
     """Class that add handling of sitemapindexes to ListBase.
 
     Splitting of a list into multiple sitemaps with a sitemapindex is currently
@@ -370,7 +369,6 @@ class ListBaseWithIndex(ListBase):
 
 
 class ListBaseIndexError(Exception):
-
     """Exception for problems with sitemapindexes in ListBaseIndex."""
 
     pass

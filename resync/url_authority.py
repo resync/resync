@@ -7,7 +7,6 @@ except ImportError: #python2
 import os.path
 
 class UrlAuthority(object):
-
     """Determine URI authority based on DNS and paths.
 
     Determine whether one resource can speak authoritatively

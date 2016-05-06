@@ -26,7 +26,6 @@ from .resource import Resource,ChangeTypeError
 from .sitemap import Sitemap
 
 class ChangeList(ListBaseWithIndex):
-
     """Class representing an Change List."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,

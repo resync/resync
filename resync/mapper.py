@@ -10,7 +10,6 @@ except ImportError: #python2
 import logging
 
 class Mapper():
-    
     """Mapper object to map between source URIs and destination paths.
 
     Implemented as a list of Map objects.
@@ -130,7 +129,6 @@ class Mapper():
 
 
 class Map:
-
     """A single map from source URI to destination path.
 
     Both URI and destination paths are assumed to use / as the path
@@ -195,7 +193,6 @@ class Map:
 
 
 class MapperError(Exception):
-
     """Exception for errors in Mapper class."""
 
     pass

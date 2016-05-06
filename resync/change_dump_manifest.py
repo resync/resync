@@ -14,7 +14,6 @@ http://www.openarchives.org/rs/resourcesync#ChangeDumpManifest
 from .change_list import ChangeList
 
 class ChangeDumpManifest(ChangeList):
-
     """Class representing a Change Dump Manifest.
 
     A ChangeDumpManifest comprises a set of files/resources

@@ -1,7 +1,6 @@
 """Base class representing a set of Resource objects."""
 
 class ResourceSet(dict):
-
     """Base class representing a set of Resource objects.
 
     The ResourceSet class is used for Capability List Indexes and 
@@ -35,7 +34,6 @@ class ResourceSet(dict):
         self[uri]=resource
 
 class ResourceSetDupeError(Exception):
-
     """Exception for case of attempt to add duplicate resource."""
 
     pass

@@ -28,7 +28,6 @@ XML_ATT_NAME = {
 }
 
 class SitemapIndexError(Exception):
-
     """Exception if sitemapindex read instead of sitemap or vice-versa.
 
     Provides both a message and a place to store the etree so that
@@ -45,19 +44,16 @@ class SitemapIndexError(Exception):
         return(self.message)
 
 class SitemapParseError(Exception):
-
     """Exception for sitemap parsing structural error."""
 
     pass
 
 class SitemapDupeError(Exception):
-
     """Exception for case of duplicate resources in sitemap."""
 
     pass
 
 class Sitemap(object):
-
     """Read and write sitemaps.
 
     Implemented as a separate class that uses ResourceContainer 

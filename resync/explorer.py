@@ -28,7 +28,6 @@ from .resource import Resource
 from .w3c_datetime import str_to_datetime,datetime_to_str
 
 class Explorer(Client):
-    
     """Extension of the client code to explore a ResourceSync source.
 
     Designed to support a text-based command-line client that starts from
@@ -326,7 +325,6 @@ class Explorer(Client):
 
 
 class XResource(object):
-
     """Information about a resource for the explorer.
 
     Must have a uri but may also store:
@@ -347,7 +345,6 @@ class XResource(object):
 
 
 class HeadResponse(object):
-
     """Object to mock up requests.head(...) response."""
 
     def __init__(self):
@@ -357,7 +354,6 @@ class HeadResponse(object):
 
 
 class ExplorerQuit(Exception):
-    
     """Exception raised when user quits normally, no error."""
 
     pass

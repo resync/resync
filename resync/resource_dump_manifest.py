@@ -12,7 +12,6 @@ http://www.openarchives.org/rs/resourcesync#ResourceDumpManifest
 from .resource_list import ResourceList
 
 class ResourceDumpManifest(ResourceList):
-
     """Class representing a Resource Dump Manifest.
 
     A ResourceDumpManifest comprises a set of files/resources

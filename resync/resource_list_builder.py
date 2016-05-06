@@ -18,7 +18,6 @@ from .utils import compute_md5_for_file
 from .w3c_datetime import datetime_to_str
 
 class ResourceListBuilder():
-
     """ResourceListBuilder to create ResourceList objects.
 
     Currently implements build from files on disk only. 

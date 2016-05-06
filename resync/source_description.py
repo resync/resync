@@ -28,7 +28,6 @@ from resync.resource_set import ResourceSet
 from resync.list_base_with_index import ListBaseWithIndex
 
 class SourceDescription(ListBaseWithIndex):
-
     """Class representing the set of Capability Lists supported.
 
     Will admit only one resource with any given URI.

@@ -34,7 +34,6 @@ from .url_authority import UrlAuthority
 
 
 class ResourceListDict(dict):
-    
     """Default implementation of class to store resources in ResourceList.
 
     Key properties of this class are:
@@ -66,7 +65,6 @@ class ResourceListDict(dict):
         self[uri]=resource
 
 class ResourceListOrdered(list):
-
     """Alternative implementation of class to store resources in ResourceList.
 
     FIXME - This is a rather inefficient implementation which involves 
@@ -101,13 +99,11 @@ class ResourceListOrdered(list):
         self.append(resource)
 
 class ResourceListDupeError(Exception):
-
     """Exception in case of duplicate resource."""
 
     pass
 
 class ResourceList(ListBaseWithIndex):
-
     """Class representing a ResourceList.
 
     This same class is used for both the source and the destination

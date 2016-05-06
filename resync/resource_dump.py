@@ -12,7 +12,6 @@ http://www.openarchives.org/rs/resourcesync#ResourceDump
 from .resource_list import ResourceList
 
 class ResourceDump(ResourceList):
-
     """Class representing an Resource Dump.
 
     A Resource Dump comprises a set of content packages that are

@@ -32,7 +32,6 @@ from .list_base_with_index import ListBaseIndexError
 from .w3c_datetime import str_to_datetime,datetime_to_str
 
 class Client(object):
-
     """Implementation of a ResourceSync client.
 
     Logging is used for both console output and for detailed logs for

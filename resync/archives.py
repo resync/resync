@@ -19,7 +19,6 @@ from .resource import Resource
 from .sitemap import Sitemap
 
 class ResourceListArchive(ListBaseWithIndex):
-
     """Class representing an Resource List Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
@@ -32,7 +31,6 @@ class ResourceListArchive(ListBaseWithIndex):
                                                   capability_name='resourcelist-archive')
 
 class ChangeListArchive(ListBaseWithIndex):
-
     """Class representing an Change List Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
@@ -42,7 +40,6 @@ class ChangeListArchive(ListBaseWithIndex):
                                                 capability_name='changelist-archive')
 
 class ResourceDumpArchive(ListBaseWithIndex):
-
     """Class representing an Resource Dump Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
@@ -53,7 +50,6 @@ class ResourceDumpArchive(ListBaseWithIndex):
                                                   resources_class=resources_class)
 
 class ChangeDumpArchive(ListBaseWithIndex):
-
     """Class representing an Change Dump Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,

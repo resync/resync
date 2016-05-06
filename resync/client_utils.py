@@ -28,7 +28,6 @@ from datetime import datetime
 import re
 
 class ClientFatalError(Exception):
-
     """Non-recoverable error in client, should include message to user."""
 
     pass
