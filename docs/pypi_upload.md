@@ -16,7 +16,7 @@ Putting up a new version
 4. Check all tests good (python setup.py test)
 5. Make sure master README has correct travis-ci icon link
 6. Check branches as expected (git branch -a)
-7. Check local build and version reported OK (python setup.py build; sudo python setup.py install; resync --version)
+7. Check local build and version reported OK (python setup.py build; python setup.py install; resync --version)
 8. Check client works with simulator:
 
    ```
