@@ -10,10 +10,10 @@ Putting up a new version
 ------------------------
 
 0. In dev branch: bump version number in resync/_version.py and check CHANGES.md is up to date
-1. Check all tests good (python setup.py test; py.test)
+1. Check all tests good with py3 and py2 (python setup.py test)
 2. Check code is up-to-date with github version
 3. Check out master and merge in dev
-4. Check all tests good (python setup.py test; py.test)
+4. Check all tests good (python setup.py test)
 5. Make sure master README has correct travis-ci icon link
 6. Check branches as expected (git branch -a)
 7. Check local build and version reported OK (python setup.py build; sudo python setup.py install; resync --version)
