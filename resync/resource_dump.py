@@ -1,7 +1,7 @@
 """ResourceSync Resource Dump object.
 
-A Resource Dump is a set of content package resources with 
-some metadata for each resource. 
+A Resource Dump is a descriptions of a set of content packages
+that contain copies of resources at a point in time.
 
 The Resource Dump object may also contain metadata and links.
 
@@ -10,6 +10,7 @@ http://www.openarchives.org/rs/resourcesync#ResourceDump
 """
 
 from .resource_list import ResourceList
+
 
 class ResourceDump(ResourceList):
     """Class representing an Resource Dump.
@@ -22,16 +23,18 @@ class ResourceDump(ResourceList):
     Dump from a ResourceList.
     """
 
-    def __init__(self, resources=None, md=None, ln=None, uri=None, allow_multifile=None, mapper=None):
+    def __init__(self, resources=None, md=None, ln=None, uri=None,
+                 allow_multifile=None, mapper=None):
         """Initialize ResourceDump."""
-        super(ResourceDump, self).__init__(resources=resources, md=md, ln=ln, uri=uri, 
-                                           mapper=mapper)
-        self.capability_name='resourcedump'
+        super(ResourceDump, self).__init__(
+            resources=resources, md=md, ln=ln, uri=uri, mapper=mapper)
+        self.capability_name = 'resourcedump'
 
-    def write(self, basename="/tmp/resource_dump.xml", dumpfile=None):
-        """Write out a ResourceDump document and optionally also the dump files.
+    def write(self, basename="/tmp/resource_dump.xml"):
+        """Write out a ResourceDump document.
 
-        Dump files will be written if the dumpfile argument is set to a base
-        filename.
+        FIXME - should there be support for a tie to writing out
+        the Dump files themselves, complete with Resource Dump
+        Manifests?
         """
-        super(ResourceDump,self).write(basename)
+        super(ResourceDump, self).write(basename)
