@@ -1,1 +1,1 @@
-# Tests for client code in bin/test
+"""Tests for library code in test."""
