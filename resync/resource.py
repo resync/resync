@@ -250,11 +250,11 @@ class Resource(object):
         """
         hashvals = []
         if (self.md5 is not None):
-            hashvals.append('md5:'+self.md5)
+            hashvals.append('md5:' + self.md5)
         if (self.sha1 is not None):
-            hashvals.append('sha-1:'+self.sha1)
+            hashvals.append('sha-1:' + self.sha1)
         if (self.sha256 is not None):
-            hashvals.append('sha-256:'+self.sha256)
+            hashvals.append('sha-256:' + self.sha256)
         if (len(hashvals) > 0):
             return(' '.join(hashvals))
         return(None)
@@ -424,7 +424,7 @@ class Resource(object):
             # not equal if only one timestamp specified
             if (self.timestamp is None or
                     other.timestamp is None or
-                    abs(self.timestamp-other.timestamp) >= delta):
+                    abs(self.timestamp - other.timestamp) >= delta):
                 return(False)
         if ((self.md5 is not None and other.md5 is not None) and
                 self.md5 != other.md5):

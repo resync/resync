@@ -10,38 +10,39 @@ import os
 from datetime import datetime
 import re
 import sys
-try: #python2
+try:  # python2
     # Must try this first as io also exists in python2
     # but in the wrong one!
     import StringIO as io
-except ImportError: #python3
+except ImportError:  # python3
     import io
 import logging
-try: #python3
+try:  # python3
     from urllib.request import URLopener
-except ImportError: #python2
+except ImportError:  # python2
     from urllib import URLopener
 
 from .resource_container import ResourceContainer
 from .sitemap import Sitemap
+
 
 class ListBase(ResourceContainer):
     """Class that adds Sitemap based IO to ResourceContainer.
 
     resources - an iterable of resources
 
-    count - add optional explicit setting of the number of items in 
+    count - add optional explicit setting of the number of items in
         resources which is useful when this is an iterator/generator.
         Is used instead of trying len(resources)
 
     md - metadata information for the list (<rs:md>)
-     
+
     ln - link information for the list (<rs:ln>)
 
     sitemapindex - defaults to False, set True if this is an index object
     """
 
-    def __init__(self, resources=None, count=None, md=None, ln=None, uri=None, 
+    def __init__(self, resources=None, count=None, md=None, ln=None, uri=None,
                  capability_name='unknown'):
         """Initialize ListBase."""
         super(ListBase, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
@@ -73,9 +74,9 @@ class ListBase(ResourceContainer):
             return(self.count)
         return(len(self.resources))
 
-    ##### INPUT #####
+    # INPUT
 
-    def read(self,uri=None):
+    def read(self, uri=None):
         """Default case is just to parse document at this URI.
 
         Intention is that the read() method may be overridden to support reading
@@ -83,10 +84,10 @@ class ListBase(ResourceContainer):
         """
         self.parse(uri=uri)
 
-    def parse(self,uri=None,fh=None,str_data=None,**kwargs):
+    def parse(self, uri=None, fh=None, str_data=None, **kwargs):
         """Parse a single XML document for this list.
 
-        Accepts either a uri (uri or default if parameter not specified), 
+        Accepts either a uri (uri or default if parameter not specified),
         or a filehandle (fh) or a string (str_data). Note that this method
         does not handle the case of a sitemapindex+sitemaps.
 
@@ -97,45 +98,52 @@ class ListBase(ResourceContainer):
             try:
                 fh = URLopener().open(uri)
             except IOError as e:
-                raise Exception("Failed to load sitemap/sitemapindex from %s (%s)" % (uri,str(e)))
+                raise Exception(
+                    "Failed to load sitemap/sitemapindex from %s (%s)" %
+                    (uri, str(e)))
         elif (str_data is not None):
-            fh=io.StringIO(str_data)
+            fh = io.StringIO(str_data)
         elif ('str' in kwargs):
             # Legacy support for str argument, see
             # https://github.com/resync/resync/pull/21
             # One test for this in tests/test_list_base.py
-            self.logger.warn("Legacy parse(str=...), use parse(str_data=...) instead")
+            self.logger.warn(
+                "Legacy parse(str=...), use parse(str_data=...) instead")
             fh = io.StringIO(kwargs['str'])
         if (fh is None):
             raise Exception("Nothing to parse")
         s = self.new_sitemap()
-        s.parse_xml(fh=fh,resources=self,capability=self.capability_name,sitemapindex=False)
+        s.parse_xml(
+            fh=fh,
+            resources=self,
+            capability=self.capability_name,
+            sitemapindex=False)
         self.parsed_index = s.parsed_index
-        
-    ##### OUTPUT #####
+
+    # OUTPUT
 
     def as_xml(self):
         """Return XML serialization of this list.
 
-        This code does not support the case where the list is too big for 
+        This code does not support the case where the list is too big for
         a single XML document.
         """
         self.default_capability()
         s = self.new_sitemap()
-        return s.resources_as_xml(self,sitemapindex=self.sitemapindex)
+        return s.resources_as_xml(self, sitemapindex=self.sitemapindex)
 
-    def write(self,basename="/tmp/resynclist.xml"):
+    def write(self, basename="/tmp/resynclist.xml"):
         """Write a single sitemap or sitemapindex XML document.
 
         Must be overridden to support multi-file lists.
         """
         self.default_capability()
-        fh = open(basename,'w')
+        fh = open(basename, 'w')
         s = self.new_sitemap()
-        s.resources_as_xml(self,fh=fh,sitemapindex=self.sitemapindex)
+        s.resources_as_xml(self, fh=fh, sitemapindex=self.sitemapindex)
         fh.close()
 
-    ##### UTILITY #####
+    # UTILITY
 
     def new_sitemap(self):
         """Create new Sitemap object with default settings."""

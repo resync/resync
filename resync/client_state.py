@@ -8,13 +8,13 @@ of the last change seen.
 import sys
 import os.path
 import datetime
-import distutils.dir_util 
+import distutils.dir_util
 import re
 import time
 import logging
-try: #python3
+try:  # python3
     from configparser import ConfigParser, NoSectionError, NoOptionError
-except ImportError: #python2
+except ImportError:  # python2
     from ConfigParser import SafeConfigParser as ConfigParser, NoSectionError, NoOptionError
 
 
@@ -25,9 +25,9 @@ class ClientState(object):
         """Initialize ClientState object with default status file name."""
         self.status_file = '.resync-client-status.cfg'
 
-    def set_state(self,site,timestamp=None):
+    def set_state(self, site, timestamp=None):
         """Write status dict to client status file.
-        
+
         FIXME - should have some file lock to avoid race
         """
         parser = ConfigParser()
@@ -36,21 +36,29 @@ class ClientState(object):
         if (not parser.has_section(status_section)):
             parser.add_section(status_section)
         if (timestamp is None):
-            parser.remove_option(status_section, self.config_site_to_name(site))
+            parser.remove_option(
+                status_section,
+                self.config_site_to_name(site))
         else:
-            parser.set(status_section, self.config_site_to_name(site), str(timestamp))
+            parser.set(
+                status_section,
+                self.config_site_to_name(site),
+                str(timestamp))
         with open(self.status_file, 'w') as configfile:
             parser.write(configfile)
             configfile.close()
 
-    def get_state(self,site):
+    def get_state(self, site):
         """Read client status file and return dict."""
         parser = ConfigParser()
         status_section = 'incremental'
         parser.read(self.status_file)
         timestamp = None
         try:
-            timestamp = float(parser.get(status_section,self.config_site_to_name(site)))
+            timestamp = float(
+                parser.get(
+                    status_section,
+                    self.config_site_to_name(site)))
         except NoSectionError as e:
             pass
         except NoOptionError as e:
@@ -64,4 +72,4 @@ class ClientState(object):
         lead to multiple site names mapping to one config name but
         probably not too likely.
         """
-        return( re.sub(r"[^\w]",'_',name) )
+        return(re.sub(r"[^\w]", '_', name))

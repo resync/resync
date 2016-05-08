@@ -1,13 +1,14 @@
 """Base class representing a set of Resource objects."""
 
+
 class ResourceSet(dict):
     """Base class representing a set of Resource objects.
 
-    The ResourceSet class is used for Capability List Indexes and 
+    The ResourceSet class is used for Capability List Indexes and
     ResourceSync Description documents.
 
     Ordering of Resources is currently alphanumeric (using sorted(..))
-    on the uri which is the key. 
+    on the uri which is the key.
 
     Key properties of this class are:
     - has add(resource) method
@@ -21,7 +22,7 @@ class ResourceSet(dict):
         return(iter(self._iter_next, None))
 
     def _iter_next(self):
-        if (len(self._iter_next_list)>0):
+        if (len(self._iter_next_list) > 0):
             return(self[self._iter_next_list.pop()])
         else:
             return(None)
@@ -30,8 +31,10 @@ class ResourceSet(dict):
         """Add just a single resource."""
         uri = resource.uri
         if (uri in self and not replace):
-            raise ResourceSetDupeError("Attempt to add resource already in this set") 
-        self[uri]=resource
+            raise ResourceSetDupeError(
+                "Attempt to add resource already in this set")
+        self[uri] = resource
+
 
 class ResourceSetDupeError(Exception):
     """Exception for case of attempt to add duplicate resource."""

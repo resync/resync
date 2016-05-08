@@ -8,22 +8,23 @@ are Resource objects.
 
 Different from an resource_list, a change_list may include multiple
 descriptions for the same resource. The change_list is ordered
-from first entry to last entry. 
+from first entry to last entry.
 
-Different from an resource_list, dereference by a URI yields a 
-ChangeList containing descriptions pertaining to that 
+Different from an resource_list, dereference by a URI yields a
+ChangeList containing descriptions pertaining to that
 particular resource.
 """
 
 import collections
-try: #python3
+try:  # python3
     from urllib.request import URLopener
-except ImportError: #python2
+except ImportError:  # python2
     from urllib import URLopener
 
 from .list_base_with_index import ListBaseWithIndex
-from .resource import Resource,ChangeTypeError
+from .resource import Resource, ChangeTypeError
 from .sitemap import Sitemap
+
 
 class ChangeList(ListBaseWithIndex):
     """Class representing an Change List."""
@@ -38,14 +39,14 @@ class ChangeList(ListBaseWithIndex):
     def add_if_changed(self, resource):
         """Add resource if change is not None else ChangeTypeError."""
         if (resource.change is not None):
-            self.resources.append(resource)    
+            self.resources.append(resource)
         else:
             raise ChangeTypeError(resource.change)
 
     def add(self, resource):
         """Add a resource change or an iterable collection of them.
-      
-        Allows multiple resource_change objects for the same 
+
+        Allows multiple resource_change objects for the same
         resource (ie. URI) and preserves the order of addition.
         """
         if isinstance(resource, collections.Iterable):
@@ -57,9 +58,9 @@ class ChangeList(ListBaseWithIndex):
     def add_changed_resources(self, resources, change=None):
         """Add items from a ResourceContainer resources.
 
-        If change is specified then the attribute is set in the Resource 
+        If change is specified then the attribute is set in the Resource
         objects created.
         """
         for resource in resources:
-            rc = Resource( resource=resource, change=change )
+            rc = Resource(resource=resource, change=change)
             self.add(rc)

@@ -10,11 +10,12 @@ python:
 install:
   - pip install requests
   - pip install python-dateutil
-  - pip install coveralls pep257 restructuredtext_lint testfixtures
+  - pip install coveralls pep8 pep257 restructuredtext_lint testfixtures
   - python setup.py install
 # command to run tests
 script:
   - python setup.py test
+  - pep8 --ignore=E501 resync tests bin/resync bin/resync-explorer
   - pep257 resync
   - rst-lint README
   - coverage run --source=resync setup.py test

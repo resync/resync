@@ -113,7 +113,7 @@ def str_to_datetime(s, context='datetime'):
         mm = int(m.group(6))
         if (hh > 23 or mm > 59):
             raise ValueError("Bad timezone offset (%s)" % s)
-        offset_seconds = hh*3600 + mm*60
+        offset_seconds = hh * 3600 + mm * 60
         if (m.group(4) == '-'):
             offset_seconds = -offset_seconds
     # timetuple() ignores timezone information so we have to add in

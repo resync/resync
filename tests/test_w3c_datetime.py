@@ -12,20 +12,27 @@ class TestW3cDatetime(unittest.TestCase):
 
     def test01_datetime_to_str(self):
         """Writing."""
-        self.assertEqual(datetime_to_str(0), "1970-01-01T00:00:00Z")
+        self.assertEqual(datetime_to_str(0),
+                         "1970-01-01T00:00:00Z")
         self.assertEqual(datetime_to_str(0.000001),
                          "1970-01-01T00:00:00.000001Z")
-        self.assertEqual(datetime_to_str(0.1), "1970-01-01T00:00:00.100000Z")
-        self.assertEqual(datetime_to_str(1), "1970-01-01T00:00:01Z")
-        self.assertEqual(datetime_to_str(60), "1970-01-01T00:01:00Z")
-        self.assertEqual(datetime_to_str(60 * 60), "1970-01-01T01:00:00Z")
-        self.assertEqual(datetime_to_str(60 * 60 * 24), "1970-01-02T00:00:00Z")
+        self.assertEqual(datetime_to_str(0.1),
+                         "1970-01-01T00:00:00.100000Z")
+        self.assertEqual(datetime_to_str(1),
+                         "1970-01-01T00:00:01Z")
+        self.assertEqual(datetime_to_str(60),
+                         "1970-01-01T00:01:00Z")
+        self.assertEqual(datetime_to_str(60 * 60),
+                         "1970-01-01T01:00:00Z")
+        self.assertEqual(datetime_to_str(60 * 60 * 24),
+                         "1970-01-02T00:00:00Z")
         self.assertEqual(datetime_to_str(60 * 60 * 24 * 31),
                          "1970-02-01T00:00:00Z")
         self.assertEqual(datetime_to_str(60 * 60 * 24 * 365),
                          "1971-01-01T00:00:00Z")
-        #
-        self.assertEqual(datetime_to_str(1234567890), "2009-02-13T23:31:30Z")
+        # Random other datetime
+        self.assertEqual(datetime_to_str(1234567890),
+                         "2009-02-13T23:31:30Z")
         # Rounding issues
         self.assertEqual(datetime_to_str(0.199999),
                          "1970-01-01T00:00:00.199999Z")
@@ -42,11 +49,12 @@ class TestW3cDatetime(unittest.TestCase):
         self.assertEqual(datetime_to_str(0.200001),
                          "1970-01-01T00:00:00.200001Z")
         # No fractions
-        self.assertEqual(datetime_to_str(100, True), "1970-01-01T00:01:40Z")
+        self.assertEqual(datetime_to_str(100, True),
+                         "1970-01-01T00:01:40Z")
         self.assertEqual(datetime_to_str(0.2000009, True),
                          "1970-01-01T00:00:00Z")
-        self.assertEqual(datetime_to_str(
-            0.200001, no_fractions=True),  "1970-01-01T00:00:00Z")
+        self.assertEqual(datetime_to_str(0.200001, no_fractions=True),
+                         "1970-01-01T00:00:00Z")
 
     def test02_str_to_datetime(self):
         """Reading."""
@@ -54,11 +62,10 @@ class TestW3cDatetime(unittest.TestCase):
         self.assertEqual(str_to_datetime("1970-01-01T00:00:00.000Z"), 0)
         self.assertEqual(str_to_datetime("1970-01-01T00:00:00+00:00"), 0)
         self.assertEqual(str_to_datetime("1970-01-01T00:00:00-00:00"), 0)
-        self.assertEqual(str_to_datetime(
-            "1970-01-01T00:00:00.000001Z"), 0.000001)
+        self.assertEqual(str_to_datetime("1970-01-01T00:00:00.000001Z"), 0.000001)
         self.assertEqual(str_to_datetime("1970-01-01T00:00:00.1Z"), 0.1)
         self.assertEqual(str_to_datetime("1970-01-01T00:00:00.100000Z"), 0.1)
-        #
+        # Random other datetime
         self.assertEqual(str_to_datetime("2009-02-13T23:31:30Z"), 1234567890)
 
     def test03_same(self):
@@ -88,15 +95,12 @@ class TestW3cDatetime(unittest.TestCase):
         self.assertRaises(ValueError, str_to_datetime, "2012-13-01")
         self.assertRaises(ValueError, str_to_datetime, "2012-12-32")
         self.assertRaises(ValueError, str_to_datetime, "2012-11-01T10:10:60")
-        self.assertRaises(ValueError, str_to_datetime,
-                          "2012-11-01T10:10:59.9x")
+        self.assertRaises(ValueError, str_to_datetime, "2012-11-01T10:10:59.9x")
         # Valid ISO8601 but not allowed in W3C Datetime
         self.assertRaises(ValueError, str_to_datetime, "2012-11-01T01:01:01")
         self.assertRaises(ValueError, str_to_datetime, "2012-11-01 01:01:01Z")
-        self.assertRaises(ValueError, str_to_datetime,
-                          "2012-11-01T01:01:01+0000")
-        self.assertRaises(ValueError, str_to_datetime,
-                          "2012-11-01T01:01:01-1000")
+        self.assertRaises(ValueError, str_to_datetime, "2012-11-01T01:01:01+0000")
+        self.assertRaises(ValueError, str_to_datetime, "2012-11-01T01:01:01-1000")
         # Bad values
         self.assertRaises(ValueError, str_to_datetime, "2012-00-01T01:01:01Z")
         self.assertRaises(ValueError, str_to_datetime, "2012-13-01T01:01:01Z")
@@ -105,10 +109,8 @@ class TestW3cDatetime(unittest.TestCase):
         self.assertRaises(ValueError, str_to_datetime, "2012-13-01T24:01:01Z")
         self.assertRaises(ValueError, str_to_datetime, "2012-13-01T00:60:01Z")
         self.assertRaises(ValueError, str_to_datetime, "2012-13-01T00:00:60Z")
-        self.assertRaises(ValueError, str_to_datetime,
-                          "2012-11-01T01:01:01+99:00")
-        self.assertRaises(ValueError, str_to_datetime,
-                          "2012-11-01T01:01:01-25:00")
+        self.assertRaises(ValueError, str_to_datetime, "2012-11-01T01:01:01+99:00")
+        self.assertRaises(ValueError, str_to_datetime, "2012-11-01T01:01:01-25:00")
 
     def test05_roundtrips(self):
         """Round trips."""

@@ -25,8 +25,8 @@ class TestMapper(unittest.TestCase):
         self.assertRaises(MapperError, m6.parse, ['a=b=c'])
         self.assertRaises(MapperError, m6.parse, ['a=b=c=d'])
         # dupes
-        self.assertRaises(MapperError, m6.parse, ['a=b','a=c'])
-        self.assertRaises(MapperError, m6.parse, ['x=z','y=z'])
+        self.assertRaises(MapperError, m6.parse, ['a=b', 'a=c'])
+        self.assertRaises(MapperError, m6.parse, ['x=z', 'y=z'])
 
     def test01_mapper_src_to_dst(self):
         m = Mapper(['http://e.org/p/', '/tmp/q/'])

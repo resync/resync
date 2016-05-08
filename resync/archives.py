@@ -2,21 +2,22 @@
 
 The ResourceSync Archives specification
 http://www.openarchives.org/rs/archives specifies capabilities
-that provide archives of the 4 core capabilities. While some 
+that provide archives of the 4 core capabilities. While some
 optional attributes are different the basic structure is the
-same for the Resource List Archive, Change List Archive, 
-Resource Dump Archive, and Change Dump Archive. 
+same for the Resource List Archive, Change List Archive,
+Resource Dump Archive, and Change Dump Archive.
 """
 
 import collections
-try: #python3
+try:  # python3
     from urllib.request import URLopener
-except ImportError: #python2
+except ImportError:  # python2
     from urllib import URLopener
 
 from .list_base_with_index import ListBaseWithIndex
 from .resource import Resource
 from .sitemap import Sitemap
+
 
 class ResourceListArchive(ListBaseWithIndex):
     """Class representing an Resource List Archive."""
@@ -30,6 +31,7 @@ class ResourceListArchive(ListBaseWithIndex):
         super(ResourceListArchive, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
                                                   capability_name='resourcelist-archive')
 
+
 class ChangeListArchive(ListBaseWithIndex):
     """Class representing an Change List Archive."""
 
@@ -38,6 +40,7 @@ class ChangeListArchive(ListBaseWithIndex):
         """Initialize ChangeListArchive."""
         super(ChangeListArchive, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
                                                 capability_name='changelist-archive')
+
 
 class ResourceDumpArchive(ListBaseWithIndex):
     """Class representing an Resource Dump Archive."""
@@ -48,6 +51,7 @@ class ResourceDumpArchive(ListBaseWithIndex):
         super(ResourceDumpArchive, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
                                                   capability_name='resourcedump-archive',
                                                   resources_class=resources_class)
+
 
 class ChangeDumpArchive(ListBaseWithIndex):
     """Class representing an Change Dump Archive."""

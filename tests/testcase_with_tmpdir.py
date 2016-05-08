@@ -5,15 +5,16 @@ import unittest
 import tempfile
 import shutil
 
+
 class TestCase(unittest.TestCase):
     """Adds setUpClass an tearDownClass that create and destroy tmpdir."""
 
-    _tmpdir=None
+    _tmpdir = None
 
     @classmethod
     def setUpClass(cls):
         # Create tmp dir to write to and check
-        cls._tmpdir=tempfile.mkdtemp()
+        cls._tmpdir = tempfile.mkdtemp()
         if (not os.path.isdir(cls._tmpdir)):
             raise Exception("Failed to create tempdir to use for dump tests")
         try:
@@ -39,6 +40,6 @@ class TestCase(unittest.TestCase):
         # FIXME - Hack to work on python2.6 where setUpClass is not called, will
         # FIXME - not have proper tidy as tearDownClass will not be called.
         # FIXME - Remove when 2.6 no longer supported
-        if (not self._tmpdir and sys.version_info < (2,7)):
+        if (not self._tmpdir and sys.version_info < (2, 7)):
             self.setUpClass()
         return(self._tmpdir)

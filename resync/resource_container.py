@@ -2,7 +2,7 @@
 
 All documents in ResourceSync have the same types of information:
 they have some top-level metadata and links, and then a list of
-resources, each of which may also have metadata and links. This 
+resources, each of which may also have metadata and links. This
 class implements this model.
 
 This is a base class for the ListBase class which is in turn the
@@ -12,6 +12,7 @@ adds IO.
 """
 import collections
 from .w3c_datetime import datetime_to_str
+
 
 class ResourceContainer(object):
     """Class containing resource-like objects.
@@ -30,13 +31,14 @@ class ResourceContainer(object):
     should use only the core functionality.
     """
 
-    def __init__(self, resources=None, md=None, ln=None, uri=None, capability_name=None):
+    def __init__(self, resources=None, md=None, ln=None,
+                 uri=None, capability_name=None):
         """Initialize ResourceContainer."""
-        self.resources=(resources if (resources is not None) else [])
-        self.md=(md if (md is not None) else {})
-        self.ln=(ln if (ln is not None) else [])
-        self.uri=uri
-        self.capability_name=capability_name
+        self.resources = (resources if (resources is not None) else [])
+        self.md = (md if (md is not None) else {})
+        self.ln = (ln if (ln is not None) else [])
+        self.uri = uri
+        self.capability_name = capability_name
 
     def __iter__(self):
         """Iterator over all the resources in this resource list.
@@ -45,7 +47,7 @@ class ResourceContainer(object):
         """
         return(iter(self.resources))
 
-    def __getitem__(self,index):
+    def __getitem__(self, index):
         """Feed through for __getitem__ of resources property."""
         return(self.resources[index])
 
@@ -58,8 +60,8 @@ class ResourceContainer(object):
             return(None)
 
     @capability.setter
-    def capability(self,capability):
-        self.md['capability']=capability
+    def capability(self, capability):
+        self.md['capability'] = capability
 
     @property
     def md_from(self):
@@ -70,8 +72,8 @@ class ResourceContainer(object):
             return(None)
 
     @md_from.setter
-    def md_from(self,md_from):
-        self.md['md_from']=self._str_datetime_now(md_from)
+    def md_from(self, md_from):
+        self.md['md_from'] = self._str_datetime_now(md_from)
 
     @property
     def md_until(self):
@@ -82,8 +84,8 @@ class ResourceContainer(object):
             return(None)
 
     @md_until.setter
-    def md_until(self,md_until):
-        self.md['md_until']=self._str_datetime_now(md_until)
+    def md_until(self, md_until):
+        self.md['md_until'] = self._str_datetime_now(md_until)
 
     @property
     def md_at(self):
@@ -94,8 +96,8 @@ class ResourceContainer(object):
             return(None)
 
     @md_at.setter
-    def md_at(self,md_at):
-        self.md['md_at']=self._str_datetime_now(md_at)
+    def md_at(self, md_at):
+        self.md['md_at'] = self._str_datetime_now(md_at)
 
     @property
     def md_completed(self):
@@ -106,29 +108,29 @@ class ResourceContainer(object):
             return(None)
 
     @md_completed.setter
-    def md_completed(self,md_completed):
-        self.md['md_completed']=self._str_datetime_now(md_completed)
+    def md_completed(self, md_completed):
+        self.md['md_completed'] = self._str_datetime_now(md_completed)
 
-    def link(self,rel):
+    def link(self, rel):
         """Look for link with specified rel, return else None."""
         for link in self.ln:
             if ('rel' in link and
-                link['rel']==rel):
+                    link['rel'] == rel):
                 return(link)
         return(None)
 
-    def link_href(self,rel):
+    def link_href(self, rel):
         """Look for link with specified rel, return href from it or None."""
         link = self.link(rel)
         if (link is not None):
             link = link['href']
         return(link)
 
-    def link_set(self,rel,href,**atts):
+    def link_set(self, rel, href, **atts):
         """Set/create link with specified rel, set href and any other attributes.
 
         Any link element must have both rel and href values, the specification
-        also defines the type attributes and others are permitted also. See 
+        also defines the type attributes and others are permitted also. See
         description of allowed formats in
 
         http://www.openarchives.org/rs/resourcesync.html#DocumentFormats
@@ -139,7 +141,7 @@ class ResourceContainer(object):
             link['href'] = href
         else:
             # create new link
-            link = {'rel':rel,'href':href}
+            link = {'rel': rel, 'href': href}
             self.ln.append(link)
         for k in atts:
             link[k] = atts[k]
@@ -150,9 +152,9 @@ class ResourceContainer(object):
         return(self.link_href('describedby'))
 
     @describedby.setter
-    def describedby(self,uri):
+    def describedby(self, uri):
         """Set ResourceSync Description link to given URI."""
-        self.link_set('describedby',uri)
+        self.link_set('describedby', uri)
 
     @property
     def up(self):
@@ -160,9 +162,9 @@ class ResourceContainer(object):
         return(self.link_href('up'))
 
     @up.setter
-    def up(self,uri):
+    def up(self, uri):
         """Set ResourceSync rel="up" link to given URI."""
-        self.link_set('up',uri)
+        self.link_set('up', uri)
 
     @property
     def index(self):
@@ -170,9 +172,9 @@ class ResourceContainer(object):
         return(self.link_href('index'))
 
     @index.setter
-    def index(self,uri):
+    def index(self, uri):
         """Set index link to given URI."""
-        self.link_set('index',uri)
+        self.link_set('index', uri)
 
     def default_capability(self):
         """Set capability name in md.
@@ -181,7 +183,7 @@ class ResourceContainer(object):
         capability attributes.
         """
         if ('capability' not in self.md and self.capability_name is not None):
-            self.md['capability']=self.capability_name
+            self.md['capability'] = self.capability_name
 
     def add(self, resource):
         """Add a resource or an iterable collection of resources to this container.
@@ -203,7 +205,7 @@ class ResourceContainer(object):
 
     def prune_before(self, timestamp):
         """Remove all resources with timestamp earlier than that given.
-        
+
         Returns the number of entries removed. Will raise an excpetion
         if there are any entries without a timestamp.
         """
@@ -221,8 +223,8 @@ class ResourceContainer(object):
 
     def prune_dupes(self):
         """Remove all but the last entry for a given resource URI.
-        
-        Returns the number of entries removed. Also removes all entries for a 
+
+        Returns the number of entries removed. Also removes all entries for a
         given URI where the first entry is a create and the last entry is a
         delete.
         """
@@ -234,12 +236,12 @@ class ResourceContainer(object):
             if (r.uri in seen):
                 n += 1
                 if (r.uri in deletes):
-                    deletes[r.uri]=r.change
+                    deletes[r.uri] = r.change
             else:
                 pruned1.append(r)
                 seen.add(r.uri)
                 if (r.change == 'deleted'):
-                    deletes[r.uri]=r.change
+                    deletes[r.uri] = r.change
         # go through all deletes and prune if first was create
         pruned2 = []
         for r in reversed(pruned1):
@@ -247,7 +249,7 @@ class ResourceContainer(object):
                 n += 1
             else:
                 pruned2.append(r)
-        self.resources=pruned2
+        self.resources = pruned2
         return(n)
 
     def __str__(self):
@@ -259,7 +261,7 @@ class ResourceContainer(object):
 
     def _str_datetime_now(self, x=None):
         """Return datetime string for use with time attributes.
-        
+
         Handling depends on input:
           'now'   - returns datetime for now
           number  - assume datetime values, generate string
@@ -267,7 +269,7 @@ class ResourceContainer(object):
         """
         if (x == 'now'):
             # Now, this is wht datetime_to_str() with no arg gives
-            return( datetime_to_str() )
+            return(datetime_to_str())
         try:
             # Test for number
             junk = x + 0.0

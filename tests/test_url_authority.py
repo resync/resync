@@ -3,6 +3,7 @@ import unittest
 
 from resync.url_authority import UrlAuthority
 
+
 class TestUrlAuthority(unittest.TestCase):
 
     def test01_strict_authority(self):

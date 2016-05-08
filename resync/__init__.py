@@ -11,6 +11,5 @@ from resync.change_list import ChangeList
 from resync.resource_dump import ResourceDump
 from resync.resource_dump_manifest import ResourceDumpManifest
 from resync.change_dump import ChangeDump
-from resync.archives import ResourceListArchive,ResourceDumpArchive,ChangeListArchive,ChangeDumpArchive
+from resync.archives import ResourceListArchive, ResourceDumpArchive, ChangeListArchive, ChangeDumpArchive
 from resync.resource import Resource
-

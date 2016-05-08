@@ -27,17 +27,19 @@ from resync.explorer import Explorer
 
 DEFAULT_LOGFILE = 'resync-explorer.log'
 
+
 def main():
 
-    if (sys.version_info < (2,6)):
+    if (sys.version_info < (2, 6)):
         sys.exit("This program requires python version 2.6 or later")
-    
+
     # Options and arguments
     p = optparse.OptionParser(description='ResourceSync explorer',
                               usage='usage: %prog [options] uri_path local_path  (-h for help)',
-                              version='%prog '+__version__ )
+                              version='%prog ' + __version__)
 
-    # Specification of map between remote URI and local file paths, and remote sitemap
+    # Specification of map between remote URI and local file paths, and remote
+    # sitemap
     nam = p.add_option_group('FILE/URI NAMING OPTIONS')
     nam.add_option('--outfile', type=str, action='store',
                    help="write sitemap to specified file rather than STDOUT")
@@ -53,7 +55,7 @@ def main():
                    help="updated reference sitemap name for --changelist calculation")
     nam.add_option('--dump', metavar='DUMPFILE', type=str, action='store',
                    help="write dump to specified file for --resourcelist or --changelist")
-    nam.add_option('--changelist-uri','--change-list-uri', type=str, action='store',
+    nam.add_option('--changelist-uri', '--change-list-uri', type=str, action='store',
                    help="explicitly set the changelist URI that will be use in --inc mode, "
                         "overrides process of getting this from the sitemap")
 
@@ -88,31 +90,31 @@ def main():
 
     (args, map) = p.parse_args()
 
-    init_logging( to_file=args.logger, logfile=args.logfile, default_logfile=DEFAULT_LOGFILE,
-                  verbose=args.verbose )
+    init_logging(to_file=args.logger, logfile=args.logfile, default_logfile=DEFAULT_LOGFILE,
+                 verbose=args.verbose)
 
     print("----- ResourceSync Explorer -----")
-    c = Explorer( checksum=args.checksum,
-                  verbose=args.verbose )
+    c = Explorer(checksum=args.checksum,
+                 verbose=args.verbose)
 
     try:
         if (map):
             # Mappings apply to (almost) everything
             c.set_mappings(map)
         if (args.sitemap):
-            c.sitemap_name=args.sitemap
+            c.sitemap_name = args.sitemap
         if (args.exclude):
-            c.exclude_patterns=args.exclude
+            c.exclude_patterns = args.exclude
         if (args.multifile):
-            c.allow_multifile=not args.multifile
+            c.allow_multifile = not args.multifile
         if (args.noauth):
-            c.noauth=args.noauth
+            c.noauth = args.noauth
         if (args.max_sitemap_entries):
-            c.max_sitemap_entries=args.max_sitemap_entries
+            c.max_sitemap_entries = args.max_sitemap_entries
 
         c.explore()
 
-    # Any problem we expect will come as a ClientFatalError, anything else 
+    # Any problem we expect will come as a ClientFatalError, anything else
     # is... an exception ;-)
     except ClientFatalError as e:
         sys.stderr.write("\nFatalError: " + str(e) + "\n")
