@@ -6,8 +6,9 @@ core specification version. Versions 1.0.x implement the v1.0
 ResourceSync specification which was standardized as ANSI/NISO Z39.99-2014
 <http://www.openarchives.org/rs/1.0/toc>.
 
-v1.0.3 ????-??-??
-  * 
+v1.0.3 2017-01-27
+  * pep8 formatting
+  * Added contributing note
 
 v1.0.2 2016-05-06
   * Python 3 fixes in resync-explorer
