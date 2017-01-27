@@ -3,4 +3,5 @@
 # Format: x.y.z where
 # x.y is spec version, see http://www.openarchives.org/rs/x.y/
 # z is incremented for revisions within that version, 1...
-__version__ = '1.0.2'
+__version__ = '1.0.3'
+'
