@@ -2,11 +2,11 @@
 resync
 ======
 
-.. image:: https://travis-ci.org/resync/resync.png?branch=develop
+.. image:: https://travis-ci.org/resync/resync.png?branch=master
   :target: https://travis-ci.org/resync/resync
   :alt: Build status
 
-.. image:: https://coveralls.io/repos/github/resync/resync/badge.svg?branch=develop
+.. image:: https://coveralls.io/repos/github/resync/resync/badge.svg?branch=master
   :target: https://coveralls.io/github/resync/resync
   :alt: Test coverage
 
