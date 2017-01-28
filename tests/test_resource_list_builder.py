@@ -3,6 +3,7 @@ import re
 import os
 import time
 from resync.resource_list_builder import ResourceListBuilder
+from resync.resource import Resource
 from resync.mapper import Mapper
 
 
@@ -118,6 +119,24 @@ class TestResourceListBuilder(unittest.TestCase):
         self.assertEqual(r.md5, None)
         self.assertEqual(r.length, 20)
         self.assertEqual(r.path, 'tests/testdata/dir1/file_a')
+
+    def test06_odd_file_names(self):
+        """Verfify we can read unicode file names properly."""
+        rlb = ResourceListBuilder()
+        rlb.mapper = Mapper(['x:', 'tests/testdata/odd_file_names'])
+        rl = rlb.from_disk(paths=['tests/testdata/odd_file_names'])
+        # Get list of URIs to test
+        uris = [x.uri for x in rl]
+        self.assertTrue('x:/not_odd.txt' in uris)
+        self.assertTrue('x:/with&ampersand.txt' in uris)
+        self.assertTrue('x:/with spaces.txt' in uris)
+        # File names for accented chars represented with combining chars
+        self.assertTrue(u'x:/Pi\u006e\u0303a_Colada.txt' in uris)
+        self.assertFalse(u'x:/Pi\u00f1a_Colada.txt' in uris)
+        self.assertTrue(u'x:/A_\u0041\u0303_tilde.txt' in uris)
+        self.assertFalse(u'x:/A_\u00c3_tilde.txt' in uris)
+        # Snowman is single char
+        self.assertFalse(u'x:snowman_\u2603.txt' in uris)
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(

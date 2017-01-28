@@ -3,6 +3,7 @@
 import os
 import os.path
 import re
+import sys
 import time
 import logging
 try:  # python3
@@ -137,6 +138,8 @@ class ResourceListBuilder():
             raise ValueError("Must specify path, resource_list and mapper")
         # is path a directory or a file? for each file: create Resource object,
         # add, increment counter
+        if (sys.version_info < (3, 0)):
+            path = path.decode('utf-8')
         if os.path.isdir(path):
             num_files = 0
             for dirpath, dirs, files in os.walk(path, topdown=True):
