@@ -1,3 +1,4 @@
+import re
 import sys
 import unittest
 try:  # python2
@@ -64,7 +65,7 @@ class TestSitemap(unittest.TestCase):
         self.assertEqual(Sitemap().resource_as_xml(
             r1), "<url><loc>4a</loc><lastmod>2013-01-02T00:00:00Z</lastmod><rs:md hash=\"md5:ab54de\" length=\"9999\" /><rs:ln href=\"http://mirror1.example.com/res1\" modified=\"2013-01-02T18:00:00Z\" pri=\"1\" rel=\"duplicate\" /><rs:ln rel=\"num2\" /><rs:ln rel=\"num3\" /></url>")
 
-    def test_08_print(self):
+    def test_07_print(self):
         r1 = Resource(uri='a', lastmod='2001-01-01', length=1234)
         r2 = Resource(uri='b', lastmod='2002-02-02', length=56789)
         r3 = Resource(uri='c', lastmod='2003-03-03', length=0)
@@ -74,6 +75,16 @@ class TestSitemap(unittest.TestCase):
         m.add(r3)
         # print m
         self.assertEqual(Sitemap().resources_as_xml(m), "<?xml version='1.0' encoding='UTF-8'?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:rs=\"http://www.openarchives.org/rs/terms/\"><rs:md capability=\"resourcelist\" /><url><loc>a</loc><lastmod>2001-01-01T00:00:00Z</lastmod><rs:md length=\"1234\" /></url><url><loc>b</loc><lastmod>2002-02-02T00:00:00Z</lastmod><rs:md length=\"56789\" /></url><url><loc>c</loc><lastmod>2003-03-03T00:00:00Z</lastmod><rs:md length=\"0\" /></url></urlset>")
+
+    def test_08_print_non_ascii_uri(self):
+        """Verify that valid Unicode uri values give good XML out."""
+        m = ResourceList(md={'capability': 'resourcelist', 'modified': None})
+        m.add(Resource(uri=u'a_\u00c3_b'))
+        m.add(Resource(uri=u'c_\u1234_d'))
+        xml = Sitemap().resources_as_xml(m)
+        self.assertTrue(re.search(u'<loc>a_.*_b</loc>', xml))
+        self.assertTrue(re.search(u'<loc>a_\u00c3_b</loc>', xml))
+        self.assertTrue(re.search(u'<loc>c_\u1234_d</loc>', xml))
 
     def test_09_print_from_iter(self):
         r1 = Resource(uri='a', lastmod='2001-01-01', length=1234)

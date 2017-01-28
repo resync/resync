@@ -132,7 +132,10 @@ class Sitemap(object):
         else:  # python2.6
             tree.write(fh, encoding='UTF-8')
         if (xml_buf is not None):
-            return(xml_buf.getvalue())
+            if (sys.version_info >= (3, 0)):
+                return(xml_buf.getvalue())
+            else:
+                return(xml_buf.getvalue().decode('utf-8'))
 
     # Read/parse an XML sitemap or sitemapindex
 
