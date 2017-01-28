@@ -196,7 +196,8 @@ class TestClient(TestCase):
 
     def test40_write_resource_list_mappings(self):
         c = Client()
-        c.set_mappings(['http://example.org/', 'tests/testdata/'])
+        c.set_mappings(['http://example.org/d1=tests/testdata/dir1',
+                        'http://example.org/d2=tests/testdata/dir2'])
         # with no explicit paths seting the mapping will be used
         with capture_stdout() as capturer:
             c.write_resource_list()
@@ -204,11 +205,11 @@ class TestClient(TestCase):
         self.assertTrue(
             re.search(r'<rs:md at="\S+" capability="resourcelist"', capturer.result))
         self.assertTrue(
-            re.search(r'<url><loc>http://example.org/dir1/file_a</loc>', capturer.result))
+            re.search(r'<url><loc>http://example.org/d1/file_a</loc>', capturer.result))
         self.assertTrue(
-            re.search(r'<url><loc>http://example.org/dir1/file_b</loc>', capturer.result))
+            re.search(r'<url><loc>http://example.org/d1/file_b</loc>', capturer.result))
         self.assertTrue(
-            re.search(r'<url><loc>http://example.org/dir2/file_x</loc>', capturer.result))
+            re.search(r'<url><loc>http://example.org/d2/file_x</loc>', capturer.result))
 
     def test41_write_resource_list_path(self):
         c = Client()
