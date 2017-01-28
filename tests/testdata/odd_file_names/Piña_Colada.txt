@@ -1,0 +1,1 @@
+name uses single F1 char for \~n
