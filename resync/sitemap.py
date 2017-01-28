@@ -117,20 +117,20 @@ class Sitemap(object):
         if (fh is None):
             xml_buf = io.StringIO()
             fh = xml_buf
-        if (sys.version_info < (2, 7)):
-            tree.write(fh, encoding='UTF-8')
-        elif (sys.version_info < (3, 0)):
+        if (sys.version_info >= (3, 0)):
+            tree.write(
+                fh,
+                encoding='unicode',
+                xml_declaration=True,
+                method='xml')
+        elif (sys.version_info >= (2, 7)):
             tree.write(
                 fh,
                 encoding='UTF-8',
                 xml_declaration=True,
                 method='xml')
-        else:
-            tree.write(
-                fh,
-                encoding="unicode",
-                xml_declaration=True,
-                method='xml')
+        else:  # python2.6
+            tree.write(fh, encoding='UTF-8')
         if (xml_buf is not None):
             return(xml_buf.getvalue())
 
@@ -282,7 +282,7 @@ class Sitemap(object):
         without any XML declaration.
         """
         e = self.resource_etree_element(resource)
-        if (sys.version_info > (3, 0)):
+        if (sys.version_info >= (3, 0)):
             # python3.x
             return(tostring(e, encoding='unicode', method='xml'))
         elif (sys.version_info >= (2, 7)):
