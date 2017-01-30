@@ -1,8 +1,6 @@
 """Setup for ResurceSync library and client implementation."""
 from setuptools import setup, Command
 import os
-# setuptools used instead of distutils.core so that 
-# dependencies can be handled automatically
 
 # Extract version number from resync/_version.py. Here we 
 # are very strict about the format of the version string 
@@ -53,6 +51,7 @@ setup(
                  "Programming Language :: Python :: 3.3",
                  "Programming Language :: Python :: 3.4",
                  "Programming Language :: Python :: 3.5",
+                 "Programming Language :: Python :: 3.6",
                  "Topic :: Internet :: WWW/HTTP",
                  "Topic :: Software Development :: Libraries :: Python Modules",
                  "Environment :: Web Environment"],

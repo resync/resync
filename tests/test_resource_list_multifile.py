@@ -47,7 +47,7 @@ class TestResourceListMultifile(unittest.TestCase):
         self.assertEqual(sr[16], 'http://localhost:8888/resources/826')
 
     def test_11_write_multifile(self):
-        tempdir = tempfile.mkdtemp(prefix='test_resource_list_multifile')
+        tempdir = tempfile.mkdtemp(prefix='test_resource_list_multifile_dir')
         rl = ResourceList()
         rl.mapper = Mapper(['http://localhost/=%s/' % (tempdir)])
         rl.add(Resource(uri='http://localhost/a'))
