@@ -68,6 +68,6 @@ setup(
     ],
     test_suite="tests",
     cmdclass={
-        'coverage': Coverage,
-    },
+        'coverage': Coverage
+    }
 )
