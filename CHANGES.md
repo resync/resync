@@ -6,6 +6,11 @@ core specification version. Versions 1.0.x implement the v1.0
 ResourceSync specification which was standardized as ANSI/NISO Z39.99-2014
 <http://www.openarchives.org/rs/1.0/toc>.
 
+v1.0.5 2017-01-30
+  * Fix to support non-ASCII URIs/filenames (https://github.com/resync/resync/issues/22)
+  * Added tests for Python 3.6
+  * Temporarily disabled tests for Python 2.6 due to problems with coverage (https://github.com/resync/resync/issues/23)
+  
 v1.0.4 2017-01-27
   * pep8 formatting
   * Added contributing note
