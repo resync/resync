@@ -49,6 +49,11 @@ class TestListBase(TestCase):
         lb = ListBase()
         lb.read(uri='tests/testdata/unknown/unknown1.xml')
         self.assertEqual(len(lb.resources), 2)
+        # with gzip
+        lb = ListBase()
+        lb.read(uri='tests/testdata/unknown/unknown2.xml.gz')
+        self.assertEqual(len(lb.resources), 1)
+        self.assertEqual(lb.resources[0].uri, 'r3')
 
     def test04_parse(self):
         xml = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\

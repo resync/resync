@@ -6,8 +6,9 @@ CapabilityList etc.. Adds common read() and write() methods.
 """
 
 import collections
-import os
 from datetime import datetime
+import gzip
+import os
 import re
 import sys
 try:  # python2
@@ -41,6 +42,8 @@ class ListBase(ResourceContainer):
 
     sitemapindex - defaults to False, set True if this is an index object
     """
+
+    gzip_extensions = ['.gz']
 
     def __init__(self, resources=None, count=None, md=None, ln=None, uri=None,
                  capability_name='unknown'):
@@ -101,6 +104,11 @@ class ListBase(ResourceContainer):
                 raise Exception(
                     "Failed to load sitemap/sitemapindex from %s (%s)" %
                     (uri, str(e)))
+            # Is this a gzip URI?
+            (base, ext) = os.path.splitext(uri)
+            if (ext in self.gzip_extensions):
+                self.logger.debug("Reading %s as gzip" % (uri))
+                fh = gzip.open(fh)
         elif (str_data is not None):
             fh = io.StringIO(str_data)
         elif ('str' in kwargs):
