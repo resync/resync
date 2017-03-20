@@ -87,7 +87,7 @@ class Hashes(object):
         """Return MD5 hash calculated."""
         if (self.md5_calc is None):
             return None
-        return base64.b64encode(self.md5_calc.digest()).decode('utf-8')
+        return self.md5_calc.hexdigest()
 
     @property
     def sha1(self):
