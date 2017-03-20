@@ -99,7 +99,7 @@ class TestClient(TestCase):
         c.last_timestamp = 0
         with LogCapture() as lc:
             c.logger = logging.getLogger('resync.client')
-            c.checksum = True
+            c.hashes = set(['md5'])
             n = c.update_resource(resource, filename)
             self.assertEqual(n, 1)
             self.assertTrue(lc.records[-1].msg.startswith('MD5 mismatch '))

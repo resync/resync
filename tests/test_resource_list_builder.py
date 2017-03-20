@@ -58,8 +58,8 @@ class TestResourceListBuilder(unittest.TestCase):
         self.assertEqual(r.length, None)
         self.assertEqual(r.path, None)
 
-    def test03_set_md5(self):
-        rlb = ResourceListBuilder(set_md5=True)
+    def test03_set_hashes(self):
+        rlb = ResourceListBuilder(set_hashes=['md5'])
         rlb.mapper = Mapper(['http://example.org/t', 'tests/testdata/dir1'])
         rl = rlb.from_disk()
         self.assertEqual(len(rl), 2)
@@ -78,7 +78,7 @@ class TestResourceListBuilder(unittest.TestCase):
         self.assertEqual(r.path, None)
 
     def test04_data(self):
-        rlb = ResourceListBuilder(set_path=True, set_md5=True)
+        rlb = ResourceListBuilder(set_path=True, set_hashes=['md5'])
         rlb.mapper = Mapper(['http://example.org/t', 'tests/testdata/dir1'])
         rl = rlb.from_disk()
         self.assertEqual(len(rl), 2)

@@ -109,16 +109,18 @@ class TestResourceList(unittest.TestCase):
         self.assertEqual(len(i), 2)
         self.assertEqual(i.resources['a'].length, 10)
 
-    def test07_has_md5(self):
+    def test07_hashes(self):
         r1 = Resource(uri='a')
         r2 = Resource(uri='b')
         i = ResourceList()
-        self.assertFalse(i.has_md5())
+        self.assertEqual(i.hashes(), set())
         i.add(r1)
         i.add(r2)
-        self.assertFalse(i.has_md5())
+        self.assertEqual(i.hashes(), set())
         r1.md5 = "aabbcc"
-        self.assertTrue(i.has_md5())
+        self.assertEqual(i.hashes(), set(['md5']))
+        r2.sha1 = "ddeeff"
+        self.assertEqual(i.hashes(), set(['md5','sha-1']))
 
     def test08_iter(self):
         i = ResourceList()

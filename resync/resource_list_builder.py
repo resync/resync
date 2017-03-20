@@ -12,10 +12,10 @@ except ImportError:  # python2
     from urllib import URLopener
 from defusedxml.ElementTree import parse
 
+from .hashes import Hashes
 from .resource import Resource
 from .resource_list import ResourceList
 from .sitemap import Sitemap
-from .utils import compute_md5_for_file
 from .w3c_datetime import datetime_to_str
 
 
@@ -25,8 +25,8 @@ class ResourceListBuilder():
     Currently implements build from files on disk only.
 
     Attributes:
+    - set_hashes to indicate which hashes should be calculated for each resource
     - set_path set true to add path attribute for each resource
-    - set_md5 set true to calculate MD5 sums for all files
     - set_length set true to include file length in resource_list (defaults true)
     - exclude_dirs is a list of directory names to exclude
       (defaults to ['CVS','.git'))
@@ -35,7 +35,7 @@ class ResourceListBuilder():
     alternatives to md5.
     """
 
-    def __init__(self, mapper=None, set_md5=False,
+    def __init__(self, mapper=None, set_hashes=None,
                  set_length=True, set_path=False):
         """Create ResourceListBuilder object, optionally set options.
 
@@ -44,15 +44,15 @@ class ResourceListBuilder():
 
         The following attributes may be set to determine information added to
         each Resource object based on the disk scan:
-        - set_md5 - True to add md5 digests for each resource. This may add
+        - set_hashes - Set of digests to computer for each resource. This may add
         significant time to the scan process as each file has to be read to
-        compute the sum
+        compute the hash. Empty set or None means no hashes calculated
         - set_length - False to not add length for each resources
         - set_path - True to add local path information for each file/resource
         """
         self.mapper = mapper
         self.set_path = set_path
-        self.set_md5 = set_md5
+        self.set_hashes = set_hashes if (set_hashes and len(set_hashes) > 0) else None
         self.set_length = set_length
         self.exclude_files = ['sitemap\d{0,5}.xml']
         self.exclude_dirs = ['CVS', '.git']
@@ -162,7 +162,7 @@ class ResourceListBuilder():
     def add_file(self, resource_list=None, dir=None, file=None):
         """Add a single file to resource_list.
 
-        Follows object settings of set_path, set_md5 and set_length.
+        Follows object settings of set_path, set_hashes and set_length.
         """
         try:
             if self.exclude_file(file):
@@ -186,9 +186,14 @@ class ResourceListBuilder():
         if (self.set_path):
             # add full local path
             r.path = file
-        if (self.set_md5):
-            # add md5
-            r.md5 = compute_md5_for_file(file)
+        if (self.set_hashes):
+            hasher = Hashes(self.set_hashes, file)
+            if ('md5' in self.set_hashes):
+                r.md5 = hasher.md5
+            if ('sha-1' in self.set_hashes):
+                r.sha1 = hasher.sha1
+            if ('sha-256' in self.set_hashes):
+                r.sha256 = hasher.sha256
         if (self.set_length):
             # add length
             r.length = file_stat.st_size

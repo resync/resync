@@ -209,11 +209,15 @@ class ResourceList(ListBaseWithIndex):
         # have now gone through both lists
         return(same, updated, deleted, created)
 
-    def has_md5(self):
-        """Return true if at least one contained resource-like object has md5 data."""
-        if (self.resources is None):
-            return(False)
-        for resource in self:
-            if (resource.md5 is not None):
-                return(True)
-        return(False)
+    def hashes(self):
+        """Return set of hashes uses in this resource_list."""
+        hashes = set()
+        if (self.resources is not None):
+            for resource in self:
+                if (resource.md5 is not None):
+                    hashes.add('md5')
+                if (resource.sha1 is not None):
+                    hashes.add('sha-1')
+                if (resource.sha256 is not None):
+                    hashes.add('sha-256')
+        return(hashes)

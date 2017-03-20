@@ -25,7 +25,7 @@ from .sitemap import Sitemap
 from .dump import Dump
 from .resource import Resource
 from .url_authority import UrlAuthority
-from .utils import compute_md5_for_file
+from .hashes import Hashes
 from .client_state import ClientState
 from .client_utils import ClientFatalError, url_or_file_open
 from .list_base_with_index import ListBaseIndexError
@@ -42,9 +42,9 @@ class Client(object):
       debug   - very verbose for automated analysis
     """
 
-    def __init__(self, checksum=False, verbose=False, dryrun=False):
+    def __init__(self, hashes=None, verbose=False, dryrun=False):
         """Initialize Client object with default parameters."""
-        self.checksum = checksum
+        self.hashes = set(hashes) if hashes else set()
         self.verbose = verbose
         self.dryrun = dryrun
         self.logger = logging.getLogger('resync.client')
@@ -111,7 +111,7 @@ class Client(object):
             # Expect comma separated list of paths
             paths = paths.split(',')
         # 1. Build from disk
-        rlb = ResourceListBuilder(set_md5=self.checksum, mapper=self.mapper)
+        rlb = ResourceListBuilder(set_hashes=self.hashes, mapper=self.mapper)
         rlb.set_path = set_path
         try:
             rlb.add_exclude_files(self.exclude_patterns)
@@ -165,12 +165,10 @@ class Client(object):
         if (len(src_resource_list) == 0):
             raise ClientFatalError(
                 "Aborting as there are no resources to sync")
-        if (self.checksum and not src_resource_list.has_md5()):
-            self.checksum = False
-            self.logger.info(
-                "Not calculating checksums on destination as not present in source resource list")
+        if (len(self.hashes) > 0):
+            self.prune_hashes(src_resource_list.hashes(), 'resource')
         # 1.b destination resource list mapped back to source URIs
-        rlb = ResourceListBuilder(set_md5=self.checksum, mapper=self.mapper)
+        rlb = ResourceListBuilder(set_hashes=self.hashes, mapper=self.mapper)
         dst_resource_list = rlb.from_disk()
         # 2. Compare these resource lists respecting any comparison options
         (same, updated, deleted, created) = dst_resource_list.compare(src_resource_list)
@@ -279,10 +277,8 @@ class Client(object):
             (len(src_change_list)))
         # if (len(src_change_list)==0):
         #    raise ClientFatalError("Aborting as there are no resources to sync")
-        if (self.checksum and not src_change_list.has_md5()):
-            self.checksum = False
-            self.logger.info(
-                "Not calculating checksums on destination as not present in source change list")
+        if (len(self.hashes) > 0):
+            self.prune_hashes(src_change_list.hashes(), 'change')
         # Check all changes have timestamp and record last
         self.last_timestamp = 0
         for resource in src_change_list:
@@ -426,13 +422,39 @@ class Client(object):
                 self.logger.info(
                     "Downloaded size for %s of %d bytes does not match expected %d bytes" %
                     (resource.uri, length, resource.length))
-            if (self.checksum and resource.md5 is not None):
-                file_md5 = compute_md5_for_file(filename)
-                if (resource.md5 != file_md5):
-                    self.logger.info(
-                        "MD5 mismatch for %s, got %s but expected %s bytes" %
-                        (resource.uri, file_md5, resource.md5))
+            if (len(self.hashes) > 0):
+                self.check_hashes(filename, resource)
         return(num_updated)
+
+    def check_hashes(self, filename, resource):
+        """Check all hashes present in self.hashes _and_ resource object.
+
+        Simply shows warning for mismatch, does not raise exception or
+        otherwise stop process.
+        """
+        # which hashes to calculate?
+        hashes = []
+        if ('md5' in self.hashes and resource.md5 is not None):
+            hashes.append('md5')
+        if ('sha-1' in self.hashes and resource.sha1 is not None):
+            hashes.append('sha-1')
+        if ('sha-256' in self.hashes and resource.sha256 is not None):
+            hashes.append('sha-256')
+        # calculate
+        hasher = Hashes(hashes, filename)
+        # check and report
+        if ('md5' in hashes and resource.md5 != hasher.md5):
+            self.logger.info(
+                "MD5 mismatch for %s, got %s but expected %s" %
+                (resource.uri, hasher.md5, resource.md5))
+        if ('sha-1' in hashes and resource.sha1 != hasher.sha1):
+            self.logger.info(
+                "SHA-1 mismatch for %s, got %s but expected %s" %
+                (resource.uri, hasher.sha1, resource.sha1))
+        if ('sha-256' in hashes and resource.sha256 != hasher.sha256):
+            self.logger.info(
+                "SHA-256 mismatch for %s, got %s but expected %s" %
+                (resource.uri, hasher.sha256, resource.sha256))
 
     def delete_resource(self, resource, filename, allow_deletion=False):
         """Delete copy of resource in filename on local system.
@@ -644,6 +666,16 @@ class Client(object):
                 if (n >= to_show):
                     break
         return(rl)
+
+    def prune_hashes(self, hashes, list_type):
+        """Prune any hashes not in source resource or change list."""
+        discarded = []
+        for hash in hashes:
+            if (hash in self.hashes):
+                self.hashes.discard(hash)
+                discarded.append(hash)
+        self.logger.info("Not calculating %s hash(es) on destination as not present "
+                         "in source %s list" % (', '.join(sorted(discarded)), list_type))
 
     def log_status(self, in_sync=True, incremental=False, audit=False,
                    same=None, created=0, updated=0, deleted=0, to_delete=0):

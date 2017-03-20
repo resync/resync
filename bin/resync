@@ -120,8 +120,12 @@ def main():
 
     # Options that apply to multiple modes
     opt = p.add_option_group('MISCELANEOUS OPTIONS')
+    opt.add_option('--hash', type=str, action='append',
+                   help="use specified hash types in addition to last modification time "
+                        "and size (repeatable, may include `md5`, `sha-1` and `sha-256`)")
     opt.add_option('--checksum', action='store_true',
-                   help="use checksum (md5) in addition to last modification time and size")
+                   help="use md5 checksum in addition to last modification time and size "
+                        "(same as --hash=md5)")
     opt.add_option('--delete', action='store_true',
                    help="allow files on destination to be deleted")
     opt.add_option('--from', type=str, action='store', dest='from_datetime', metavar="DATETIME",
@@ -176,8 +180,7 @@ def main():
             not args.capabilitylist and not args.sourcedescription and
             not args.resourcedump and not args.changedump):
         if (len(map) == 0):
-            # No args at all, show help
-            p.print_help()
+            p.error("No arguments specified (use -h for help)")
             return
         else:
             args.baseline = True
@@ -190,7 +193,9 @@ def main():
     init_logging(to_file=args.logger, logfile=args.logfile, default_logfile=DEFAULT_LOGFILE,
                  verbose=args.verbose, eval_mode=args.eval)
 
-    c = Client(checksum=args.checksum,
+    if (args.checksum):
+        args.hash.append('md5')
+    c = Client(hashes=args.hash,
                verbose=args.verbose,
                dryrun=args.dryrun)
 
