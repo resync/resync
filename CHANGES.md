@@ -6,6 +6,9 @@ core specification version. Versions 1.0.x implement the v1.0
 ResourceSync specification which was standardized as ANSI/NISO Z39.99-2014
 <http://www.openarchives.org/rs/1.0/toc>.
 
+v1.x.x 2017-??-??
+  * ...
+
 v1.0.6 2017-03-20
   * Fixed md5 hash format (https://github.com/resync/resync/issues/25)
   * Added support for sha-1 and sha-256 hashes
