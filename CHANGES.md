@@ -6,8 +6,12 @@ core specification version. Versions 1.0.x implement the v1.0
 ResourceSync specification which was standardized as ANSI/NISO Z39.99-2014
 <http://www.openarchives.org/rs/1.0/toc>.
 
+v1.0.6 2017-03-20
+  * Fixed md5 hash format (https://github.com/resync/resync/issues/25)
+  * Added support for sha-1 and sha-256 hashes
+
 v1.0.5 2017-01-30
-  * Fix to support non-ASCII URIs/filenames (https://github.com/resync/resync/issues/22)
+  * Fixed to support non-ASCII URIs/filenames (https://github.com/resync/resync/issues/22)
   * Added tests for Python 3.6
   * Temporarily disabled tests for Python 2.6 due to problems with coverage (https://github.com/resync/resync/issues/23)
   

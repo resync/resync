@@ -61,8 +61,12 @@ def main():
 
     # Options that apply to multiple modes
     opt = p.add_option_group('MISCELANEOUS OPTIONS')
+    opt.add_option('--hash', type=str, action='append',
+                   help="use specified hash types in addition to last modification time "
+                        "and size (repeatable, may include `md5`, `sha-1` and `sha-256`)")
     opt.add_option('--checksum', action='store_true',
-                   help="use checksum (md5) in addition to last modification time and size")
+                   help="use md5 checksum in addition to last modification time and size "
+                        "(same as --hash=md5)")
     opt.add_option('--from', type=str, action='store', dest='from_datetime', metavar="DATETIME",
                    help="explicit datetime value used to filter updates in change list for "
                         "--incremental sync")
@@ -94,7 +98,9 @@ def main():
                  verbose=args.verbose)
 
     print("----- ResourceSync Explorer -----")
-    c = Explorer(checksum=args.checksum,
+    if (args.checksum):
+        args.hash.append('md5')
+    c = Explorer(hashes=args.hashes,
                  verbose=args.verbose)
 
     try:

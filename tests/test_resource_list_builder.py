@@ -58,8 +58,8 @@ class TestResourceListBuilder(unittest.TestCase):
         self.assertEqual(r.length, None)
         self.assertEqual(r.path, None)
 
-    def test03_set_md5(self):
-        rlb = ResourceListBuilder(set_md5=True)
+    def test03_set_hashes(self):
+        rlb = ResourceListBuilder(set_hashes=['md5'])
         rlb.mapper = Mapper(['http://example.org/t', 'tests/testdata/dir1'])
         rl = rlb.from_disk()
         self.assertEqual(len(rl), 2)
@@ -67,18 +67,18 @@ class TestResourceListBuilder(unittest.TestCase):
         r = next(rli)
         self.assertEqual(r.uri, 'http://example.org/t/file_a')
         self.assertEqual(r.lastmod, '2012-07-25T17:13:46Z')
-        self.assertEqual(r.md5, 'a/Jv1mYBtSjS4LR+qoft/Q==')
+        self.assertEqual(r.md5, '6bf26fd66601b528d2e0b47eaa87edfd')
         self.assertEqual(r.length, 20)
         self.assertEqual(r.path, None)
         r = next(rli)
         self.assertEqual(r.uri, 'http://example.org/t/file_b')
         self.assertEqual(r.lastmod, '2001-09-09T01:46:40Z')
-        self.assertEqual(r.md5, 'RS5Uva4WJqxdbnvoGzneIQ==')
+        self.assertEqual(r.md5, '452e54bdae1626ac5d6e7be81b39de21')
         self.assertEqual(r.length, 45)
         self.assertEqual(r.path, None)
 
     def test04_data(self):
-        rlb = ResourceListBuilder(set_path=True, set_md5=True)
+        rlb = ResourceListBuilder(set_path=True, set_hashes=['md5'])
         rlb.mapper = Mapper(['http://example.org/t', 'tests/testdata/dir1'])
         rl = rlb.from_disk()
         self.assertEqual(len(rl), 2)
@@ -86,7 +86,7 @@ class TestResourceListBuilder(unittest.TestCase):
         self.assertTrue(r is not None)
         self.assertEqual(r.uri, 'http://example.org/t/file_a')
         self.assertEqual(r.lastmod, '2012-07-25T17:13:46Z')
-        self.assertEqual(r.md5, 'a/Jv1mYBtSjS4LR+qoft/Q==')
+        self.assertEqual(r.md5, '6bf26fd66601b528d2e0b47eaa87edfd')
         self.assertEqual(r.path, 'tests/testdata/dir1/file_a')
 
     def test05_from_disk_paths(self):

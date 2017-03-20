@@ -21,7 +21,7 @@ from .resource import Resource
 from .sitemap import Sitemap
 from .mapper import Mapper, MapperError
 from .url_authority import UrlAuthority
-from .utils import compute_md5_for_file
+from .hashes import Hashes
 
 
 class ListBaseWithIndex(ListBase):
@@ -326,7 +326,7 @@ class ListBaseWithIndex(ListBase):
                 # Record information about this sitemap for index
                 r = Resource(uri=uri,
                              timestamp=os.stat(file).st_mtime,
-                             md5=compute_md5_for_file(file))
+                             md5=Hashes(['md5'], file).md5)
                 index.add(r)
                 # Get next chunk
                 (chunk, nxt) = self.get_resources_chunk(resources_iter, nxt)

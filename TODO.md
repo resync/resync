@@ -12,8 +12,3 @@ Planned changes and deprecation
 -------------------------------
 
   * Remove support for ListBase.parse(str=...) which was deprecated in favor of ListBase.parse(str_data=...) 2016-03-22 in 1.0.1
-
-Issues with specification
-=========================
-
-  * v1.0 spec Figure 4 shows Capability List indexes but these are not allowed per section 9
