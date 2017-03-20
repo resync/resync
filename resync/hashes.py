@@ -2,6 +2,7 @@
 import base64
 import hashlib
 
+
 class Hashes(object):
     """Compute hash digests for ResourceSync.
 
@@ -64,7 +65,7 @@ class Hashes(object):
         """Compute hash digests for a file.
 
         Calculate the hashes based on one read through the file.
-        Optional block_size parameter controls memory used to do 
+        Optional block_size parameter controls memory used to do
         calculations. This should be a multiple of 128 bytes.
         """
         self.initialize_hashes()

@@ -120,7 +120,7 @@ class TestResourceList(unittest.TestCase):
         r1.md5 = "aabbcc"
         self.assertEqual(i.hashes(), set(['md5']))
         r2.sha1 = "ddeeff"
-        self.assertEqual(i.hashes(), set(['md5','sha-1']))
+        self.assertEqual(i.hashes(), set(['md5', 'sha-1']))
 
     def test08_iter(self):
         i = ResourceList()
