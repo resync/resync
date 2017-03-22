@@ -1,5 +1,6 @@
 from tests.testcase_with_tmpdir import TestCase
 
+import gzip
 import sys
 import os.path
 import unittest
@@ -94,6 +95,20 @@ class TestListBase(TestCase):
         lb2.parse(fh=fh)
         self.assertEqual(lb2.capability, 'special')
         self.assertEqual(len(lb2), 2)
+
+    def test05_write_gz(self):
+        lb = ListBase(capability_name='special2')
+        lb.add(Resource(uri='http://example.org/mango'))
+        basename = os.path.join(self.tmpdir, 'lb2.xml.gz')
+        lb.write(basename=basename)
+        self.assertTrue(os.path.exists(basename))
+        # and now parse back
+        fh = gzip.open(basename, 'r')
+        lb2 = ListBase(capability_name='special2')
+        lb2.parse(fh=fh)
+        self.assertEqual(lb2.capability, 'special2')
+        self.assertEqual(len(lb2), 1)
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestListBase)

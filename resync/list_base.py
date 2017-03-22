@@ -14,14 +14,17 @@ import sys
 try:  # python2
     # Must try this first as io also exists in python2
     # but in the wrong one!
+    from io import TextIOWrapper
     import StringIO as io
 except ImportError:  # python3
     import io
+    from io import TextIOWrapper
 import logging
 try:  # python3
     from urllib.request import URLopener
 except ImportError:  # python2
     from urllib import URLopener
+
 
 from .resource_container import ResourceContainer
 from .sitemap import Sitemap
@@ -146,7 +149,13 @@ class ListBase(ResourceContainer):
         Must be overridden to support multi-file lists.
         """
         self.default_capability()
-        fh = open(basename, 'w')
+        # Is this a gzip URI?
+        (base, ext) = os.path.splitext(basename)
+        if (ext in self.gzip_extensions):
+            fh1 = gzip.open(basename, 'wb')
+            fh = TextIOWrapper(fh1, encoding='utf-8')
+        else:
+            fh = open(basename, 'w')
         s = self.new_sitemap()
         s.resources_as_xml(self, fh=fh, sitemapindex=self.sitemapindex)
         fh.close()

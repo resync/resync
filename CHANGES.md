@@ -7,7 +7,7 @@ ResourceSync specification which was standardized as ANSI/NISO Z39.99-2014
 <http://www.openarchives.org/rs/1.0/toc>.
 
 v1.0.6 2017-??-??
-  * ...
+  * Treat .gz URIs as gzip 
 
 v1.0.5 2017-01-30
   * Fix to support non-ASCII URIs/filenames (https://github.com/resync/resync/issues/22)
