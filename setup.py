@@ -63,10 +63,12 @@ setup(
     install_requires=[
         "requests",
         "python-dateutil>=1.5",
-        "defusedxml>=0.4.1",
-        "testfixtures"
+        "defusedxml>=0.4.1"
     ],
     test_suite="tests",
+    tests_require=[
+        "testfixtures"
+    ],
     cmdclass={
         'coverage': Coverage
     }

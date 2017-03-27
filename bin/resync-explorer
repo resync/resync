@@ -100,7 +100,7 @@ def main():
     print("----- ResourceSync Explorer -----")
     if (args.checksum):
         args.hash.append('md5')
-    c = Explorer(hashes=args.hashes,
+    c = Explorer(hashes=args.hash,
                  verbose=args.verbose)
 
     try:
