@@ -34,6 +34,12 @@ class ClientFatalError(Exception):
     pass
 
 
+class ClientError(Exception):
+    """Possibly recoverable error in client, should include message to user."""
+
+    pass
+
+
 class UTCFormatter(logging.Formatter):
     """Format datetime values as ISO8601 UTC Z form.
 

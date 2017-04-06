@@ -3,10 +3,10 @@
 import sys
 try:  # python3
     from urllib.request import urlretrieve
-    from urllib.parse import urlparse, urlunparse
+    from urllib.parse import urlsplit, urlunsplit, urljoin
 except ImportError:  # python2
     from urllib import urlretrieve
-    from urlparse import urlparse, urlunparse
+    from urlparse import urlsplit, urlunsplit, urljoin
 import os.path
 import datetime
 import distutils.dir_util
@@ -27,7 +27,7 @@ from .resource import Resource
 from .url_authority import UrlAuthority
 from .hashes import Hashes
 from .client_state import ClientState
-from .client_utils import ClientFatalError, url_or_file_open
+from .client_utils import ClientFatalError, ClientError, url_or_file_open
 from .list_base_with_index import ListBaseIndexError
 from .w3c_datetime import str_to_datetime, datetime_to_str
 
@@ -89,6 +89,81 @@ class Client(object):
             return(self.sitemap_name)
         return(self.sitemap_uri(self.resource_list_name))
 
+    def read_resource_list(self, uri):
+        """Read resource list from specified URI else raise exception."""
+        self.logger.info("Reading resource list %s" % (uri))
+        try:
+            resource_list = ResourceList(allow_multifile=self.allow_multifile,
+                                         mapper=self.mapper)
+            resource_list.read(uri=uri)
+        except Exception as e:
+            raise ClientFatalError(
+                "Can't read source resource list from %s (%s)" %
+                (uri, str(e)))
+        self.logger.debug("Finished reading resource list")
+        return(resource_list)
+
+    def find_resource_list_from_source_description(self, uri):
+        """Read source description to find resource list.
+
+        Raises a ClientError in cases where the client might look for a
+        source description in another location, but a ClientFatalError if
+        a source description is found but there is some problem using it.
+        """
+        self.logger.info("Reading capability list %s" % (uri))
+        try:
+            sd = SourceDescription()
+            sd.read(uri=uri)
+        except Exception as e:
+            raise ClientError(
+                "Can't read source description from %s (%s)" %
+                (uri, str(e)))
+        if (len(sd) == 0):
+            raise ClientFatalError(
+                "Source description %s has no sources" % (uri))
+        elif (len(sd) > 1):
+            raise ClientFatalError(
+                "Source description %s has multiple sources" % (uri))
+        self.logger.info("Finished reading source description")
+        raise ClientFatalError('debug')
+        return(cl)
+
+    def find_resource_list(self):
+        """Look for resource list by hueristics.
+
+        1. Use explicitly specified self.sitemap_name (and
+            fail if that doesn't work)
+        2. Look for base_url/.well-known/resourcesync (then look
+            for capability, look for resourcelist)
+        3. Look for host/.well-known/resourcesync (then look
+            for capability, look for resourcelist)
+        4. Look for base_url/resourcelist.xml
+        5. Look for base_url/sitemap.xml
+        6. Look for host/sitemap.xml
+        """
+        # 1
+        if (self.sitemap_name is not None):
+            return(self.read_resource_list(self.sitemap_name))
+        # 2 & 3
+        parts = urlsplit(self.sitemap)
+        uri_host = urlunsplit([parts[0],parts[1],'','',''])
+        for uri in [urljoin(self.sitemap, '.well-known/resourcesync'),
+                    urljoin(uri_host, '.well-known/resourcesync')]:
+            try:
+                return(self.find_resource_list_from_source_description(uri))
+            except ClientError as e:
+                pass
+        # 4, 5 & 6
+        for uri in [urljoin(self.sitemap, 'resourcelist.xml'),
+                    urljoin(self.sitemap, 'sitemap.xml'),
+                    urljoin(uri_host, 'sitemap.xml')]:
+            try:
+                return(self.read_resource_list(uri))
+            except ClientError as e:
+                pass
+        raise ClientFatalError(
+                "Failed to find source resource list from common patterns")
+
     def build_resource_list(self, paths=None, set_path=False):
         """Return a resource list for files on local disk.
 
@@ -145,20 +220,11 @@ class Client(object):
                 "No source to destination mapping specified")
         if (not audit_only and self.mapper.unsafe()):
             raise ClientFatalError(
-                "Source to destination mappings unsafe: %s" % str(
-                    self.mapper))
+                "Source to destination mappings unsafe: %s" %
+                str(self.mapper))
         # 1. Get inventories from both src and dst
         # 1.a source resource list
-        try:
-            self.logger.info("Reading sitemap %s" % (self.sitemap))
-            src_resource_list = ResourceList(
-                allow_multifile=self.allow_multifile, mapper=self.mapper)
-            src_resource_list.read(uri=self.sitemap)
-            self.logger.debug("Finished reading sitemap")
-        except Exception as e:
-            raise ClientFatalError(
-                "Can't read source resource list from %s (%s)" %
-                (self.sitemap, str(e)))
+        src_resource_list = self.find_resource_list()
         self.logger.info(
             "Read source resource list, %d resources listed" %
             (len(src_resource_list)))
