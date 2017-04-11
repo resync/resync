@@ -35,6 +35,10 @@ class ResourceSet(dict):
                 "Attempt to add resource already in this set")
         self[uri] = resource
 
+    def first(self):
+        """First item obtained from iterator."""
+        return(next(iter(self)))
+
 
 class ResourceSetDupeError(Exception):
     """Exception for case of attempt to add duplicate resource."""

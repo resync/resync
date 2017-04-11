@@ -1,5 +1,6 @@
 from tests.testcase_with_tmpdir import TestCase
 from tests.capture_stdout import capture_stdout
+from tests.webserver_context import webserver
 
 import unittest
 import re
@@ -8,7 +9,7 @@ from testfixtures import LogCapture
 import sys
 import os.path
 
-from resync.client import Client, ClientFatalError
+from resync.client import Client, ClientError, ClientFatalError
 from resync.resource import Resource
 from resync.resource_list import ResourceList
 from resync.change_list import ChangeList
@@ -35,6 +36,41 @@ class TestClient(TestCase):
         self.assertEqual(c.sitemap_uri('abcd1'), 'http://example.org/c/abcd1')
         self.assertEqual(c.sitemap_uri('/abcd2'), '/abcd2')
         self.assertEqual(c.sitemap_uri('scheme:/abcd3'), 'scheme:/abcd3')
+
+    def test04_read_resource_list(self):
+        c = Client()
+        rl = c.read_resource_list('tests/testdata/client/dir1/resourcelist.xml')
+        self.assertEqual(len(rl), 3)
+        rl = c.read_resource_list('file:tests/testdata/client/dir1/resourcelist.xml')
+        self.assertEqual(len(rl), 3)
+        self.assertEqual(len(rl), 3)
+        self.assertRaises(ClientError, c.read_resource_list, 'file://tests/testdata/client/dir1/resourcelist.xml')
+        self.assertRaises(ClientError, c.read_resource_list, 'file:///tests/testdata/client/dir1/resourcelist.xml')
+        self.assertRaises(ClientError, c.read_resource_list, 'DOES_NOT_EXIST')
+
+    def test05_find_resource_list(self):
+        c = Client()
+        # Filesystem tests
+        c.set_mappings(['tests/testdata/find/find1', 'xxx'])
+        self.assertEqual(c.find_resource_list().up, 'find1')
+        c.set_mappings(['tests/testdata/find/find2', 'xxx'])
+        self.assertEqual(c.find_resource_list().up, 'find2')
+        c.set_mappings(['tests/testdata/find/find3', 'xxx'])
+        self.assertEqual(c.find_resource_list().up, 'find3')
+        # Tests requiring a server
+        with webserver('tests/testdata/find', 'localhost', 9999):
+            c.set_mappings(['http://localhost:9999/find1', 'xxx'])
+            self.assertEqual(c.find_resource_list().up, 'find1')
+            c.set_mappings(['http://localhost:9999/find2', 'xxx'])
+            self.assertEqual(c.find_resource_list().up, 'find2')
+            c.set_mappings(['http://localhost:9999/find3', 'xxx'])
+            self.assertEqual(c.find_resource_list().up, 'find3')
+        with webserver('tests/testdata/find/find1', 'localhost', 9999):
+            c.set_mappings(['http://localhost:9999/data', 'xxx'])
+            self.assertEqual(c.find_resource_list().up, 'find1')
+        with webserver('tests/testdata/find/find3', 'localhost', 9999):
+            c.set_mappings(['http://localhost:9999/data/data1', 'xxx'])
+            self.assertEqual(c.find_resource_list().up, 'find3')
 
     def test10_baseline_or_audit(self):
         # FIXME - this is the guts of the client, tough to test, need to work

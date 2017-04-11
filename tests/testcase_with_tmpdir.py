@@ -26,7 +26,7 @@ class TestCase(unittest.TestCase):
     def tearDownClass(cls):
         # Cleanup
         if (not os.path.isdir(cls._tmpdir)):
-            raise Exception("Ooops, no tempdir (%s) to clean up?" % (tmpdir))
+            raise Exception("Ooops, no tempdir (%s) to clean up?" % (cls._tmpdir))
         shutil.rmtree(cls._tmpdir)
         try:
             cls.extraTearUpClass()

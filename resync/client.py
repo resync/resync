@@ -97,9 +97,8 @@ class Client(object):
                                          mapper=self.mapper)
             resource_list.read(uri=uri)
         except Exception as e:
-            raise ClientFatalError(
-                "Can't read source resource list from %s (%s)" %
-                (uri, str(e)))
+            raise ClientError("Can't read source resource list from %s (%s)" %
+                              (uri, str(e)))
         self.logger.debug("Finished reading resource list")
         return(resource_list)
 
@@ -110,7 +109,7 @@ class Client(object):
         source description in another location, but a ClientFatalError if
         a source description is found but there is some problem using it.
         """
-        self.logger.info("Reading capability list %s" % (uri))
+        self.logger.info("Reading source description %s" % (uri))
         try:
             sd = SourceDescription()
             sd.read(uri=uri)
@@ -125,11 +124,25 @@ class Client(object):
             raise ClientFatalError(
                 "Source description %s has multiple sources" % (uri))
         self.logger.info("Finished reading source description")
-        raise ClientFatalError('debug')
-        return(cl)
+        # Now read capability list
+        cluri = sd.resources.first().uri
+        uri = urljoin(uri, cluri)  # FIXME - Should relative URI handling be elsewhere?
+        self.logger.info("Reading capability list %s" % (uri))
+        try:
+            cl = CapabilityList()
+            cl.read(uri=uri)
+        except Exception as e:
+            raise ClientError(
+                "Can't read capability list from %s (%s)" %
+                (uri, str(e)))
+        if (not cl.has_capability('resourcelist')):
+            raise ClientFatalError(
+                "Capability list %s does not describe a resource list" % (uri))
+        rluri = cl.capability_info('resourcelist').uri
+        return(urljoin(uri, rluri))
 
     def find_resource_list(self):
-        """Look for resource list by hueristics.
+        """Finf resource list by hueristics, returns ResourceList object.
 
         1. Use explicitly specified self.sitemap_name (and
             fail if that doesn't work)
@@ -146,23 +159,28 @@ class Client(object):
             return(self.read_resource_list(self.sitemap_name))
         # 2 & 3
         parts = urlsplit(self.sitemap)
-        uri_host = urlunsplit([parts[0],parts[1],'','',''])
+        uri_host = urlunsplit([parts[0], parts[1], '', '', ''])
+        errors = []
         for uri in [urljoin(self.sitemap, '.well-known/resourcesync'),
                     urljoin(uri_host, '.well-known/resourcesync')]:
+            uri = uri.lstrip('file:///')  # urljoin adds this for local files
             try:
-                return(self.find_resource_list_from_source_description(uri))
+                rluri = self.find_resource_list_from_source_description(uri)
+                return(self.read_resource_list(rluri))
             except ClientError as e:
-                pass
+                errors.append(str(e))
         # 4, 5 & 6
         for uri in [urljoin(self.sitemap, 'resourcelist.xml'),
                     urljoin(self.sitemap, 'sitemap.xml'),
                     urljoin(uri_host, 'sitemap.xml')]:
+            uri = uri.lstrip('file:///')  # urljoin adds this for local files
             try:
                 return(self.read_resource_list(uri))
             except ClientError as e:
-                pass
+                errors.append(str(e))
         raise ClientFatalError(
-                "Failed to find source resource list from common patterns")
+            "Failed to find source resource list from common patterns (%s)" %
+            ". ".join(errors))
 
     def build_resource_list(self, paths=None, set_path=False):
         """Return a resource list for files on local disk.
