@@ -6,7 +6,11 @@ import requests
 import signal
 import time
 from multiprocessing import Process
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+try:  # python3
+    from http.server import HTTPServer, SimpleHTTPRequestHandler
+except:
+    from BaseHTTPServer import HTTPServer
+    from SimpleHTTPServer import SimpleHTTPRequestHandler
 try:  # python3
     from urllib.parse import unquote
 except ImportError:  # python2
@@ -33,10 +37,7 @@ class MyHTTPRequestHandler(SimpleHTTPRequestHandler):
         path = path.split('#', 1)[0]
         # Don't forget explicit trailing slash when normalizing. Issue17324
         trailing_slash = path.rstrip().endswith('/')
-        try:
-            path = unquote(path, errors='surrogatepass')
-        except UnicodeDecodeError:
-            path = unquote(path)
+        path = unquote(path)
         path = posixpath.normpath(path)
         words = path.split('/')
         words = filter(None, words)
