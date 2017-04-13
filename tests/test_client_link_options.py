@@ -25,7 +25,7 @@ def run_resync(args):
 class TestClientLinkOptions(unittest.TestCase):
 
     def test01_no_links(self):
-        xml = run_resync(['--resourcelist',
+        xml = run_resync(['--write-resourcelist',
                           'http://example.org/t', 'tests/testdata/dir1'])
         rl = ResourceList()
         rl.parse(fh=io.BytesIO(xml))
@@ -33,7 +33,7 @@ class TestClientLinkOptions(unittest.TestCase):
         self.assertEqual(rl.link('describedby'), None)
 
     def test02_resource_list_links(self):
-        xml = run_resync(['--resourcelist',
+        xml = run_resync(['--write-resourcelist',
                           '--describedby-link=a',
                           '--sourcedescription-link=b',  # will be ignored
                           '--capabilitylist-link=c',
@@ -47,7 +47,7 @@ class TestClientLinkOptions(unittest.TestCase):
         self.assertEqual(rl.link('up')['href'], 'c')
 
     def test03_capability_list_links(self):
-        xml = run_resync(['--capabilitylist=resourcelist=rl,changedump=cd',
+        xml = run_resync(['--write-capabilitylist=resourcelist=rl,changedump=cd',
                           '--describedby-link=a',
                           '--sourcedescription-link=b',
                           '--capabilitylist-link=c'])  # will be ignored

@@ -54,6 +54,7 @@ class Client(object):
         self.dump_format = None
         self.exclude_patterns = []
         self.sitemap_name = None
+        self.capability_list_uri = None
         self.allow_multifile = True
         self.noauth = False
         self.strictauth = False
@@ -122,11 +123,20 @@ class Client(object):
                 "Source description %s has no sources" % (uri))
         elif (len(sd) > 1):
             raise ClientFatalError(
-                "Source description %s has multiple sources" % (uri))
+                "Source description %s has multiple sources, specify one "
+                "with --capabilitylist" % (uri))
         self.logger.info("Finished reading source description")
-        # Now read capability list
         cluri = sd.resources.first().uri
         uri = urljoin(uri, cluri)  # FIXME - Should relative URI handling be elsewhere?
+        return(self.find_resource_list_from_capability_list(uri))
+
+    def find_resource_list_from_capability_list(self, uri):
+        """Read capability list to find resource list.
+
+        Raises a ClientError in cases where the client might look for a
+        capability list in another location, but a ClientFatalError if
+        a capability list is found but there is some problem using it.
+        """
         self.logger.info("Reading capability list %s" % (uri))
         try:
             cl = CapabilityList()
@@ -146,18 +156,23 @@ class Client(object):
 
         1. Use explicitly specified self.sitemap_name (and
             fail if that doesn't work)
-        2. Look for base_url/.well-known/resourcesync (then look
+        2. Use explicitly specified self.capability_list_uri (and
+            fail is that doesn't work)
+        3. Look for base_url/.well-known/resourcesync (then look
             for capability, look for resourcelist)
-        3. Look for host/.well-known/resourcesync (then look
+        4. Look for host/.well-known/resourcesync (then look
             for capability, look for resourcelist)
-        4. Look for base_url/resourcelist.xml
-        5. Look for base_url/sitemap.xml
-        6. Look for host/sitemap.xml
+        5. Look for base_url/resourcelist.xml
+        6. Look for base_url/sitemap.xml
+        7. Look for host/sitemap.xml
         """
-        # 1
+        # 1 & 2
         if (self.sitemap_name is not None):
             return(self.read_resource_list(self.sitemap_name))
-        # 2 & 3
+        if (self.capability_list_uri is not None):
+            rluri = self.find_resource_list_from_capability_list(self.capability_list_uri)
+            return(self.read_resource_list(rluri))
+        # 3 & 4
         parts = urlsplit(self.sitemap)
         uri_host = urlunsplit([parts[0], parts[1], '', '', ''])
         errors = []
@@ -169,7 +184,7 @@ class Client(object):
                 return(self.read_resource_list(rluri))
             except ClientError as e:
                 errors.append(str(e))
-        # 4, 5 & 6
+        # 5, 6 & 7
         for uri in [urljoin(self.sitemap, 'resourcelist.xml'),
                     urljoin(self.sitemap, 'sitemap.xml'),
                     urljoin(uri_host, 'sitemap.xml')]:

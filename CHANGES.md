@@ -6,6 +6,10 @@ core specification version. Versions 1.0.x implement the v1.0
 ResourceSync specification which was standardized as ANSI/NISO Z39.99-2014
 <http://www.openarchives.org/rs/1.0/toc>.
 
+v1.0.8 2017-??-??
+  * Change argument names for local modes to have `--write-` prefix, e.g. --write-resourcelist
+  * Improve modes to detect capabilities
+
 v1.0.7 2017-03-27
   * Fixed silly error in `resync-explorer` introduced in 1.0.6
 
