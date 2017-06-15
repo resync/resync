@@ -10,7 +10,7 @@ resync
   :target: https://coveralls.io/github/resync/resync
   :alt: Test coverage
 
-**resync** is a ResourceSync client and library in python. `ResourceSync 
+**resync** is a ResourceSync library and client in python. `ResourceSync
 <http://www.openarchives.org/rs/>`_ is a synchronization framework for 
 the web consisting of various capabilities that allow third party 
 systems to remain synchronized with a server's evolving resources. 
@@ -89,8 +89,11 @@ yet packaged for PyPI.
 See also
 --------
 
-`ResourceSync simulator
+`ResourceSync source simulator
 <http://github.com/resync/simulator>`_
+
+`py-resourcesync: Core Python library for ResourceSync publishing
+<https://github.com/resourcesync/py-resourcesync>`_
 
 Contributors
 ------------
