@@ -336,7 +336,7 @@ class ListBaseWithIndex(ListBase):
             s.resources_as_xml(index, sitemapindex=True, fh=f)
             f.close()
             self.logger.info("Wrote sitemapindex %s" % (basename))
-        elif self.sitemapindex is True:
+        elif self.sitemapindex:
             f = open(basename, 'w')
             self.logger.info("Writing sitemapindex %s..." % (basename))
             s.resources_as_xml(chunk, sitemapindex=True, fh=f)
