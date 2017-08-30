@@ -5,11 +5,12 @@ try:  # python2
     import StringIO as io
 except ImportError:  # python3
     import io
+from os import remove
 import re
 
 from resync.resource import Resource
 from resync.resource_list import ResourceList, ResourceListDupeError
-from resync.sitemap import SitemapParseError
+from resync.sitemap import Sitemap, SitemapParseError
 
 
 class TestResourceList(unittest.TestCase):
@@ -180,6 +181,40 @@ class TestResourceList(unittest.TestCase):
 </urlset>'
         rl = ResourceList()
         self.assertRaises(SitemapParseError, rl.parse, fh=io.StringIO(xml))
+
+    def test33_write(self):
+        # ResourceList
+        rl = ResourceList()
+
+        rl.add(Resource(uri='http://example.com/test/a', timestamp=1))
+        rl.add(Resource(uri='http://example.com/test/b', timestamp=1))
+        rl.add(Resource(uri='http://example.com/test/c', timestamp=1))
+
+        rl_filename = 'test33_write_resourcelist.xml'
+        rl.write(basename=rl_filename)
+
+        with open(rl_filename, 'r') as f:
+            s = Sitemap()
+            s.parse_xml(fh=f)
+            self.assertFalse(s.parsed_index)
+        remove(rl_filename)
+
+        # ResourceListIndex
+        rli = ResourceList()
+
+        rli.add(Resource(uri='http://example.com/test/resourcelist00000.xml', timestamp=1))
+        rli.add(Resource(uri='http://example.com/test/resourcelist00001.xml', timestamp=1))
+        rli.add(Resource(uri='http://example.com/test/resourcelist00002.xml', timestamp=1))
+        rli.sitemapindex = True
+
+        rli_filename = 'test33_write_resourcelist-index.xml'
+        rli.write(basename=rli_filename)
+
+        with open(rli_filename, 'r') as f:
+            s = Sitemap()
+            s.parse_xml(fh=f)
+            self.assertTrue(s.parsed_index)
+        remove(rli_filename)
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestResourceList)
