@@ -110,7 +110,3 @@ class TestMapper(unittest.TestCase):
         self.assertTrue(Map('path', 'path').unsafe())
         self.assertTrue(Map('path/a', 'path').unsafe())
         self.assertTrue(Map('path', 'path/b').unsafe())
-
-if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestMapper)
-    unittest.TextTestRunner(verbosity=2).run(suite)

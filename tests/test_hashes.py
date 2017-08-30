@@ -18,6 +18,3 @@ class TestUtill(unittest.TestCase):
 
     def test02_bad_type(self):
         self.assertRaises(Exception, resync.hashes.Hashes, ['md5', 'xyz'])
-
-if __name__ == '__main__':
-    unittest.main()

@@ -59,8 +59,3 @@ class TestCapabilityList(unittest.TestCase):
         self.assertEqual(
             r.uri, 'http://example.org/resourcelist.xml', 'resourcelist uri')
         self.assertEqual(r.capability, 'resourcelist')
-
-if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(
-        TestCapabilityList)
-    unittest.TextTestRunner().run(suite)

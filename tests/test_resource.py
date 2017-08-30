@@ -177,7 +177,3 @@ class TestResource(unittest.TestCase):
         self.assertEqual(r.mime_type, None)
         r = Resource(uri='tv2')
         self.assertEqual(r.mime_type, None)
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestResource)
-    unittest.TextTestRunner(verbosity=2).run(suite)

@@ -27,8 +27,3 @@ class TestClientLinkOptions(unittest.TestCase):
         """Bad parameter."""
         err = run_resync_explorer([])[1]
         self.assertRegexpMatches(err, b'FatalError: No source information')
-
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestClientLinkOptions)
-    unittest.TextTestRunner(verbosity=2).run(suite)

@@ -114,8 +114,3 @@ class TestResourceContainer(unittest.TestCase):
         self.assertEqual(rc.up, None)
         rc.up = "up_uri"
         self.assertEqual(rc.up, "up_uri")
-
-if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(
-        TestResourceContainer)
-    unittest.TextTestRunner().run(suite)

@@ -164,7 +164,3 @@ class TestDump(TestCase):
         d = Dump(rl)
         self.assertTrue(d.check_files(check_length=False))
         self.assertRaises(DumpError, d.check_files)
-
-if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestDump)
-    unittest.TextTestRunner(verbosity=2).run(suite)

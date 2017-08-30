@@ -33,8 +33,3 @@ class TestResourceSet(unittest.TestCase):
         rs.add(Resource('a'))
         self.assertEqual(len(rs), 1)
         self.assertRaises(ResourceSetDupeError, rs.add, Resource('a'))
-
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestResourceSet)
-    unittest.TextTestRunner(verbosity=2).run(suite)

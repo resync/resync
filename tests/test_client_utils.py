@@ -75,7 +75,3 @@ class TestClientUtils(TestCase):
     def test06_parse_capability_lists(self):
         # Input string of the form: uri,uri
         self.assertEqual(parse_capability_lists('a,b'), ['a', 'b'])
-
-if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestClientUtils)
-    unittest.TextTestRunner(verbosity=2).run(suite)

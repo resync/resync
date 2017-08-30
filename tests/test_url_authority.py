@@ -96,7 +96,3 @@ class TestUrlAuthority(unittest.TestCase):
             'http://a.example.org/sitemap.xml'))
         self.assertFalse(uauth.has_authority_over(
             'http://sub.a.example.org/sitemap.xml'))
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestUrlAuthority)
-    unittest.TextTestRunner(verbosity=2).run(suite)

@@ -129,7 +129,3 @@ class TestListBaseWithIndex(unittest.TestCase):
         xml = lb.index_as_xml()
         self.assertTrue(
             re.search(r'<loc>a</loc><lastmod>2001-01-01T00:00:00Z</lastmod>', xml))
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestListBaseWithIndex)
-    unittest.TextTestRunner(verbosity=2).run(suite)

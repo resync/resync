@@ -412,7 +412,3 @@ class TestClient(TestCase):
             c.log_status(in_sync=False)
             self.assertEqual(lc.records[-1].msg,
                              'Status:          SYNCED (created=0, updated=0, deleted=0)')
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestClient)
-    unittest.TextTestRunner(verbosity=2).run(suite)

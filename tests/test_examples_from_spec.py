@@ -882,7 +882,3 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def _open_ex(self, ex):
         return open('tests/testdata/examples_from_spec/%s.xml' % (ex), 'r')
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestExamplesFromSpec)
-    unittest.TextTestRunner(verbosity=2).run(suite)

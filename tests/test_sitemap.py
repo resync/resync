@@ -306,7 +306,3 @@ class TestSitemap(unittest.TestCase):
         r2 = next(i)
         self.assertEqual(r2.uri, '/tmp/rs_test/src/file_b')
         self.assertEqual(r2.change, None)
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestSitemap)
-    unittest.TextTestRunner(verbosity=2).run(suite)

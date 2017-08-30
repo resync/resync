@@ -63,8 +63,3 @@ class TestResourceDumpManifest(unittest.TestCase):
 </urlset>'
         rdm = ResourceDumpManifest()
         self.assertRaises(SitemapParseError, rdm.parse, fh=io.StringIO(xml))
-
-if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(
-        TestResourceDumpManifest)
-    unittest.TextTestRunner().run(suite)

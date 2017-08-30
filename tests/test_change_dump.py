@@ -61,7 +61,3 @@ class TestChangeDump(unittest.TestCase):
 </urlset>'
         rd = ChangeDump()
         self.assertRaises(SitemapParseError, rd.parse, fh=io.StringIO(xml))
-
-if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestChangeDump)
-    unittest.TextTestRunner().run(suite)

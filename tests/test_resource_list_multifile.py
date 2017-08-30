@@ -99,7 +99,3 @@ class TestResourceListMultifile(unittest.TestCase):
         self.assertEquals(next(i).uri, 'http://localhost/d')
         # cleanup tempdir
         shutil.rmtree(tempdir)
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestResourceListMultifile)
-    unittest.TextTestRunner(verbosity=2).run(suite)

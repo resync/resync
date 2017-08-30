@@ -19,7 +19,3 @@ class TestClientState(TestCase):
         self.assertEqual(cs.get_state(site), 456)
         cs.set_state(site)
         self.assertEqual(cs.get_state(site), None)
-
-if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestClientUtils)
-    unittest.TextTestRunner(verbosity=2).run(suite)

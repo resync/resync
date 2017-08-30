@@ -89,7 +89,3 @@ class TestListBase(TestCase):
         lb2.parse(fh=fh)
         self.assertEqual(lb2.capability, 'special')
         self.assertEqual(len(lb2), 2)
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestListBase)
-    unittest.TextTestRunner(verbosity=2).run(suite)

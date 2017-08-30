@@ -58,7 +58,3 @@ class TestClientLinkOptions(unittest.TestCase):
         self.assertEqual(capl.link('describedby')['href'], 'a')
         self.assertNotEqual(capl.link('up'), None)
         self.assertEqual(capl.link('up')['href'], 'b')
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestClientLinkOptions)
-    unittest.TextTestRunner(verbosity=2).run(suite)

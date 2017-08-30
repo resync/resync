@@ -126,7 +126,3 @@ class TestW3cDatetime(unittest.TestCase):
                          '2012-03-14T18:47:36Z')
         self.assertEqual(rt('2012-03-14T18:37:36-01:01'),
                          '2012-03-14T17:36:36Z')
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestW3cDatetime)
-    unittest.TextTestRunner(verbosity=2).run(suite)

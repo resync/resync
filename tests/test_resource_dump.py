@@ -81,7 +81,3 @@ class TestResourceDump(TestCase):
         rd2.parse(dumpf)
         self.assertEqual(len(rd2), 2)
         self.assertEqual(rd2.uris(), ['aa.zip', 'bb.zip'])
-
-if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestResourceDump)
-    unittest.TextTestRunner().run(suite)

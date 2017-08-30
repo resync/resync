@@ -43,8 +43,3 @@ class TestSourceDescription(unittest.TestCase):
         [r1, r2, r3] = sd.resources
         self.assertEqual(r1.uri, 'http://example.org/ds1/cl.xml')
         self.assertEqual(r1.capability, 'capabilitylist')
-
-if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(
-        TestSourceDescription)
-    unittest.TextTestRunner().run(suite)

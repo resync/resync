@@ -146,7 +146,3 @@ class TestChangeList(unittest.TestCase):
 </urlset>'
         cl = ChangeList()
         self.assertRaises(SitemapParseError, cl.parse, fh=io.StringIO(xml))
-
-if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestChangeList)
-    unittest.TextTestRunner().run(suite)

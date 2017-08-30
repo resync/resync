@@ -137,8 +137,3 @@ class TestResourceListBuilder(unittest.TestCase):
         self.assertFalse(u'x:/A_\u00c3_tilde.txt' in uris)
         # Snowman is single char
         self.assertFalse(u'x:snowman_\u2603.txt' in uris)
-
-if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(
-        TestResourceListBuilder)
-    unittest.TextTestRunner(verbosity=2).run(suite)

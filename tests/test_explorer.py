@@ -130,7 +130,3 @@ class TestExplorer(unittest.TestCase):
             uri = e.expand_relative_uri('https://example.org/ctx', 'abc')
         self.assertEqual(uri, 'https://example.org/abc')
         self.assertTrue(re.search(r'expanded relative URI', capturer.result))
-
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestExplorer)
-    unittest.TextTestRunner(verbosity=2).run(suite)
