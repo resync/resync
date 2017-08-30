@@ -17,25 +17,25 @@ resync is at <https://pypi.python.org/pypi/resync> on pypi
 8. Check client works with simulator:
 
    ```
-   simeon@RottenApple resync>resync --delete http://resync.library.cornell.edu/sim100
+   simeon@RottenApple resync>resync --delete --capabilitylist=http://resync.library.cornell.edu/sim100/capabilitylist.xml http://resync.library.cornell.edu/sim100
    Status: NOT IN SYNC (same=92, to create=0, to update=1, to delete=0)
    Will GET 1 resources, and delete 0 resources
    Status:      SYNCED (same=92, created=0, updated=1, deleted=0)
-   simeon@RottenApple resync>resync -i --delete http://resync.library.cornell.edu/sim100
+   simeon@RottenApple resync>resync -i --delete --capabilitylist=http://resync.library.cornell.edu/sim100/capabilitylist.xml http://resync.library.cornell.edu/sim100
    Status:  NO CHANGES (created=0, updated=0, deleted=0)
-   simeon@RottenApple resync>resync -i --delete http://resync.library.cornell.edu/sim100
+   simeon@RottenApple resync>resync -i --delete --capabilitylist=http://resync.library.cornell.edu/sim100/capabilitylist.xml http://resync.library.cornell.edu/sim100
    Status:     CHANGES (created=1, updated=0, deleted=0)
-   simeon@RottenApple resync>resync -i --delete http://resync.library.cornell.edu/sim100
+   simeon@RottenApple resync>resync -i --delete --capabilitylist=http://resync.library.cornell.edu/sim100/capabilitylist.xml http://resync.library.cornell.edu/sim100
    Status:  NO CHANGES (created=0, updated=0, deleted=0)
-   simeon@RottenApple resync>resync -a http://resync.library.cornell.edu/sim100
+   simeon@RottenApple resync>resync -a --capabilitylist=http://resync.library.cornell.edu/sim100/capabilitylist.xml http://resync.library.cornell.edu/sim100
    Status:     IN SYNC (same=94, to create=0, to update=0, to delete=0)
-   simeon@RottenApple resync>resync -a http://resync.library.cornell.edu/sim100
+   simeon@RottenApple resync>resync -a --capabilitylist=http://resync.library.cornell.edu/sim100/capabilitylist.xml http://resync.library.cornell.edu/sim100
    Status: NOT IN SYNC (same=94, to create=1, to update=0, to delete=0)
-   simeon@RottenApple resync>resync -i --delete http://resync.library.cornell.edu/sim100
+   simeon@RottenApple resync>resync -i --delete --capabilitylist=http://resync.library.cornell.edu/sim100/capabilitylist.xml http://resync.library.cornell.edu/sim100
    Status:     CHANGES (created=1, updated=0, deleted=0)
-   simeon@RottenApple resync>resync -a http://resync.library.cornell.edu/sim100
+   simeon@RottenApple resync>resync -a --capabilitylist=http://resync.library.cornell.edu/sim100/capabilitylist.xml http://resync.library.cornell.edu/sim100
    Status:     IN SYNC (same=95, to create=0, to update=0, to delete=0)
-    ```
+   ```
 
 9. If all checks out OK, tag and push the new version to github:
 
