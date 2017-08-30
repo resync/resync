@@ -14,11 +14,14 @@ except ImportError:  # python3
 
 
 class Data(object):
+    """Object for captured data."""
+
     pass
 
 
 @contextlib.contextmanager
 def capture_stdout():
+    """Capture and return stdout as context manager."""
     old = sys.stdout
     capturer = io.StringIO()
     sys.stdout = capturer

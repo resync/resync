@@ -13,7 +13,7 @@ class TestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        # Create tmp dir to write to and check
+        """Create tmp dir to write to and check."""
         cls._tmpdir = tempfile.mkdtemp()
         if (not os.path.isdir(cls._tmpdir)):
             raise Exception("Failed to create tempdir to use for dump tests")
@@ -24,7 +24,7 @@ class TestCase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        # Cleanup
+        """Cleanup."""
         if (not os.path.isdir(cls._tmpdir)):
             raise Exception("Ooops, no tempdir (%s) to clean up?" % (cls._tmpdir))
         shutil.rmtree(cls._tmpdir)
@@ -35,7 +35,7 @@ class TestCase(unittest.TestCase):
 
     @property
     def tmpdir(self):
-        # read-only access to _tmpdir, just in case... The rmtree scares me
+        """Read-only access to _tmpdir, just in case... The rmtree scares me."""
         #
         # FIXME - Hack to work on python2.6 where setUpClass is not called, will
         # FIXME - not have proper tidy as tearDownClass will not be called.

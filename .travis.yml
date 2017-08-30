@@ -1,6 +1,5 @@
 language: python
 python:
-#  - "2.6" -- commenting until https://github.com/resync/resync/issues/23 fixed
   - "2.7"
   - "3.3"
   - "3.4"
@@ -14,7 +13,7 @@ install:
 script:
   - python setup.py test
   - pep8 --ignore=E501 resync tests bin/resync bin/resync-explorer
-  - pep257 resync
+  - pep257 resync tests bin/resync bin/resync-explorer
   - rst-lint README
   - coverage run --source=resync setup.py test
 after_success:
