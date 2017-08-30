@@ -1,11 +1,11 @@
-import unittest
+from tests.testcase_with_tmpdir import TestCase
+import os.path
 try:  # python2
     # Must try this first as io also exists in python2
     # but in the wrong one!
     import StringIO as io
 except ImportError:  # python3
     import io
-from os import remove
 import re
 
 from resync.resource import Resource
@@ -13,7 +13,7 @@ from resync.resource_list import ResourceList, ResourceListDupeError
 from resync.sitemap import Sitemap, SitemapParseError
 
 
-class TestResourceList(unittest.TestCase):
+class TestResourceList(TestCase):
 
     def test01_same(self):
         src = ResourceList()
@@ -190,14 +190,13 @@ class TestResourceList(unittest.TestCase):
         rl.add(Resource(uri='http://example.com/test/b', timestamp=1))
         rl.add(Resource(uri='http://example.com/test/c', timestamp=1))
 
-        rl_filename = 'test33_write_resourcelist.xml'
+        rl_filename = os.path.join(self.tmpdir, 'test33_write_resourcelist.xml')
         rl.write(basename=rl_filename)
 
         with open(rl_filename, 'r') as f:
             s = Sitemap()
             s.parse_xml(fh=f)
             self.assertFalse(s.parsed_index)
-        remove(rl_filename)
 
         # ResourceListIndex
         rli = ResourceList()
@@ -207,15 +206,10 @@ class TestResourceList(unittest.TestCase):
         rli.add(Resource(uri='http://example.com/test/resourcelist00002.xml', timestamp=1))
         rli.sitemapindex = True
 
-        rli_filename = 'test33_write_resourcelist-index.xml'
+        rli_filename = os.path.join(self.tmpdir, 'test33_write_resourcelist-index.xml')
         rli.write(basename=rli_filename)
 
         with open(rli_filename, 'r') as f:
             s = Sitemap()
             s.parse_xml(fh=f)
             self.assertTrue(s.parsed_index)
-        remove(rli_filename)
-
-if __name__ == '__main__':
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestResourceList)
-    unittest.TextTestRunner().run(suite)
