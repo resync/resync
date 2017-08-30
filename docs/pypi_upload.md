@@ -1,22 +1,19 @@
-=======================
-Updating resync on pypi
-=======================
+# Updating resync on pypi
 
 Notes to remind @zimeon...
 
 resync is at <https://pypi.python.org/pypi/resync> on pypi
 
-Putting up a new version
-------------------------
+## Putting up a new version
 
-0. In dev branch: bump version number in resync/_version.py and check CHANGES.md is up to date
-1. Check all tests good with py3 and py2 (python setup.py test)
+0. In `develop` branch: bump version number in `resync/_version.py` and check `CHANGES.md` is up to date
+1. Check all tests good with py3 and py2 (`python setup.py test` and CI)
 2. Check code is up-to-date with github version
-3. Check out master and merge in dev
-4. Check all tests good (python setup.py test)
-5. Make sure master README has correct travis-ci icon link
-6. Check branches as expected (git branch -a)
-7. Check local build and version reported OK (python setup.py build; python setup.py install; resync --version)
+3. Check out `master` and merge in `develop`
+4. Check all tests still good (`python setup.py test` and CI)
+5. Make sure master `README.md` has correct travis-ci icon link
+6. Check branches as expected (`git branch -a`)
+7. Check local build and version reported OK (`python setup.py build; python setup.py install; resync --version`)
 8. Check client works with simulator:
 
    ```
@@ -51,6 +48,6 @@ Putting up a new version
     python setup.py sdist upload
     ```
 
-10. Then check on PyPI at https://pypi.python.org/pypi/resync
-11. Finally, back on dev branch start new version number by editing resync/_version.py and CHANGES.md
+10. Then check on PyPI at <https://pypi.python.org/pypi/resync>
+11. Finally, back on `develop` branch start new version number by editing `resync/_version.py` and `CHANGES.md`
 
