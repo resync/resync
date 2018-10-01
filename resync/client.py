@@ -2,10 +2,8 @@
 
 import sys
 try:  # python3
-    from urllib.request import urlretrieve
     from urllib.parse import urlsplit, urlunsplit, urljoin
 except ImportError:  # python2
-    from urllib import urlretrieve
     from urlparse import urlsplit, urlunsplit, urljoin
 import os.path
 import datetime
@@ -499,7 +497,10 @@ class Client(object):
         else:
             # 1. GET
             try:
-                urlretrieve(resource.uri, filename)
+                r = requests.get(resource.uri, stream=True)
+                with open(filename, 'wb') as fd:
+                    for chunk in r.iter_content(chunk_size=1024):
+                        fd.write(chunk)
                 num_updated += 1
             except IOError as e:
                 msg = "Failed to GET %s -- %s" % (resource.uri, str(e))
