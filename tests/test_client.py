@@ -77,19 +77,20 @@ class TestClient(TestCase):
         # through more cases...
         c = Client()
         dst = os.path.join(self.tmpdir, 'dst_dir1')
-        c.set_mappings(['file:tests/testdata/client/dir1', dst])
-        # audit with empty dst, should say 3 to create
-        with LogCapture() as lc:
-            c.baseline_or_audit(audit_only=True)
-            self.assertTrue(
-                re.match(r'Status:\s+NOT IN SYNC.*to create=3', lc.records[-2].msg))
-            self.assertEqual(lc.records[-1].msg, 'Completed audit')
-        # now do the sync
-        with LogCapture() as lc:
-            c.baseline_or_audit()
-            self.assertTrue(
-                re.match(r'Status:\s+SYNCED.*created=3', lc.records[-2].msg))
-            self.assertEqual(lc.records[-1].msg, 'Completed baseline sync')
+        with webserver('tests/testdata/client', 'localhost', 9999):
+            c.set_mappings(['http://localhost:9999/dir1', dst])
+            # audit with empty dst, should say 3 to create
+            with LogCapture() as lc:
+                c.baseline_or_audit(audit_only=True)
+                self.assertTrue(
+                    re.match(r'Status:\s+NOT IN SYNC.*to create=3', lc.records[-2].msg))
+                self.assertEqual(lc.records[-1].msg, 'Completed audit')
+            # now do the sync
+            with LogCapture() as lc:
+                c.baseline_or_audit()
+                self.assertTrue(
+                    re.match(r'Status:\s+SYNCED.*created=3', lc.records[-2].msg))
+                self.assertEqual(lc.records[-1].msg, 'Completed baseline sync')
 
     def test18_update_resource(self):
         c = Client()
@@ -104,44 +105,45 @@ class TestClient(TestCase):
             self.assertTrue(
                 lc.records[-1].msg.startswith('dryrun: would GET http://example.org/dir/2 '))
         c.dryrun = False
-        # get from file uri that does not exist
-        resource = Resource(uri='file:tests/testdata/i_do_not_exist')
-        self.assertRaises(ClientFatalError,
-                          c.update_resource, resource, filename)
-        # get from file uri that does not exist but with c.ignore_failures to
-        # log
-        resource = Resource(uri='file:tests/testdata/i_do_not_exist')
-        with LogCapture() as lc:
-            c.logger = logging.getLogger('resync.client')
-            c.ignore_failures = True
-            n = c.update_resource(resource, filename)
-            self.assertEqual(n, 0)
-            self.assertTrue(
-                lc.records[-1].msg.startswith('Failed to GET file:tests/testdata/i_do_not_exist '))
-        # get from file uri
-        resource = Resource(uri='file:tests/testdata/examples_from_spec/resourcesync_ex_1.xml',
-                            length=355, md5='abc',
-                            timestamp=10)
-        c.last_timestamp = 0
-        with LogCapture() as lc:
-            c.logger = logging.getLogger('resync.client')
-            n = c.update_resource(resource, filename)
-            self.assertEqual(n, 1)
-            self.assertTrue(lc.records[-1].msg.startswith('Event: {'))
-        # get from file uri with length and md5 warnings
-        resource = Resource(uri='file:tests/testdata/examples_from_spec/resourcesync_ex_1.xml',
-                            length=111, md5='abc',
-                            timestamp=10)
-        c.last_timestamp = 0
-        with LogCapture() as lc:
-            c.logger = logging.getLogger('resync.client')
-            c.hashes = set(['md5'])
-            n = c.update_resource(resource, filename)
-            self.assertEqual(n, 1)
-            self.assertTrue(lc.records[-1].msg.startswith('MD5 mismatch '))
-            self.assertTrue(
-                lc.records[-2].msg.startswith('Downloaded size for '))
-            self.assertTrue(lc.records[-3].msg.startswith('Event: {'))
+        with webserver('tests/testdata', 'localhost', 9999):
+            # get from file uri that does not exist
+            resource = Resource(uri='http://localhost:9999/i_do_not_exist')
+            self.assertRaises(ClientFatalError,
+                            c.update_resource, resource, filename)
+            # get from file uri that does not exist but with c.ignore_failures to
+            # log
+            resource = Resource(uri='http://localhost:9999/i_do_not_exist')
+            with LogCapture() as lc:
+                c.logger = logging.getLogger('resync.client')
+                c.ignore_failures = True
+                n = c.update_resource(resource, filename)
+                self.assertEqual(n, 0)
+                self.assertTrue(
+                    lc.records[-1].msg.startswith('Failed to GET http://localhost:9999/i_do_not_exist '))
+            # get from file uri
+            resource = Resource(uri='http://localhost:9999/examples_from_spec/resourcesync_ex_1.xml',
+                                length=355, md5='abc',
+                                timestamp=10)
+            c.last_timestamp = 0
+            with LogCapture() as lc:
+                c.logger = logging.getLogger('resync.client')
+                n = c.update_resource(resource, filename)
+                self.assertEqual(n, 1)
+                self.assertTrue(lc.records[-1].msg.startswith('Event: {'))
+            # get from file uri with length and md5 warnings
+            resource = Resource(uri='http://localhost:9999/examples_from_spec/resourcesync_ex_1.xml',
+                                length=111, md5='abc',
+                                timestamp=10)
+            c.last_timestamp = 0
+            with LogCapture() as lc:
+                c.logger = logging.getLogger('resync.client')
+                c.hashes = set(['md5'])
+                n = c.update_resource(resource, filename)
+                self.assertEqual(n, 1)
+                self.assertTrue(lc.records[-1].msg.startswith('MD5 mismatch '))
+                self.assertTrue(
+                    lc.records[-2].msg.startswith('Downloaded size for '))
+                self.assertTrue(lc.records[-3].msg.startswith('Event: {'))
 
     def test19_delete_resource(self):
         c = Client()
