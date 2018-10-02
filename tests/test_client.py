@@ -109,7 +109,7 @@ class TestClient(TestCase):
             # get from file uri that does not exist
             resource = Resource(uri='http://localhost:9999/i_do_not_exist')
             self.assertRaises(ClientFatalError,
-                            c.update_resource, resource, filename)
+                              c.update_resource, resource, filename)
             # get from file uri that does not exist but with c.ignore_failures to
             # log
             resource = Resource(uri='http://localhost:9999/i_do_not_exist')
