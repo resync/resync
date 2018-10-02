@@ -22,10 +22,6 @@ import os
 from datetime import datetime
 import re
 import sys
-try:  # python3
-    from urllib.request import URLopener
-except ImportError:  # python2
-    from urllib import URLopener
 
 from .list_base_with_index import ListBaseWithIndex
 from .sitemap import Sitemap

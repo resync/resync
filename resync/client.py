@@ -2,10 +2,8 @@
 
 import sys
 try:  # python3
-    from urllib.request import urlretrieve
     from urllib.parse import urlsplit, urlunsplit, urljoin
 except ImportError:  # python2
-    from urllib import urlretrieve
     from urlparse import urlsplit, urlunsplit, urljoin
 import os.path
 import datetime
@@ -62,6 +60,8 @@ class Client(object):
         self.ignore_failures = False
         self.pretty_xml = True
         self.fake_input = None
+        self.tries = 20
+        self.timeout = None
         # Default file names
         self.status_file = '.resync-client-status.cfg'
         self.default_resource_dump = 'resourcedump.zip'
@@ -498,16 +498,36 @@ class Client(object):
                 (resource.uri, filename))
         else:
             # 1. GET
-            try:
-                urlretrieve(resource.uri, filename)
-                num_updated += 1
-            except IOError as e:
-                msg = "Failed to GET %s -- %s" % (resource.uri, str(e))
-                if (self.ignore_failures):
-                    self.logger.warning(msg)
-                    return(num_updated)
-                else:
-                    raise ClientFatalError(msg)
+            for try_i in range(1, self.tries + 1):
+                try:
+                    r = requests.get(resource.uri, timeout=self.timeout, stream=True)
+                    # Fail on 4xx or 5xx
+                    r.raise_for_status()
+                    with open(filename, 'wb') as fd:
+                        for chunk in r.iter_content(chunk_size=1024):
+                            fd.write(chunk)
+                    num_updated += 1
+                    break
+                except requests.Timeout as e:
+                    if try_i < self.tries:
+                        msg = 'Download timed out, retrying...'
+                        self.logger.info(msg)
+                        # Continue loop
+                    else:
+                        # No more tries left, so fail
+                        msg = "Failed to GET %s after %s tries -- %s" % (resource.uri, self.tries, str(e))
+                        if (self.ignore_failures):
+                            self.logger.warning(msg)
+                            return(num_updated)
+                        else:
+                            raise ClientFatalError(msg)
+                except (requests.RequestException, IOError) as e:
+                    msg = "Failed to GET %s -- %s" % (resource.uri, str(e))
+                    if (self.ignore_failures):
+                        self.logger.warning(msg)
+                        return(num_updated)
+                    else:
+                        raise ClientFatalError(msg)
             # 2. set timestamp if we have one
             if (resource.timestamp is not None):
                 unixtime = int(resource.timestamp)  # no fractional

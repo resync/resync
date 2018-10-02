@@ -6,10 +6,6 @@ import re
 import sys
 import time
 import logging
-try:  # python3
-    from urllib.request import URLopener
-except ImportError:  # python2
-    from urllib import URLopener
 from defusedxml.ElementTree import parse
 
 from .hashes import Hashes

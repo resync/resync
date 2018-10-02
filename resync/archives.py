@@ -9,10 +9,6 @@ Resource Dump Archive, and Change Dump Archive.
 """
 
 import collections
-try:  # python3
-    from urllib.request import URLopener
-except ImportError:  # python2
-    from urllib import URLopener
 
 from .list_base_with_index import ListBaseWithIndex
 from .resource import Resource
