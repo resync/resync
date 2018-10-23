@@ -12,6 +12,7 @@ If you suggest a new feature, please give an example of expected behavior and us
 
 If submitting a pull request:
 
+   * Understand that this code and any merged contributions are covered by an Apache 2.0 license
    * Please discuss in a issue before submitting a pull request for significant changes.
    * Please submit pull requests against the `develop` branch (changes are collected there before making a release).
    * Please follow [PEP8](https://www.python.org/dev/peps/pep-0008/) and [PEP257](https://www.python.org/dev/peps/pep-0257/) style rules.
