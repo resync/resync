@@ -6,7 +6,7 @@ core specification version. Versions 1.0.x implement the v1.0
 ResourceSync specification which was standardized as ANSI/NISO Z39.99-2014
 <http://www.openarchives.org/rs/1.0/toc>.
 
-v1.0.9 2019-10-23
+v1.0.9 2018-10-23
   * Add -t/--tries and -T/--timeout options (https://github.com/resync/resync/issues/34)
   * Includes partial replacement of urllib.request with requests
 
