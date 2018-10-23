@@ -3,7 +3,7 @@
 Factor out code shared by both the resync and resync-explorer
 clients.
 
-Copyright 2012-2016 Simeon Warner
+Copyright 2012-2018 Simeon Warner
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ Copyright 2012-2016 Simeon Warner
 
 try:  # python3
     from urllib.request import urlopen
-except ImportError:  # python2
-    from urllib import urlopen
+except ImportError:  # pragma: no cover  python2
+    from urllib import urlopen  # pragma: no cover
 import logging
 import logging.config
 from datetime import datetime

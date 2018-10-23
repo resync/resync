@@ -5,8 +5,8 @@ import os.path
 import re
 try:  # python3
     from urllib.parse import urlparse
-except ImportError:  # python2
-    from urlparse import urlparse
+except ImportError:  # pragma: no cover  python2
+    from urlparse import urlparse  # pragma: no cover
 import logging
 
 

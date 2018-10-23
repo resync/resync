@@ -14,8 +14,8 @@ import time
 import logging
 try:  # python3
     from configparser import ConfigParser, NoSectionError, NoOptionError
-except ImportError:  # python2
-    from ConfigParser import SafeConfigParser as ConfigParser, NoSectionError, NoOptionError
+except ImportError:  # pragma: no cover python2
+    from ConfigParser import SafeConfigParser as ConfigParser, NoSectionError, NoOptionError  # pragma: no cover
 
 
 class ClientState(object):

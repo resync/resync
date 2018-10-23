@@ -3,8 +3,8 @@
 import sys
 try:  # python3
     from urllib.parse import urlsplit, urlunsplit, urljoin
-except ImportError:  # python2
-    from urlparse import urlsplit, urlunsplit, urljoin
+except ImportError:  # pragma: no cover  python2
+    from urlparse import urlsplit, urlunsplit, urljoin  # pragma: no cover
 import os.path
 import datetime
 import distutils.dir_util

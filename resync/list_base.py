@@ -19,8 +19,8 @@ except ImportError:  # python3
 import logging
 try:  # python3
     from urllib.request import URLopener
-except ImportError:  # python2
-    from urllib import URLopener
+except ImportError:  # pragma: no cover  python2
+    from urllib import URLopener  # pragma: no cover
 
 from .resource_container import ResourceContainer
 from .sitemap import Sitemap
