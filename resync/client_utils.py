@@ -1,21 +1,6 @@
 """ResourceSync Client Utilities.
 
-Factor out code shared by both the resync and resync-explorer
-clients.
-
-Copyright 2012-2018 Simeon Warner
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License
+Code shared by both the resync and resync-explorer clients.
 """
 
 try:  # python3
@@ -178,10 +163,3 @@ def parse_capability_lists(cls_str):
     Input string of the form: uri,uri
     """
     return(cls_str.split(','))
-
-
-def url_or_file_open(uri):
-    """Wrapper around urlopen() to prepend file: if no scheme provided."""
-    if (not re.match(r'''\w+:''', uri)):
-        uri = 'file:' + uri
-    return(urlopen(uri))

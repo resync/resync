@@ -10,7 +10,7 @@ base class for ResourceList, ChangeList, etc. This class provides
 only the data storage and manipulation, the ListBase class
 adds IO.
 """
-import collections
+import collections.abc
 from .w3c_datetime import datetime_to_str
 
 
@@ -189,7 +189,7 @@ class ResourceContainer(object):
 
         Must be implemented in derived class.
         """
-        if isinstance(resource, collections.Iterable):
+        if isinstance(resource, collections.abc.Iterable):
             for r in resource:
                 self.resources.append(r)
         else:

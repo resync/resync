@@ -21,7 +21,7 @@ documents.
 See: http://www.openarchives.org/rs/resourcesync#SourceDesc
 """
 
-import collections
+import collections.abc
 
 from resync.resource import Resource
 from resync.resource_set import ResourceSet
@@ -51,7 +51,7 @@ class SourceDescription(ListBaseWithIndex):
         Will throw a ValueError if the resource (ie. same uri) already
         exists in the capability_list, unless replace=True.
         """
-        if isinstance(resource, collections.Iterable):
+        if isinstance(resource, collections.abc.Iterable):
             for r in resource:
                 self.resources.add(r, replace)
         else:

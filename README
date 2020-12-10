@@ -59,7 +59,9 @@ Typical library use in a destination (get and examine a Capability List)::
 Installation
 ------------
 
-The client and library are designed to work with Python 2.7, 3.5, 3.6 and 3.7.
+The client and library are designed to work with Python 3.5 and up. (The
+last version supporting Python 2.7 was `1.0.9, also on PyPI
+<https://pypi.org/project/resync/1.0.9/>`_.)
 
 **Automatic installation**::
 

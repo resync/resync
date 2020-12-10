@@ -26,4 +26,4 @@ class TestClientLinkOptions(unittest.TestCase):
     def test02_error(self):
         """Bad parameter."""
         err = run_resync_explorer([])[1]
-        self.assertRegexpMatches(err, b'FatalError: No source information')
+        self.assertRegex(err, b'FatalError: No source information')

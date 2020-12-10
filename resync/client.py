@@ -25,8 +25,9 @@ from .resource import Resource
 from .url_authority import UrlAuthority
 from .hashes import Hashes
 from .client_state import ClientState
-from .client_utils import ClientFatalError, ClientError, url_or_file_open
+from .client_utils import ClientFatalError, ClientError
 from .list_base_with_index import ListBaseIndexError
+from .url_or_file_open import url_or_file_open
 from .w3c_datetime import str_to_datetime, datetime_to_str
 
 

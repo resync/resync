@@ -5,25 +5,16 @@ intended as the base class for ResourceList, ChangeList,
 CapabilityList etc.. Adds common read() and write() methods.
 """
 
-import collections
-import os
 from datetime import datetime
+import io
+import os
 import re
 import sys
-try:  # python2
-    # Must try this first as io also exists in python2
-    # but in the wrong one!
-    import StringIO as io
-except ImportError:  # python3
-    import io
 import logging
-try:  # python3
-    from urllib.request import URLopener
-except ImportError:  # pragma: no cover  python2
-    from urllib import URLopener  # pragma: no cover
 
 from .resource_container import ResourceContainer
 from .sitemap import Sitemap
+from .url_or_file_open import url_or_file_open
 
 
 class ListBase(ResourceContainer):
@@ -96,7 +87,7 @@ class ListBase(ResourceContainer):
         """
         if (uri is not None):
             try:
-                fh = URLopener().open(uri)
+                fh = url_or_file_open(uri)
             except IOError as e:
                 raise Exception(
                     "Failed to load sitemap/sitemapindex from %s (%s)" %

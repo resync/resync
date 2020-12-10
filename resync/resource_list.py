@@ -17,7 +17,7 @@ Described in specification at:
 http://www.openarchives.org/rs/resourcesync#DescResources
 """
 
-import collections
+import collections.abc
 import os
 from datetime import datetime
 import re
@@ -153,7 +153,7 @@ class ResourceList(ListBaseWithIndex):
         Will throw a ValueError if the resource (ie. same uri) already
         exists in the ResourceList, unless replace=True.
         """
-        if isinstance(resource, collections.Iterable):
+        if isinstance(resource, collections.abc.Iterable):
             for r in resource:
                 self.resources.add(r, replace)
         else:

@@ -23,8 +23,9 @@ from .mapper import Mapper
 from .sitemap import Sitemap
 from .client import Client, ClientFatalError
 from .client_state import ClientState
-from .client_utils import ClientFatalError, url_or_file_open
+from .client_utils import ClientFatalError
 from .resource import Resource
+from .url_or_file_open import url_or_file_open
 from .w3c_datetime import str_to_datetime, datetime_to_str
 
 

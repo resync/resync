@@ -5,7 +5,7 @@ each capability. The Capability List object may also contain metadata
 and links like other lists.
 """
 
-import collections
+import collections.abc
 
 from .resource import Resource
 from .resource_set import ResourceSet
@@ -88,7 +88,7 @@ class CapabilityList(ListBase):
 
         See add_capability() for normal method of adding capabilities.
         """
-        if isinstance(resource, collections.Iterable):
+        if isinstance(resource, collections.abc.Iterable):
             for r in resource:
                 self.resources.add(r, replace)
         else:

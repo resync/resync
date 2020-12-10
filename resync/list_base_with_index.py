@@ -11,17 +11,14 @@ from datetime import datetime
 import re
 import sys
 import itertools
-try:  # python3
-    from urllib.request import URLopener
-except ImportError:  # python2
-    from urllib import URLopener
 
+from .hashes import Hashes
 from .list_base import ListBase
+from .mapper import Mapper, MapperError
 from .resource import Resource
 from .sitemap import Sitemap
-from .mapper import Mapper, MapperError
 from .url_authority import UrlAuthority
-from .hashes import Hashes
+from .url_or_file_open import url_or_file_open
 
 
 class ListBaseWithIndex(ListBase):
@@ -84,7 +81,7 @@ class ListBaseWithIndex(ListBase):
         are mapped to the filesystem also.
         """
         try:
-            fh = URLopener().open(uri)
+            fh = url_or_file_open(uri)
             self.num_files += 1
         except IOError as e:
             raise IOError(
@@ -156,7 +153,7 @@ class ListBaseWithIndex(ListBase):
                         "The sitemapindex (%s) refers to sitemap at a location it does not have authority over (%s)" %
                         (sitemapindex_uri, sitemap_uri))
         try:
-            fh = URLopener().open(sitemap_uri)
+            fh = url_or_file_open(sitemap_uri)
             self.num_files += 1
         except IOError as e:
             raise ListBaseIndexError(

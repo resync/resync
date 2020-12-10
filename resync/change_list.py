@@ -15,7 +15,7 @@ ChangeList containing descriptions pertaining to that
 particular resource.
 """
 
-import collections
+import collections.abc
 
 from .list_base_with_index import ListBaseWithIndex
 from .resource import Resource, ChangeTypeError
@@ -45,7 +45,7 @@ class ChangeList(ListBaseWithIndex):
         Allows multiple resource_change objects for the same
         resource (ie. URI) and preserves the order of addition.
         """
-        if isinstance(resource, collections.Iterable):
+        if isinstance(resource, collections.abc.Iterable):
             for r in resource:
                 self.add_if_changed(r)
         else:
