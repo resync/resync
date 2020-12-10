@@ -256,14 +256,13 @@ class Sitemap(object):
             sub.text = str(resource.lastmod)  # W3C Datetime in UTC
             e.append(sub)
         md_atts = {}
-        for att in ('capability', 'change', 'hash', 'length', 'path', 'mime_type',
-                    'md_at', 'md_completed', 'md_from', 'md_until'):
+        for att in ('md_at', 'capability', 'change', 'md_completed', 'md_from',
+                    'hash', 'length', 'path', 'mime_type', 'md_until'):
             val = getattr(resource, att, None)
             if (val is not None):
-                md_atts[self._xml_att_name(att)] = str(val)
+                md_atts[att] = str(val)
         if (len(md_atts) > 0):
-            md = Element('rs:md', md_atts)
-            e.append(md)
+            self.add_element_with_atts_to_etree(e, 'rs:md', md_atts, add_return=False)
         # add any <rs:ln>
         if (hasattr(resource, 'ln') and resource.ln is not None):
             for ln in resource.ln:
@@ -440,8 +439,8 @@ class Sitemap(object):
 
     # Metadata and link elements
 
-    def add_element_with_atts_to_etree(self, etree, name, atts):
-        """Add element with name and atts to etree iff there are any atts.
+    def add_element_with_atts_to_etree(self, etree, name, atts, add_return=True):
+        """Add empty element with name and atts to etree iff there are any atts.
 
         Parameters:
             etree - an etree object
@@ -449,20 +448,23 @@ class Sitemap(object):
             atts  - dicts of attribute values. Attribute names are transformed
         """
         xml_atts = {}
-        for att in sorted(atts.keys()):
-            # There is no real reason why the attribute keys should be sorted
-            # but ElementTree serialization up to Python 3.7 always wrote XML
-            # with attributes in sort order. This was changed in Python 3.8
-            # to be the order of addition. Adding sorting here keeps consistent
-            # behavior for all versions. See:
-            # https://docs.python.org/3/library/xml.etree.elementtree.html?highlight=tostring#xml.etree.ElementTree.tostring
+        for att in atts.keys():
             val = atts[att]
             if (val is not None):
                 xml_atts[self._xml_att_name(att)] = str(val)
         if (len(xml_atts) > 0):
             e = Element(name, xml_atts)
-            if (self.pretty_xml):
+            if (add_return and self.pretty_xml):
                 e.tail = "\n"
+            # There is no real reason why the attribute keys should be sorted
+            # but ElementTree serialization up to Python 3.7 always wrote XML
+            # with attributes in sort order. This was changed in Python 3.8
+            # to be the order of addition. Adding sorting here keeps consistent
+            # behavior for all versions. See:
+            # https://docs.python.org/3/library/xml.etree.elementtree.html#element-objects
+            attribs = sorted(e.attrib.items())
+            e.attrib.clear()
+            e.attrib.update(attribs)
             etree.append(e)
 
     def _xml_att_name(self, att):
