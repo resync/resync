@@ -4,15 +4,14 @@ python:
   - "3.5"
   - "3.6"
   - "3.7"
-  - "3.8"
 install:
   - pip install requests
   - pip install python-dateutil
-  - pip install coveralls pep8 pep257 restructuredtext_lint testfixtures
+  - pip install coveralls pycodestyle pep257 restructuredtext_lint testfixtures
   - python setup.py install
 script:
   - python setup.py test
-  - pep8 --ignore=E501 resync tests bin/resync bin/resync-explorer
+  - pycodestyle --ignore=E501,W503 resync tests bin/resync bin/resync-explorer
   - pep257 resync tests bin/resync bin/resync-explorer
   - rst-lint README
   - coverage run --source=resync setup.py test

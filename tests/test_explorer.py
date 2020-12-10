@@ -1,4 +1,4 @@
-from tests.capture_stdout import capture_stdout
+from .testlib import capture_stdout
 
 import unittest
 import re

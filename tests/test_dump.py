@@ -1,8 +1,6 @@
-from tests.testcase_with_tmpdir import TestCase
+from .testlib import TestCase
 
 import os.path
-import unittest
-import sys
 import zipfile
 
 from resync.dump import Dump, DumpError

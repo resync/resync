@@ -107,7 +107,7 @@ class ListBase(ResourceContainer):
             # Legacy support for str argument, see
             # https://github.com/resync/resync/pull/21
             # One test for this in tests/test_list_base.py
-            self.logger.warn(
+            self.logger.warning(
                 "Legacy parse(str=...), use parse(str_data=...) instead")
             fh = io.StringIO(kwargs['str'])
         if (fh is None):

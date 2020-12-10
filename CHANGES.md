@@ -6,9 +6,11 @@ core specification version. Versions 1.0.x implement the v1.0
 ResourceSync specification which was standardized as ANSI/NISO Z39.99-2014
 <http://www.openarchives.org/rs/1.0/toc>.
 
-=======
 v1.0.10 ???
-  * Drop Pyhton 3.3 & 3.4 from tests, add 3.7 & 3.8
+  * Move and rename command line clients: bin/resync -> resync.pl and bin/resync-explorer -> resync-explorer.py
+  * Drop Python 3.3 & 3.4 from tests, add 3.7. Fix various new warnings from 3.7 (more work is required to support 3.8)
+  * Switch from pep8 to pycodestyle in tests
+  * Move libraries to support tests into test/testlib
 
 v1.0.9 2018-10-23
   * Add -t/--tries and -T/--timeout options (https://github.com/resync/resync/issues/34)

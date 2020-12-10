@@ -169,11 +169,8 @@ class TestExamplesFromSpec(unittest.TestCase):
         self.assertEqual(
             cl1.describedby, 'http://example.com/info_about_set1_of_resources.xml')
 
-
-# BUILD EXAMPLES ---------------------------
-
     def test_build_ex_01(self):
-        """Simple Resource List document """
+        """Simple Resource List document"""
         rl = ResourceList()
         rl.md_at = '2013-01-03T09:00:00Z'
         rl.add(Resource('http://example.com/res1'))
@@ -182,7 +179,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal(rl.as_xml(), ex_xml)
 
     def test_build_ex_02(self):
-        """Slightly more complex Resource List document """
+        """Slightly more complex Resource List document"""
         rl = ResourceList()
         rl.md_at = '2013-01-03T09:00:00Z'
         rl.add(Resource(uri='http://example.com/res1',

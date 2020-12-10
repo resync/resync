@@ -184,10 +184,10 @@ def main():
 
     # Implement exclusive arguments and default --baseline (support for exclusive
     # groups in argparse is incomplete is python2.6)
-    if (not args.baseline and not args.incremental and not args.audit and
-            not args.parse and not args.write_resourcelist and not args.write_changelist and
-            not args.write_capabilitylist and not args.write_sourcedescription and
-            not args.write_resourcedump and not args.write_changedump):
+    if (not args.baseline and not args.incremental and not args.audit
+            and not args.parse and not args.write_resourcelist and not args.write_changelist
+            and not args.write_capabilitylist and not args.write_sourcedescription
+            and not args.write_resourcedump and not args.write_changedump):
         if (len(map) == 0):
             p.error("No arguments specified (use -h for help)")
             return
@@ -241,9 +241,9 @@ def main():
         # Links apply to anything that writes sitemaps
         links = parse_links(args.link)
         # Add specific links is appropriate cases
-        if (args.capabilitylist_link and
-                not args.write_capabilitylist and
-                not args.write_sourcedescription):
+        if (args.capabilitylist_link
+                and not args.write_capabilitylist
+                and not args.write_sourcedescription):
             # rel="up" to Capability List in all but Capability List
             # and Source Description
             links.insert(0, {'rel': 'up', 'href': args.capabilitylist_link})
@@ -298,6 +298,7 @@ def main():
     # is... an exception ;-)
     except ClientFatalError as e:
         sys.stderr.write("\nFatalError: " + str(e) + "\n")
+
 
 if __name__ == '__main__':
     main()

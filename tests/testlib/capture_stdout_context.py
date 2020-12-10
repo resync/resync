@@ -1,4 +1,4 @@
-"""Provide capture_stdout as contect manager."""
+"""Provide capture_stdout as context manager."""
 
 import sys
 import contextlib

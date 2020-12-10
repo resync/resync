@@ -125,5 +125,6 @@ def main():
     except ClientFatalError as e:
         sys.stderr.write("\nFatalError: " + str(e) + "\n")
 
+
 if __name__ == '__main__':
     main()

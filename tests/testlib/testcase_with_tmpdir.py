@@ -19,7 +19,7 @@ class TestCase(unittest.TestCase):
             raise Exception("Failed to create tempdir to use for dump tests")
         try:
             cls.extraSetUpClass()
-        except:
+        except Exception:
             pass
 
     @classmethod
@@ -30,7 +30,7 @@ class TestCase(unittest.TestCase):
         shutil.rmtree(cls._tmpdir)
         try:
             cls.extraTearUpClass()
-        except:
+        except Exception:
             pass
 
     @property

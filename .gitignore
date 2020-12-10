@@ -2,6 +2,7 @@
 build
 dist
 MANIFEST
+.tox
 .eggs
 *.egg
 # Testing

@@ -3,7 +3,7 @@
 import re
 try:  # python3
     from urllib.parse import urlparse
-except:  # python2
+except ImportError:  # python2
     from urlparse import urlparse
 from posixpath import basename
 from .w3c_datetime import str_to_datetime, datetime_to_str
@@ -149,8 +149,8 @@ class Resource(object):
         the idea of extra properties.
         """
         # Add validity check for self.change
-        if (prop == 'change' and Resource.CHANGE_TYPES and
-                value is not None and value not in Resource.CHANGE_TYPES):
+        if (prop == 'change' and Resource.CHANGE_TYPES
+                and value is not None and value not in Resource.CHANGE_TYPES):
             raise ChangeTypeError(value)
         else:
             try:
@@ -422,15 +422,15 @@ class Resource(object):
             return(False)
         if (self.timestamp is not None or other.timestamp is not None):
             # not equal if only one timestamp specified
-            if (self.timestamp is None or
-                    other.timestamp is None or
-                    abs(self.timestamp - other.timestamp) >= delta):
+            if (self.timestamp is None
+                    or other.timestamp is None
+                    or abs(self.timestamp - other.timestamp) >= delta):
                 return(False)
-        if ((self.md5 is not None and other.md5 is not None) and
-                self.md5 != other.md5):
+        if ((self.md5 is not None and other.md5 is not None)
+                and self.md5 != other.md5):
             return(False)
-        if ((self.length is not None and other.length is not None) and
-                self.length != other.length):
+        if ((self.length is not None and other.length is not None)
+                and self.length != other.length):
             return(False)
         return(True)
 

@@ -102,7 +102,7 @@ def str_to_datetime(s, context='datetime'):
     # with dt.tzinfo module but this has variation in behavior
     # between python 2.6 and 2.7... so do here for now
     m = re.match(r"(\d\d\d\d\-\d\d\-\d\dT\d\d:\d\d(:\d\d)?)(Z|([+-])"
-                 "(\d\d):(\d\d))$", s)
+                 r"(\d\d):(\d\d))$", s)
     if (m is None):
         raise ValueError("Bad datetime format (%s)" % s)
     str = m.group(1) + 'Z'

@@ -16,7 +16,7 @@ import subprocess
 
 
 def run_resync(args):
-    args.insert(0, 'bin/resync')
+    args.insert(0, './resync.py')
     proc = subprocess.Popen(args, stdout=subprocess.PIPE)
     (out, err) = proc.communicate()
     return(out)

@@ -1,6 +1,4 @@
-from tests.testcase_with_tmpdir import TestCase
-from tests.capture_stdout import capture_stdout
-from tests.webserver_context import webserver
+from .testlib import TestCase, capture_stdout, webserver
 
 import unittest
 import re

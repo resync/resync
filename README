@@ -23,16 +23,16 @@ Client usage
 Typical client usage to synchronize from a source at 
 ``http://source.example.com/`` to a set of local files would be::
 
-    resync http://source.example.com/
+    resync.py http://source.example.com/
 
 which will create or update a local directory ``./source.example.com``. 
 Alternatively, the destination directory may be specified explicitly::
 
-    resync http://source.example.com/ /tmp/my_copy
+    resync.py http://source.example.com/ /tmp/my_copy
 
 Option details and a number of different modes are described with::
 
-    resync -h
+    resync.py -h
 
 Library usage
 -------------
@@ -59,7 +59,7 @@ Typical library use in a destination (get and examine a Capability List)::
 Installation
 ------------
 
-The client and library are designed to work with Python 2.7, 3.5, 3.6, 3.7 and 3.8.
+The client and library are designed to work with Python 2.7, 3.5, 3.6 and 3.7.
 
 **Automatic installation**::
 
@@ -78,7 +78,7 @@ rsync is listed in `PyPI
     sudo python setup.py install
 
 This will install the library code in the appropriate place within 
-your python setup, and the client ``resync`` in an appropriate system 
+your python setup, and the client ``resync.py`` in an appropriate system
 path (perhaps ``/usr/local/bin`` or ``/usr/bin`` depending on your system).
 
 The source code is maintained on `Github

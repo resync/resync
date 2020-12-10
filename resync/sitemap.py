@@ -270,8 +270,7 @@ class Sitemap(object):
             md = Element('rs:md', md_atts)
             e.append(md)
         # add any <rs:ln>
-        if (hasattr(resource, 'ln') and
-                resource.ln is not None):
+        if (hasattr(resource, 'ln') and resource.ln is not None):
             for ln in resource.ln:
                 self.add_element_with_atts_to_etree(e, 'rs:ln', ln)
         if (self.pretty_xml):

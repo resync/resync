@@ -1,8 +1,8 @@
-from tests.testcase_with_tmpdir import TestCase
+from .testlib import TestCase
 import os.path
 try:  # python2
     # Must try this first as io also exists in python2
-    # but in the wrong one!
+    # but is the wrong one!
     import StringIO as io
 except ImportError:  # python3
     import io

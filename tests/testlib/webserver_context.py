@@ -1,4 +1,5 @@
-"""Provides content manager that runs local webserver."""
+"""Provides context manager that runs local webserver."""
+
 import contextlib
 import os
 import posixpath
@@ -8,7 +9,7 @@ import time
 from multiprocessing import Process
 try:  # python3
     from http.server import HTTPServer, SimpleHTTPRequestHandler
-except:
+except ImportError:  # python2
     from BaseHTTPServer import HTTPServer
     from SimpleHTTPServer import SimpleHTTPRequestHandler
 try:  # python3
