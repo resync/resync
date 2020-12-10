@@ -1,17 +1,12 @@
 """Read and write ResourceSync documents as sitemaps."""
 
-import re
-import os
-import sys
+import io
 import logging
+import os
+import re
+import sys
 from defusedxml.ElementTree import parse
 from xml.etree.ElementTree import ElementTree, Element, tostring
-try:  # python2
-    # Must try this first as io also exists in python2
-    # but in the wrong one!
-    import StringIO as io
-except ImportError:  # python3
-    import io
 
 from .resource import Resource
 from .resource_container import ResourceContainer
@@ -193,7 +188,7 @@ class Sitemap(object):
         in_preamble = True
         self.resources_created = 0
         seen_top_level_md = False
-        for e in etree.getroot().getchildren():
+        for e in list(etree.getroot()):
             # look for <rs:md> and <rs:ln>, first <url> ends
             # then look for resources in <url> blocks
             if (e.tag == resource_tag):
@@ -454,7 +449,13 @@ class Sitemap(object):
             atts  - dicts of attribute values. Attribute names are transformed
         """
         xml_atts = {}
-        for att in atts.keys():
+        for att in sorted(atts.keys()):
+            # There is no real reason why the attribute keys should be sorted
+            # but ElementTree serialization up to Python 3.7 always wrote XML
+            # with attributes in sort order. This was changed in Python 3.8
+            # to be the order of addition. Adding sorting here keeps consistent
+            # behavior for all versions. See:
+            # https://docs.python.org/3/library/xml.etree.elementtree.html?highlight=tostring#xml.etree.ElementTree.tostring
             val = atts[att]
             if (val is not None):
                 xml_atts[self._xml_att_name(att)] = str(val)
