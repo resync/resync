@@ -395,8 +395,8 @@ class Client(object):
             if (not change_list_uri):
                 uauth_sm = UrlAuthority(self.sitemap)
                 for resource in src_change_list:
-                    if (not uauth_cs.has_authority_over(resource.uri) and
-                            (change_list_uri or not uauth_sm.has_authority_over(resource.uri))):
+                    if (not uauth_cs.has_authority_over(resource.uri)
+                            and (change_list_uri or not uauth_sm.has_authority_over(resource.uri))):
                         raise ClientFatalError(
                             "Aborting as change list (%s) mentions resource at a location it does not have authority over (%s), override with --noauth" %
                             (change_list, resource.uri))
@@ -586,8 +586,8 @@ class Client(object):
         """
         num_deleted = 0
         uri = resource.uri
-        if (resource.timestamp is not None and
-                resource.timestamp > self.last_timestamp):
+        if (resource.timestamp is not None
+                and resource.timestamp > self.last_timestamp):
             self.last_timestamp = resource.timestamp
         if (allow_deletion):
             if (self.dryrun):

@@ -288,8 +288,7 @@ class Explorer(Client):
                            'lastmod', 'content-type', 'etag']:
                 if header in response.headers:
                     check_str = ''
-                    if (check_headers is not None and
-                            header in check_headers):
+                    if (check_headers is not None and header in check_headers):
                         if (response.headers[header] == check_headers[header]):
                             check_str = ' MATCHES EXPECTED VALUE'
                         else:

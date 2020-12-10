@@ -150,8 +150,8 @@ class ListBaseWithIndex(ListBase):
             else:
                 # The individual sitemaps should be at a URL (scheme/server/path)
                 # that the sitemapindex URL can speak authoritatively about
-                if (self.check_url_authority and
-                        not UrlAuthority(sitemapindex_uri).has_authority_over(sitemap_uri)):
+                if (self.check_url_authority
+                        and not UrlAuthority(sitemapindex_uri).has_authority_over(sitemap_uri)):
                     raise ListBaseIndexError(
                         "The sitemapindex (%s) refers to sitemap at a location it does not have authority over (%s)" %
                         (sitemapindex_uri, sitemap_uri))
@@ -187,8 +187,8 @@ class ListBaseWithIndex(ListBase):
         In the case that no len() is available for self.resources then
         then self.count must be set beforehand to avoid an exception.
         """
-        if (self.max_sitemap_entries is None or
-                len(self) <= self.max_sitemap_entries):
+        if (self.max_sitemap_entries is None
+                or len(self) <= self.max_sitemap_entries):
             return(False)
         return(int(math.ceil(len(self) / float(self.max_sitemap_entries))))
 
@@ -409,7 +409,7 @@ class ListBaseWithIndex(ListBase):
         Test is to see whether have either an explicit file: URI or whether
         there is no scheme name.
         """
-        return(re.match('file:', uri) or not re.match('\w{3,4}:', uri))
+        return(re.match(r'file:', uri) or not re.match(r'\w{3,4}:', uri))
 
 
 class ListBaseIndexError(Exception):

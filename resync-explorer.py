@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-"""
-resync-explorer: The ResourceSync explorer
+"""resync-explorer: The ResourceSync explorer.
 
-Copyright 2012-2017 Simeon Warner
+Copyright 2012-2020 Simeon Warner
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -29,7 +28,7 @@ DEFAULT_LOGFILE = 'resync-explorer.log'
 
 
 def main():
-
+    """Main function to implement command line script."""
     if (sys.version_info < (2, 7)):
         sys.exit("This program requires python version 2.7 or later")
 
