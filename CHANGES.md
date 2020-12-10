@@ -8,6 +8,7 @@ ResourceSync specification which was standardized as ANSI/NISO Z39.99-2014
 
 =======
 v1.0.10 ???
+  * Drop Pyhton 3.3 & 3.4 from tests, add 3.7 & 3.8
 
 v1.0.9 2018-10-23
   * Add -t/--tries and -T/--timeout options (https://github.com/resync/resync/issues/34)
