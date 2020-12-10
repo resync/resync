@@ -1,13 +1,8 @@
 """Provide capture_stdout as context manager."""
 
-import sys
 import contextlib
-try:  # python2
-    # Must try this first as io also exists in python2
-    # but in the wrong one!
-    import StringIO as io
-except ImportError:  # python3
-    import io
+import io
+import sys
 
 # From
 # http://stackoverflow.com/questions/2654834/capturing-stdout-within-the-same-process-in-python
@@ -16,7 +11,9 @@ except ImportError:  # python3
 class Data(object):
     """Object for captured data."""
 
-    pass
+    def __init__(self):
+        """Container for result."""
+        self.result = ''
 
 
 @contextlib.contextmanager
