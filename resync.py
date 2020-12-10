@@ -21,7 +21,7 @@ import sys
 
 from resync import __version__
 from resync.client import Client, ClientFatalError
-from resync.client_utils import init_logging, count_true_args, parse_links, parse_capabilities, parse_capability_lists
+from resync.client_utils import init_logging, count_true_args, parse_links, parse_capabilities, parse_capability_lists, add_shared_misc_options, process_shared_misc_options
 
 DEFAULT_LOGFILE = 'resync-client.log'
 
@@ -122,29 +122,11 @@ def main():
 
     # Options that apply to multiple modes
     opt = p.add_option_group('MISCELANEOUS OPTIONS')
-    opt.add_option('--hash', type=str, action='append',
-                   help="use specified hash types in addition to last modification time "
-                        "and size (repeatable, may include `md5`, `sha-1` and `sha-256`)")
-    opt.add_option('--checksum', action='store_true',
-                   help="use md5 checksum in addition to last modification time and size "
-                        "(same as --hash=md5)")
+    add_shared_misc_options(opt, default_logfile=DEFAULT_LOGFILE)
     opt.add_option('--delete', action='store_true',
                    help="allow files on destination to be deleted")
-    opt.add_option('--from', type=str, action='store', dest='from_datetime', metavar="DATETIME",
-                   help="explicit datetime value used to filter updates in change list for "
-                        "--incremental sync")
-    opt.add_option('--exclude', type=str, action='append',
-                   help="exclude resources with URI or filename matching the python regex "
-                        "supplied (see: <https://docs.python.org/2/howto/regex.html> for regex "
-                        "information, repeat option for multiple excludes)")
     opt.add_option('--empty', action='store_true',
                    help="combine with --changelist to write and empty changelist, perhaps with links")
-    opt.add_option('--multifile', '-m', action='store_true',
-                   help="disable reading and output of sitemapindex for multifile sitemap")
-    opt.add_option('--noauth', action='store_true',
-                   help="disable all checking of URLs to ensure that the ResourceSync "
-                        "documents refer only to resources on the same server or sub-domains. "
-                        "Use with care.")
     opt.add_option('--strictauth', action='store_true',
                    help="use more strict checking of URLs to ensure that the ResourceSync "
                         "documents refer only to resources on the same server or sub-domains, "
@@ -160,15 +142,6 @@ def main():
     # These likely only useful for experimentation
     opt.add_option('--max-sitemap-entries', type=int, action='store',
                    help="override default size limits")
-    # Want these to show at the end
-    opt.add_option('--verbose', '-v', action='store_true',
-                   help="verbose, show additional informational messages")
-    opt.add_option('--logger', '-l', action='store_true',
-                   help="create detailed log of client actions (will write "
-                        "to %s unless specified with --logfile" %
-                        DEFAULT_LOGFILE)
-    opt.add_option('--logfile', type='str', action='store',
-                   help="create detailed log of client actions")
     opt.add_option('--eval', '-e', action='store_true',
                    help="output evaluation of source/client synchronization performance... "
                         "be warned, this is very verbose")
@@ -204,8 +177,8 @@ def main():
     init_logging(to_file=args.logger, logfile=args.logfile, default_logfile=DEFAULT_LOGFILE,
                  verbose=args.verbose, eval_mode=args.eval)
 
-    if (args.checksum):
-        args.hash.append('md5')
+    process_shared_misc_options(args)
+
     c = Client(hashes=args.hash,
                verbose=args.verbose,
                dryrun=args.dryrun)

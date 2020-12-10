@@ -21,7 +21,7 @@ import sys
 
 from resync import __version__
 from resync.client import ClientFatalError
-from resync.client_utils import init_logging
+from resync.client_utils import init_logging, add_shared_misc_options, process_shared_misc_options
 from resync.explorer import Explorer
 
 DEFAULT_LOGFILE = 'resync-explorer.log'
@@ -60,36 +60,9 @@ def main():
 
     # Options that apply to multiple modes
     opt = p.add_option_group('MISCELANEOUS OPTIONS')
-    opt.add_option('--hash', type=str, action='append',
-                   help="use specified hash types in addition to last modification time "
-                        "and size (repeatable, may include `md5`, `sha-1` and `sha-256`)")
-    opt.add_option('--checksum', action='store_true',
-                   help="use md5 checksum in addition to last modification time and size "
-                        "(same as --hash=md5)")
-    opt.add_option('--from', type=str, action='store', dest='from_datetime', metavar="DATETIME",
-                   help="explicit datetime value used to filter updates in change list for "
-                        "--incremental sync")
-    opt.add_option('--exclude', type=str, action='append',
-                   help="exclude resources with URI or filename matching the python regex "
-                        "supplied (see: <https://docs.python.org/2/howto/regex.html> for regex "
-                        "information, repeat option for multiple excludes)")
-    opt.add_option('--multifile', '-m', action='store_true',
-                   help="disable reading and output of sitemapindex for multifile sitemap")
-    opt.add_option('--noauth', action='store_true',
-                   help="disable checking of URL paths to ensure that the sitemaps refer "
-                        "only to resources on the same server/sub-path etc. Use with care.")
-    # These likely only useful for experimentation
     opt.add_option('--max-sitemap-entries', type=int, action='store',
                    help="override default size limits")
-    # Want these to show at the end
-    opt.add_option('--verbose', '-v', action='store_true',
-                   help="verbose")
-    opt.add_option('--logger', '-l', action='store_true',
-                   help="create detailed log of explorer actions (will write "
-                        "to %s unless specified with --logfile" %
-                        DEFAULT_LOGFILE)
-    opt.add_option('--logfile', type='str', action='store',
-                   help="create detailed log of client actions")
+    add_shared_misc_options(opt, default_logfile=DEFAULT_LOGFILE)
 
     (args, map) = p.parse_args()
 
@@ -97,8 +70,8 @@ def main():
                  verbose=args.verbose)
 
     print("----- ResourceSync Explorer -----")
-    if (args.checksum):
-        args.hash.append('md5')
+    process_shared_misc_options(args)
+
     c = Explorer(hashes=args.hash,
                  verbose=args.verbose)
 
