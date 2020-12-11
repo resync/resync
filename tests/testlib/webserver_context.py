@@ -11,9 +11,9 @@ from urllib.parse import unquote
 
 
 class MyHTTPRequestHandler(SimpleHTTPRequestHandler):
-    """Copy of SimpleHTTPRequestHandler with cls._base_path setting."""
+    """Copy of SimpleHTTPRequestHandler with base_dir."""
 
-    base_dir = '/tmp'
+    base_dir = None  # Must be set before use
 
     def translate_path(self, path):
         """Translate a /-separated PATH to the local filename syntax.
@@ -37,25 +37,30 @@ class MyHTTPRequestHandler(SimpleHTTPRequestHandler):
                 tpath = os.path.join(tpath, word)
         if trailing_slash:
             tpath += '/'
-        # print("Translated %s -> %s" % (path, tpath))
         return tpath
 
 
-def run_webserver(host, port):
-    """Run webserver at given host & port."""
+def run_webserver(dir, host, port):
+    """Run webserver.
+
+    dir - base directory for files to serve
+    host & port - hostname and port of server
+    """
+    # Up until Python 3.7 is worked to set .base_dir in webserver(...) before
+    # creating the Process(...). This changed in 3.8 after which the value was
+    # not seen when running the server. Setting the class variable here instead
+    # works across different version
+    MyHTTPRequestHandler.base_dir = dir
     server_address = (host, port)
     httpd = HTTPServer(server_address, MyHTTPRequestHandler)
     httpd.serve_forever()
 
 
 @contextlib.contextmanager
-def webserver(dir='/tmp', host='localhost', port=9999):
+def webserver(dir='/tmp/htdocs', host='localhost', port=9999):
     """Context Manager that provides a webserver serving files from dir."""
-    MyHTTPRequestHandler.base_dir = dir
-    # print("Set MyHTTPRequestHandler.base_dir = %s" % (MyHTTPRequestHandler.base_dir))
-    p = Process(target=run_webserver, args=(host, port))
+    p = Process(target=run_webserver, args=(dir, host, port))
     p.start()
-
     # Wait for the server to be launched
     base_url = 'http://%s:%d/' % (host, port)
     for j in range(0, 10):
@@ -67,16 +72,16 @@ def webserver(dir='/tmp', host='localhost', port=9999):
         time.sleep(0.1)
     else:
         print("Failed to start test webserver from %s at host=%s port=%d" % (dir, host, port))
-
+    # Setup complete, yield to execute with clause
     try:
         yield
     finally:
-        # Closing the server
+        # Close the server
         p.terminate()
 
 
 if __name__ == '__main__':
-    print('Will start webserver at localhost:9999 serving from /tmp')
+    print('Will start webserver at localhost:9999 serving from /tmp/htdocs for 10s')
     with webserver():
         print('Started...')
         time.sleep(10)
