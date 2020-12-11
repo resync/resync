@@ -4,34 +4,22 @@ import contextlib
 import os
 import posixpath
 import requests
-import signal
 import time
 from multiprocessing import Process
-try:  # python3
-    from http.server import HTTPServer, SimpleHTTPRequestHandler
-except ImportError:  # python2
-    from BaseHTTPServer import HTTPServer
-    from SimpleHTTPServer import SimpleHTTPRequestHandler
-try:  # python3
-    from urllib.parse import unquote
-except ImportError:  # python2
-    from urlparse import unquote
+from http.server import HTTPServer, SimpleHTTPRequestHandler
+from urllib.parse import unquote
 
 
 class MyHTTPRequestHandler(SimpleHTTPRequestHandler):
     """Copy of SimpleHTTPRequestHandler with cls._base_path setting."""
 
-    _base_path = '/'
+    base_dir = '/tmp'
 
     def translate_path(self, path):
         """Translate a /-separated PATH to the local filename syntax.
 
-        Components that mean special things to the local file system
-        (e.g. drive or directory names) are ignored.  (XXX They should
-        probably be diagnosed.)
-
-        **Copied from http.server.SimpleHTTPRequestHandler with modification
-        of path**
+        **Based on code in http.server.SimpleHTTPRequestHandler with
+        modification of base path to come from self.base_dir**
         """
         # abandon query parameters
         path = path.split('?', 1)[0]
@@ -42,18 +30,18 @@ class MyHTTPRequestHandler(SimpleHTTPRequestHandler):
         path = posixpath.normpath(path)
         words = path.split('/')
         words = filter(None, words)
-        path = self._base_path
+        # Now make path from self.base_dir and words
+        tpath = self.base_dir
         for word in words:
-            if os.path.dirname(word) or word in (os.curdir, os.pardir):
-                # Ignore components that are not a simple file/directory name
-                continue
-            path = os.path.join(path, word)
+            if word != '..':
+                tpath = os.path.join(tpath, word)
         if trailing_slash:
-            path += '/'
-        return path
+            tpath += '/'
+        # print("Translated %s -> %s" % (path, tpath))
+        return tpath
 
 
-def run_webserver(host='', port=9999):
+def run_webserver(host, port):
     """Run webserver at given host & port."""
     server_address = (host, port)
     httpd = HTTPServer(server_address, MyHTTPRequestHandler)
@@ -61,20 +49,24 @@ def run_webserver(host='', port=9999):
 
 
 @contextlib.contextmanager
-def webserver(dir='/tmp', host='', port=9999):
+def webserver(dir='/tmp', host='localhost', port=9999):
     """Context Manager that provides a webserver serving files from dir."""
-    MyHTTPRequestHandler._base_path = dir
+    MyHTTPRequestHandler.base_dir = dir
+    # print("Set MyHTTPRequestHandler.base_dir = %s" % (MyHTTPRequestHandler.base_dir))
     p = Process(target=run_webserver, args=(host, port))
     p.start()
 
     # Wait for the server to be launched
+    base_url = 'http://%s:%d/' % (host, port)
     for j in range(0, 10):
         try:
-            requests.get("http://localhost:9999/", timeout=0.1)
+            requests.get(base_url, timeout=0.1)
             break
         except requests.exceptions.ConnectionError:
             pass
         time.sleep(0.1)
+    else:
+        print("Failed to start test webserver from %s at host=%s port=%d" % (dir, host, port))
 
     try:
         yield
@@ -84,7 +76,9 @@ def webserver(dir='/tmp', host='', port=9999):
 
 
 if __name__ == '__main__':
+    print('Will start webserver at localhost:9999 serving from /tmp')
     with webserver():
-        print('Started server...')
+        print('Started...')
+        time.sleep(10)
         # Things with server go in here
     print('Exited server')
