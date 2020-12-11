@@ -9,6 +9,8 @@ ResourceSync specification which was standardized as ANSI/NISO Z39.99-2014
 v2.0.0 ???
   * Drop support Python 2.7
   * Rename command line clients: bin/resync -> resync.pl and bin/resync-explorer -> resync-explorer.py
+  * Add --access_token option to pass bearer token with web requests
+  * Add --delay option to pause between successive web requests
   * Drop Python 2.7, 3.3 & 3.4 from tests, add 3.7 & 3.8. Fix various new warnings and errors for 3.7 & 3.8
   * Switch from pep8 to pycodestyle in tests
   * Move libraries to support tests into test/testlib

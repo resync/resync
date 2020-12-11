@@ -3,16 +3,14 @@
 Code shared by both the resync and resync-explorer clients.
 """
 
-try:  # python3
-    from urllib.request import urlopen
-except ImportError:  # pragma: no cover  python2
-    from urllib import urlopen  # pragma: no cover
+import argparse
+from datetime import datetime
 import logging
 import logging.config
-from datetime import datetime
 import re
+from urllib.request import urlopen
 
-from .url_or_file_open import set_bearer_token
+from .url_or_file_open import set_url_or_file_open_config
 
 
 class ClientFatalError(Exception):
@@ -192,6 +190,8 @@ def add_shared_misc_options(opt, default_logfile):
                         "only to resources on the same server/sub-path etc. Use with care.")
     opt.add_option('--access-token', type=str, default=None,
                    help="include this access token (a bearer token) in web requests")
+    opt.add_option('--delay', type=float, default=None,
+                   help="add a delay between web requests (default is None)")
     # Want these to show at the end
     opt.add_option('--verbose', '-v', action='store_true',
                    help="verbose, show additional informational messages")
@@ -211,4 +211,8 @@ def process_shared_misc_options(args):
     if args.checksum:
         args.hash.append('md5')
     if args.access_token:
-        set_bearer_token(args.access_token)
+        set_url_or_file_open_config('bearer_token', args.access_token)
+    if args.delay:
+        if args.delay < 0.0:
+            raise argparse.ArgumentTypeError("--delay must be non-negative!")
+        set_url_or_file_open_config('delay', args.delay)
