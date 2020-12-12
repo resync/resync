@@ -29,8 +29,8 @@ DEFAULT_LOGFILE = 'resync-explorer.log'
 
 def main():
     """Main function to implement command line script."""
-    if (sys.version_info < (2, 7)):
-        sys.exit("This program requires python version 2.7 or later")
+    if (sys.version_info < (3, 5)):
+        sys.exit("This program requires python version 3.5 or later")
 
     # Options and arguments
     p = optparse.OptionParser(description='ResourceSync explorer',
