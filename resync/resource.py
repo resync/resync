@@ -38,7 +38,7 @@ class Resource(object):
     If non-core attributes are needed then the '_extra' attribute
     has a dict of values. The ones explicitly used here are:
 
-        capability - Capability nam
+        capability - Capability name
         ts_at - at time, has md_at accessor
         ts_completed - completed time, has md_completed accessor
         ts_from - from time, has md_from accessor
