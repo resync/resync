@@ -1,7 +1,6 @@
 # resync
 
 [![Build Status](https://travis-ci.org/resync/resync.svg?branch=master)](https://travis-ci.org/resync/resync)
-
 [![Test Coverage](https://coveralls.io/repos/github/resync/resync/badge.svg?branch=master)](https://coveralls.io/github/resync/resync)
 
 **resync** is a ResourceSync client and library in python.
