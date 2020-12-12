@@ -42,7 +42,7 @@ setup(
     name='resync',
     version=version,
     packages=['resync'],
-    scripts=['bin/resync', 'bin/resync-explorer.py'],
+    scripts=['bin/resync', 'bin/resync-explorer'],
     classifiers=["Development Status :: 4 - Beta",
                  "Intended Audience :: Developers",
                  "License :: OSI Approved :: Apache Software License",
