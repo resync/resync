@@ -6,12 +6,17 @@ import unittest
 
 class TestCase(unittest.TestCase):
 
-    def _open_ex(self, ex):
-        raise Exception("Must override _open_ex(..)!")
+    def _ex_path(self, ex):
+        raise Exception("Must override _ex_path(..)!")
+
+    def _read_ex(self, ex):
+        with open(self._ex_path(ex), 'r') as fh:
+            content = fh.read()
+        return content
 
     def _assert_xml_equal_ex(self, xml, ex):
         """Compare XML supplied with XML from example file ex"""
-        ex_xml = self._open_ex(ex).read()
+        ex_xml = self._read_ex(ex)
         self._assert_xml_equal(xml, ex_xml)
 
     def _assert_xml_equal(self, a, b):
