@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:md capability="changelist"
+         from="2013-01-02T00:00:00Z"
+         until="2013-01-03T00:00:00Z"/>
+  <url>
+      <loc>http://example.com/res1.pdf</loc>
+      <lastmod>2013-01-02T13:00:00Z</lastmod>
+      <rs:md change="updated" datetime="2013-01-02T13:00:00Z"/>
+  </url>
+  <url>
+      <loc>http://example.com/res2.pdf</loc>
+      <rs:md change="deleted" datetime="2013-01-02T14:00:00Z"/>
+  </url>
+  <url>
+      <loc>http://example.com/res3.tiff</loc>
+      <lastmod>2011-01-01T00:00:00Z</lastmod>
+      <rs:md change="created" datetime="2013-01-02T15:00:00Z"/>
+  </url>
+</urlset>

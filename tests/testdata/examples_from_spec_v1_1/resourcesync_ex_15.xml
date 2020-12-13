@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+              xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="up"
+         href="http://example.com/dataset1/capabilitylist.xml"/>
+  <rs:md capability="resourcelist"
+         at="2013-01-03T09:00:00Z"
+         completed="2013-01-03T09:10:00Z"/>
+  <sitemap>
+      <loc>http://example.com/resourcelist1.xml</loc>
+      <rs:md at="2013-01-03T09:00:00Z"/>
+  </sitemap>
+  <sitemap>
+      <loc>http://example.com/resourcelist2.xml</loc>
+      <rs:md at="2013-01-03T09:03:00Z"/>
+  </sitemap>
+  <sitemap>
+      <loc>http://example.com/resourcelist3.xml</loc>
+      <rs:md at="2013-01-03T09:07:00Z"/>
+  </sitemap>
+</sitemapindex>
