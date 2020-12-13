@@ -10,7 +10,7 @@ except ImportError:  # python3
 
 
 def run_resync_explorer(args):
-    args.insert(0, 'bin/resync-explorer')
+    args.insert(0, './resync-explorer')
     proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (out, err) = proc.communicate()
     return(out, err)
@@ -21,9 +21,9 @@ class TestClientLinkOptions(unittest.TestCase):
     def test01_help(self):
         """Check that it runs with -h."""
         txt = run_resync_explorer(['-h'])[0]
-        self.assertTrue(txt.startswith(b'Usage: resync-explorer [options] uri'))
+        self.assertRegex(txt, rb'''ResourceSync explorer \(''')
 
     def test02_error(self):
         """Bad parameter."""
         err = run_resync_explorer([])[1]
-        self.assertRegex(err, b'FatalError: No source information')
+        self.assertRegex(err, rb'''FatalError: No source information''')

@@ -1,11 +1,6 @@
 import sys
 import unittest
-try:  # python2
-    # Must try this first as io also exists in python2
-    # but in the wrong one!
-    import BytesIO as io
-except ImportError:  # python3
-    import io
+import io
 
 from resync.resource import Resource
 from resync.resource_list import ResourceList
@@ -16,7 +11,7 @@ import subprocess
 
 
 def run_resync(args):
-    args.insert(0, 'bin/resync')
+    args.insert(0, './resync-build')
     proc = subprocess.Popen(args, stdout=subprocess.PIPE)
     (out, err) = proc.communicate()
     return(out)

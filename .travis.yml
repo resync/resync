@@ -9,8 +9,8 @@ install:
   - python setup.py install
 script:
   - python setup.py test
-  - pycodestyle --ignore=E501,W503 resync bin tests
-  - pep257 resync bin tests
+  - pycodestyle --ignore=E501,W503 resync tests resync-sync resync-build resync-explorer
+  - pep257 resync bin tests resync-sync resync-build resync-explorer
   - coverage run --source=resync setup.py test
 after_success:
   - coveralls

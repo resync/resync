@@ -3,6 +3,9 @@
 The current ResourceSync specification is standardized as ANSI/NISO Z39.99-2017 <http://www.openarchives.org/rs/1.1/toc>, the prior version was ANSI/NISO Z39.99-2014 <http://www.openarchives.org/rs/1.0/toc>.
 
 v2.0.0 ???
+  * Split old `resync` script into `resync-sync` and `resync-build`
+  * Move scripts from `bin` dir to base dir for easier testing/development
+  * Switch from optparse to argparse, use exclusive argument group for commands
   * Add --access_token option to pass bearer token with web requests
   * Add --delay option to pause between successive web requests
   * Drop Python 2.7, 3.3 & 3.4 from tests, add 3.7 & 3.8
