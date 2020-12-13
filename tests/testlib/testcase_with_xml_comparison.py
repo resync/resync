@@ -5,6 +5,7 @@ import unittest
 
 
 class TestCase(unittest.TestCase):
+    """Adds example reading and XML comparison functions to tests checking spec examples."""
 
     def _ex_path(self, ex):
         raise Exception("Must override _ex_path(..)!")
@@ -15,7 +16,7 @@ class TestCase(unittest.TestCase):
         return content
 
     def _assert_xml_equal_ex(self, xml, ex):
-        """Compare XML supplied with XML from example file ex"""
+        """Compare XML supplied with XML from example file ex."""
         ex_xml = self._read_ex(ex)
         self._assert_xml_equal(xml, ex_xml)
 
@@ -41,7 +42,7 @@ class TestCase(unittest.TestCase):
         self.assertEqual(a, b, context)
 
     def _xml_reorder_attributes(self, xml):
-        """Manipulate string for single element with atts in alpha order
+        """Manipulate string for single element with atts in alpha order.
 
         This is a bit of a fudge because of pattern matching. Should give
         correct match for all matches, but might give matches in rare cases
@@ -50,7 +51,7 @@ class TestCase(unittest.TestCase):
         return(' '.join(sorted(xml.split(' '))))
 
     def _xml_massage_split(self, xml):
-        """Massage XML for comparison and split by elements (on >)"""
+        """Massage XML for comparison and split by elements (on >)."""
         xml = re.sub(r'\s+$', '', xml)
         xml = re.sub(r'^\s+', '', xml)
         xml = re.sub(r'\s+', ' ', xml)
