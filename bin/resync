@@ -16,7 +16,7 @@ Copyright 2012-2020 Simeon Warner
    limitations under the License
 """
 
-import optparse
+import argparse
 import sys
 
 from resync import __version__
@@ -32,146 +32,135 @@ def main():
         sys.exit("This program requires python version 3.5 or later")
 
     # Options and arguments
-    p = optparse.OptionParser(description='ResourceSync command line client',
-                              usage='usage: %prog [options] uri_path local_path  (-h for help)',
-                              version='%prog ' + __version__)
+    parser = argparse.ArgumentParser(
+        description="ResourceSync command line client (v" + __version__ + ")\n\n"
+                    "MODES - REMOTE and LOCAL - one must be specified\n"
+                    "These modes use a remote source that is specified in a "
+                    "set of uri=path mappings and potentially also using an "
+                    "explicit --sitemap location.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    # Modes
-    # a. modes using remote sitemap/resources
-    rem = p.add_option_group('REMOTE MODES',
-                             'These modes use a remote source that is specified in a set of uri=path mappings '
-                             'and potentially also using an explicit --sitemap location. The default mode is '
-                             '--baseline. See also: resync-explorer for an interactive client.')
-    rem.add_option('--baseline', '-b', action='store_true',
-                   help='baseline sync of resources from remote source (src) to local filesystem (dst)')
-    rem.add_option('--incremental', '--inc', '-i', action='store_true',
-                   help='incremental sync of resources from remote source (src) to local filesystem (dst). Uses either timestamp recorded from last baseline or incremental sync for this source, or explicit --from parameter, to determine the earlier update timestamp to act on.')
-    rem.add_option('--audit', '-a', action='store_true',
-                   help="audit sync state of destination wrt source")
-    rem.add_option('--parse', '-p', action='store_true',
-                   help="parse a remote sitemap/sitemapindex (from mapping or explicit --sitemap) and show summary information including document type and number of entries")
-    # b. modes based solely on files on local disk
-    loc = p.add_option_group('LOCAL MODES',
-                             'These modes act on files on the local disk')
-    loc.add_option('--write-resourcelist', '--write-resource-list', action='store_true',
-                   help="write a resource list based on files on disk using uri=path mappings "
-                        "in reverse to calculate URIs from the local paths. Scans local disk "
-                        "based either on explicit --paths setting, else starting from all local "
-                        "paths specified in the mappings. Writes to STDOUT by default, override "
-                        "with --outfile")
-    loc.add_option('--write-changelist', '--write-change-list', action='store_true',
-                   help="write a change list based on comparison of a reference sitemap "
-                        "(specify file with --reference) and either files on disk (using "
-                        "the mapping provided) or a second sitemap (specify file with "
-                        "--newreference). Otherwise follows --write-resourcelist options. Also accepts "
-                        "the --empty option (with no mapping) to write and empty changelist.")
-    loc.add_option('--write-capabilitylist', '--write-capability-list', type=str, action='store',
-                   help="write a capability list based on the set of capabilities and "
-                        "URIs supplied in cap_name=URI,cap_name=URI format. Otherwise "
-                        "follows --write-resourcelist options.")
-    loc.add_option('--write-sourcedescription', '--write-source-description', type=str, action='store',
-                   help="write a Source Description document based on the set of capability "
-                        "list URIs supplied as a comma separated list. Otherwise "
-                        "follows --write-resourcelist options.")
-    loc.add_option('--write-resourcedump', '--write-resource-dump', '-d', action='store_true',
-                   help="write a Resource Dump. Specify output file with --outfile and use other "
-                        "options as for --write-resourcelist")
-    loc.add_option('--write-changedump', '--write-change-dump', action='store_true',
-                   help="write a Resource Dump. Specify output file with --outfile and use other "
-                        "options as for --write-changelist")
+    parser._optionals = parser.add_argument_group(
+       'MODES OF OPERATION (must specify one only). The REMOTE modes use a '
+       'remote source that is specified in a set of uri=path mappings and '
+       'potentially also using an explicit --sitemap location. The LOCAL '
+       'modes operate only to create ResourceSync descriptions on the local '
+       'filesystem based on local content')
+    rem = parser.add_mutually_exclusive_group(required=True)
+    rem.add_argument('--baseline', '-b', action='store_true',
+                     help='REMOTE: baseline sync of resources from remote source (src) to local filesystem (dst)')
+    rem.add_argument('--incremental', '--inc', '-i', action='store_true',
+                     help='REMOTE: incremental sync of resources from remote source (src) to local filesystem (dst). Uses either timestamp recorded from last baseline or incremental sync for this source, or explicit --from parameter, to determine the earlier update timestamp to act on.')
+    rem.add_argument('--audit', '-a', action='store_true',
+                     help="REMOTE: audit sync state of destination wrt source")
+    rem.add_argument('--parse', '-p', action='store_true',
+                     help="REMOTE: parse a remote sitemap/sitemapindex (from mapping or explicit --sitemap) and show summary information including document type and number of entries")
+    rem.add_argument('--write-resourcelist', '--write-resource-list', action='store_true',
+                     help="LOCAL: write a resource list based on files on disk using uri=path mappings "
+                          "in reverse to calculate URIs from the local paths. Scans local disk "
+                          "based either on explicit --paths setting, else starting from all local "
+                          "paths specified in the mappings. Writes to STDOUT by default, override "
+                          "with --outfile")
+    rem.add_argument('--write-changelist', '--write-change-list', action='store_true',
+                     help="LOCAL: write a change list based on comparison of a reference sitemap "
+                          "(specify file with --reference) and either files on disk (using "
+                          "the mapping provided) or a second sitemap (specify file with "
+                          "--newreference). Otherwise follows --write-resourcelist options. Also accepts "
+                          "the --empty option (with no mapping) to write and empty changelist.")
+    rem.add_argument('--write-capabilitylist', '--write-capability-list', type=str, action='store',
+                     help="LOCAL: write a capability list based on the set of capabilities and "
+                          "URIs supplied in cap_name=URI,cap_name=URI format. Otherwise "
+                          "follows --write-resourcelist options.")
+    rem.add_argument('--write-sourcedescription', '--write-source-description', type=str, action='store',
+                     help="LOCAL: write a Source Description document based on the set of capability "
+                          "list URIs supplied as a comma separated list. Otherwise "
+                          "follows --write-resourcelist options.")
+    rem.add_argument('--write-resourcedump', '--write-resource-dump', '-d', action='store_true',
+                     help="LOCAL: write a Resource Dump. Specify output file with --outfile and use other "
+                          "options as for --write-resourcelist")
+    rem.add_argument('--write-changedump', '--write-change-dump', action='store_true',
+                     help="LOCAL: write a Resource Dump. Specify output file with --outfile and use other "
+                          "options as for --write-changelist")
+
+    # Positional arguments
+    map=parser.add_argument_group('URI MAPPING TO FILESYSTEM for REMOTE modes')
+    map.add_argument(metavar='uri=path | uri path', dest='map', type=str, nargs='*',
+                     help="remote URI of source for remote synchronization operations (may "
+                          "also combine uri=local path)")
 
     # Specification of map between remote URI and local file paths, and remote
     # sitemap
-    nam = p.add_option_group('FILE/URI NAMING OPTIONS')
-    nam.add_option('--outfile', type=str, action='store',
+    nam = parser.add_argument_group('FILE/URI NAMING OPTIONS')
+    nam.add_argument('--outfile', type=str, action='store',
                    help="write output to specified file rather than STDOUT or default")
-    nam.add_option('--paths', type=str, action='store',
+    nam.add_argument('--paths', type=str, action='store',
                    help="explicit set of paths for disk scan --resourceslist or --changelist "
                         "generation")
-    nam.add_option('--sitemap', type=str, action='store',
+    nam.add_argument('--sitemap', type=str, action='store',
                    help="explicitly set sitemap name, overriding default sitemap.xml "
                         "appended to first source URI specified in the mappings")
-    nam.add_option('--capabilitylist', '--capability-list', type=str, action='store',
+    nam.add_argument('--capabilitylist', '--capability-list', type=str, action='store',
                    help="explicitly set capability list URI to search for instead of "
                         "looking for the source description")
-    nam.add_option('--reference', type=str, action='store',
+    nam.add_argument('--reference', type=str, action='store',
                    help="reference sitemap name for --write-changelist calculation")
-    nam.add_option('--newreference', type=str, action='store',
+    nam.add_argument('--newreference', type=str, action='store',
                    help="updated reference sitemap name for --write-changelist calculation")
-    nam.add_option('--changelist-uri', '--change-list-uri', type=str, action='store',
+    nam.add_argument('--changelist-uri', '--change-list-uri', type=str, action='store',
                    help="explicitly set the changelist URI that will be use in --inc mode, "
                         "overrides process of getting this from the sitemap")
 
-    lks = p.add_option_group("LINK GENERATION")
-    lks.add_option('--link', type=str, action='append',
+    lks = parser.add_argument_group("LINK GENERATION")
+    lks.add_argument('--link', type=str, action='append',
                    help="add discovery links to the output sitemap, "
                         "format: rel,href[,att1=val1,att2=val2] "
                         "(repeat option for multiple links)")
-    lks.add_option('--describedby-link', type=str, action='store',
+    lks.add_argument('--describedby-link', type=str, action='store',
                    help="add an <rs:md rel=\"describedby\" link to "
                         "a description of the feed at the URI given")
-    lks.add_option('--sourcedescription-link', '--source-description-link',
+    lks.add_argument('--sourcedescription-link', '--source-description-link',
                    type=str, action='store',
                    help="for a Capability List add a <rs:md rel=\"up\" link to the"
                         "Source Description document at the URI given, else ignored")
-    lks.add_option('--capabilitylist-link', '--capability-list-link',
+    lks.add_argument('--capabilitylist-link', '--capability-list-link',
                    type=str, action='store',
                    help="for all documents except a Capability List or a "
                         "Source Description, add an <rs:md rel=\"up\" link "
                         "to the Capability List at the URI given")
 
     # Options that apply to multiple modes
-    opt = p.add_option_group('MISCELANEOUS OPTIONS')
+    opt = parser.add_argument_group('MISCELANEOUS OPTIONS')
     add_shared_misc_options(opt, default_logfile=DEFAULT_LOGFILE)
-    opt.add_option('--delete', action='store_true',
-                   help="allow files on destination to be deleted")
-    opt.add_option('--empty', action='store_true',
-                   help="combine with --changelist to write and empty changelist, perhaps with links")
-    opt.add_option('--strictauth', action='store_true',
-                   help="use more strict checking of URLs to ensure that the ResourceSync "
-                        "documents refer only to resources on the same server or sub-domains, "
-                        "and on the same server to sub-paths. This is the authority model "
-                        "of Sitemaps but there are legitimate uses where these rules would "
-                        "not be followed.")
-    opt.add_option('--warc', action='store_true',
-                   help="write dumps in WARC format (instead of ZIP+Sitemap default)")
-    opt.add_option('--dryrun', '-n', action='store_true',
-                   help="don't update local resources, say what would be done")
-    opt.add_option('--ignore-failures', action='store_true',
-                   help="continue past download failures")
+    opt.add_argument('--delete', action='store_true',
+                     help="allow files on destination to be deleted")
+    opt.add_argument('--empty', action='store_true',
+                     help="combine with --changelist to write and empty changelist, perhaps with links")
+    opt.add_argument('--strictauth', action='store_true',
+                     help="use more strict checking of URLs to ensure that the ResourceSync "
+                          "documents refer only to resources on the same server or sub-domains, "
+                          "and on the same server to sub-paths. This is the authority model "
+                          "of Sitemaps but there are legitimate uses where these rules would "
+                          "not be followed.")
+    opt.add_argument('--warc', action='store_true',
+                     help="write dumps in WARC format (instead of ZIP+Sitemap default)")
+    opt.add_argument('--dryrun', '-n', action='store_true',
+                     help="don't update local resources, say what would be done")
+    opt.add_argument('--ignore-failures', action='store_true',
+                     help="continue past download failures")
     # These likely only useful for experimentation
-    opt.add_option('--max-sitemap-entries', type=int, action='store',
-                   help="override default size limits")
-    opt.add_option('--eval', '-e', action='store_true',
-                   help="output evaluation of source/client synchronization performance... "
-                        "be warned, this is very verbose")
-    opt.add_option('--tries', '-t', type=int, action='store', metavar='TRIES',
-                   help="set number of tries to TRIES. The default is to retry 20 times, "
-                        "with the exception of fatal errors like \"connection refused\" "
-                        "or \"not found\" (404), which are not retried.")
-    opt.add_option('--timeout', '-T', type=int, action='store', metavar='SECONDS',
-                   help="set the request timeout for resource downloads to SECONDS seconds")
+    opt.add_argument('--max-sitemap-entries', type=int, action='store',
+                     help="override default size limits")
+    opt.add_argument('--eval', '-e', action='store_true',
+                     help="output evaluation of source/client synchronization performance... "
+                          "be warned, this is very verbose")
+    opt.add_argument('--tries', '-t', type=int, action='store', metavar='TRIES',
+                     help="set number of tries to TRIES. The default is to retry 20 times, "
+                          "with the exception of fatal errors like \"connection refused\" "
+                          "or \"not found\" (404), which are not retried.")
+    opt.add_argument('--timeout', '-T', type=int, action='store', metavar='SECONDS',
+                     help="set the request timeout for resource downloads to SECONDS seconds")
 
-    (args, map) = p.parse_args()
-
-    # Implement exclusive arguments and default --baseline (support for exclusive
-    # groups in argparse is incomplete is python2.6)
-    if (not args.baseline and not args.incremental and not args.audit
-            and not args.parse and not args.write_resourcelist and not args.write_changelist
-            and not args.write_capabilitylist and not args.write_sourcedescription
-            and not args.write_resourcedump and not args.write_changedump):
-        if (len(map) == 0):
-            p.error("No arguments specified (use -h for help)")
-            return
-        else:
-            args.baseline = True
-    elif (count_true_args(args.baseline, args.incremental, args.audit, args.parse,
-                          args.write_resourcelist, args.write_changelist,
-                          args.write_capabilitylist, args.write_sourcedescription,
-                          args.write_resourcedump, args.write_changedump) > 1):
-        p.error("Only one of --baseline, --incremental, --audit, --parse, --write-resourcelist, "
-                "--write-changelist, --write-capabilitylist, --write-sourcedescription, "
-                "--write-resourcedump, --write-changedump modes allowed")
+    args = parser.parse_args()
 
     # Configure logging module and create logger instance
     init_logging(to_file=args.logger, logfile=args.logfile, default_logfile=DEFAULT_LOGFILE,
@@ -184,9 +173,9 @@ def main():
                dryrun=args.dryrun)
 
     try:
-        if (map):
+        if (args.map):
             # Mappings apply to (almost) everything
-            c.set_mappings(map)
+            c.set_mappings(args.map)
         if (args.sitemap):
             c.sitemap_name = args.sitemap
         if (args.capabilitylist):
@@ -243,8 +232,7 @@ def main():
                                   dump=args.write_resourcedump)
         elif (args.write_changelist or args.write_changedump):
             if (not args.reference and not args.empty):
-                p.error(
-                    "Must supply --reference sitemap for --changelist, or --empty")
+                parser.error("Must supply --reference sitemap for --changelist, or --empty")
             c.write_change_list(ref_sitemap=args.reference,
                                 newref_sitemap=(args.newreference if (
                                     args.newreference) else None),
@@ -265,7 +253,7 @@ def main():
                 outfile=args.outfile,
                 links=links)
         else:
-            p.error("Unknown mode requested")
+            parser.error("Unknown mode requested")
     # Any problem we expect will come as a ClientFatalError, anything else
     # is... an exception ;-)
     except ClientFatalError as e:
