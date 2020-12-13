@@ -65,10 +65,12 @@ class Sitemap(object):
     so that the calling code can handle it.
     """
 
-    def __init__(self, pretty_xml=False):
+    def __init__(self, pretty_xml=False, spec_version='1.0', include_lastmod=True):
         """Initialize Sitemap object."""
         self.logger = logging.getLogger('resync.sitemap')
         self.pretty_xml = pretty_xml
+        self.spec_1_0 = (spec_version == '1.0')  # Else assume 1.1
+        self.include_lastmod = include_lastmod  # Optional in v1.1
         # Classes used when parsing
         self.resource_class = Resource
         # Information recorded for logging
@@ -250,17 +252,25 @@ class Sitemap(object):
         sub = Element('loc')
         sub.text = resource.uri
         e.append(sub)
-        if (resource.timestamp is not None):
-            # Create appriate element for timestamp
+        if ((self.spec_1_0 or self.include_lastmod) and resource.timestamp is not None):
+            # Create appriate element for timestamp. Don't include lastmod for
+            # v1.1 unless self.include_lastmod is True
             sub = Element('lastmod')
-            sub.text = str(resource.lastmod)  # W3C Datetime in UTC
+            sub.text = resource.lastmod  # W3C Datetime in UTC
             e.append(sub)
         md_atts = {}
-        for att in ('md_at', 'capability', 'change', 'md_completed', 'md_from',
+        for att in ('md_at', 'capability', 'change', 'datetime',
+                    'md_completed', 'md_from',
                     'hash', 'length', 'path', 'mime_type', 'md_until'):
             val = getattr(resource, att, None)
             if (val is not None):
                 md_atts[att] = str(val)
+                if (att == 'change' and not self.spec_1_0
+                        and resource.datetime is None
+                        and resource.lastmod is not None):
+                    # In 1.1 we add 'datetime' to rs:md for changes. If this
+                    # is not specified but we have a lastmod, use that
+                    md_atts['datetime'] = resource.lastmod
         if (len(md_atts) > 0):
             self.add_element_with_atts_to_etree(e, 'rs:md', md_atts, add_return=False)
         # add any <rs:ln>
@@ -335,7 +345,7 @@ class Sitemap(object):
             # have on element, look at attributes
             md = self.md_from_etree(md_elements[0], context=loc)
             # simple attributes that map directly to Resource object attributes
-            for att in ('capability', 'change', 'length', 'path', 'mime_type'):
+            for att in ('capability', 'change', 'datetime', 'length', 'path', 'mime_type'):
                 if (att in md):
                     setattr(resource, att, md[att])
             # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
@@ -359,11 +369,14 @@ class Sitemap(object):
         Parameters:
             md_element  - etree element <rs:md>
             context     - context for error reporting
+
+        ResourceSync v1.1 adds the datetime attribute
         """
         md = {}
         # grab all understood attributes into md dict
-        for att in ('capability', 'change', 'hash', 'length', 'path', 'mime_type',
-                    'md_at', 'md_completed', 'md_from', 'md_until'):
+        for att in ('capability', 'change', 'datetime', 'hash', 'length',
+                    'path', 'mime_type', 'md_at', 'md_completed', 'md_from',
+                    'md_until'):
             xml_att = self._xml_att_name(att)
             val = md_element.attrib.get(xml_att, None)
             if (val is not None):

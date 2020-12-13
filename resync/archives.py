@@ -19,42 +19,54 @@ class ResourceListArchive(ListBaseWithIndex):
     """Class representing an Resource List Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
+                 spec_version='1.0', include_lastmod=True,
                  resources_class=None):
         """Initialize ResourceListArchive."""
         self.resources_class = list if resources_class is None else resources_class
         if (resources is None):
             resources = self.resources_class()
-        super(ResourceListArchive, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
-                                                  capability_name='resourcelist-archive')
+        super(ResourceListArchive, self).__init__(
+            resources=resources, md=md, ln=ln, uri=uri,
+            capability_name='resourcelist-archive',
+            spec_version=spec_version, include_lastmod=include_lastmod)
 
 
 class ChangeListArchive(ListBaseWithIndex):
     """Class representing an Change List Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
+                 spec_version='1.0', include_lastmod=True,
                  resources_class=None):
         """Initialize ChangeListArchive."""
-        super(ChangeListArchive, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
-                                                capability_name='changelist-archive')
+        super(ChangeListArchive, self).__init__(
+            resources=resources, md=md, ln=ln, uri=uri,
+            capability_name='changelist-archive',
+            spec_version=spec_version, include_lastmod=include_lastmod)
 
 
 class ResourceDumpArchive(ListBaseWithIndex):
     """Class representing an Resource Dump Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
+                 spec_version='1.0', include_lastmod=True,
                  resources_class=None):
         """Initialize ResourceDumpArchive."""
-        super(ResourceDumpArchive, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
-                                                  capability_name='resourcedump-archive',
-                                                  resources_class=resources_class)
+        super(ResourceDumpArchive, self).__init__(
+            resources=resources, md=md, ln=ln, uri=uri,
+            capability_name='resourcedump-archive',
+            spec_version=spec_version, include_lastmod=include_lastmod,
+            resources_class=resources_class)
 
 
 class ChangeDumpArchive(ListBaseWithIndex):
     """Class representing an Change Dump Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
+                 spec_version='1.0', include_lastmod=True,
                  resources_class=None):
         """Initialize ChangeDumpArchive."""
-        super(ChangeDumpArchive, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
-                                                capability_name='changedump-archive',
-                                                resources_class=resources_class)
+        super(ChangeDumpArchive, self).__init__(
+            resources=resources, md=md, ln=ln, uri=uri,
+            capability_name='changedump-archive',
+            spec_version=spec_version, include_lastmod=include_lastmod,
+            resources_class=resources_class)

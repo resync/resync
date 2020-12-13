@@ -2,7 +2,7 @@
 """
 import re
 import sys
-import unittest
+
 from resync.resource import Resource
 from resync.source_description import SourceDescription
 from resync.capability_list import CapabilityList
@@ -15,8 +15,10 @@ from resync.change_dump_manifest import ChangeDumpManifest
 from resync.archives import ResourceListArchive, ResourceDumpArchive, ChangeListArchive, ChangeDumpArchive
 from resync.sitemap import Sitemap
 
+from .testlib.testcase_with_xml_comparison import TestCase
 
-class TestExamplesFromSpec(unittest.TestCase):
+
+class TestExamplesFromSpec(TestCase):
 
     def _open_ex(self, ex):
         return open('tests/testdata/examples_from_spec_v1_0/%s.xml' % (ex), 'r')
@@ -44,7 +46,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_ex_01(self):
         """resourcesync_ex_1 is a simple resource_list with 2 resources, no metadata"""
-        rl = ResourceList()
+        rl = ResourceList(spec_version='1.0')
         rl.parse(uri='tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml')
         self.assertEqual(rl.capability, 'resourcelist')
         self.assertEqual(len(rl.resources), 2, '2 resources')
@@ -55,7 +57,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_ex_02(self):
         """resourcesync_ex_2 is a simple resource_list with 2 resources, some metadata"""
-        rl = ResourceList()
+        rl = ResourceList(spec_version='1.0')
         rl.parse(uri='tests/testdata/examples_from_spec_v1_0/resourcesync_ex_2.xml')
         self.assertEqual(len(rl.resources), 2, '2 resources')
         sms = sorted(rl.uris())
@@ -72,12 +74,11 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_ex_03(self):
         """resourcesync_ex_3 is a simple change_list with 2 resources"""
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.parse('tests/testdata/examples_from_spec_v1_0/resourcesync_ex_3.xml')
         self.assertEqual(len(cl.resources), 2, '2 resources')
         sms = sorted(cl.uris())
-        self.assertEqual(
-            sms, ['http://example.com/res2.pdf', 'http://example.com/res3.tiff'])
+        self.assertEqual(sms, ['http://example.com/res2.pdf', 'http://example.com/res3.tiff'])
         self.assertEqual(cl.resources[0].lastmod, '2013-01-02T13:00:00Z')
         self.assertEqual(cl.resources[1].lastmod, '2013-01-02T18:00:00Z')
         self.assertEqual(cl.resources[0].change, 'updated')
@@ -85,7 +86,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_ex_04(self):
         """resourcesync_ex_4 is a simple resource dump with one ZIP listed"""
-        rd = ResourceDump()
+        rd = ResourceDump(spec_version='1.0')
         rd.parse('tests/testdata/examples_from_spec_v1_0/resourcesync_ex_4.xml')
         self.assertEqual(len(rd.resources), 1, '1 resources')
         self.assertTrue('http://example.com/resourcedump.zip' in rd.resources)
@@ -94,7 +95,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_ex_05(self):
         """resourcesync_ex_5 is a simple resource dump manifest with two files listed"""
-        rdm = ResourceDumpManifest()
+        rdm = ResourceDumpManifest(spec_version='1.0')
         rdm.parse('tests/testdata/examples_from_spec_v1_0/resourcesync_ex_5.xml')
         self.assertEqual(len(rdm.resources), 2, '2 resources')
         sms = sorted(rdm.uris())
@@ -115,7 +116,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_ex_06(self):
         """resourcesync_ex_6 is a simple capability list with three capabilities"""
-        capl = CapabilityList()
+        capl = CapabilityList(spec_version='1.0')
         capl.parse('tests/testdata/examples_from_spec_v1_0/resourcesync_ex_6.xml')
         self.assertEqual(len(capl.resources), 3, '3 capabilities')
         # What capabilities are present?
@@ -135,7 +136,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def text_ex_07(self):
         """resourcesync_ex_7 is a source description that list a single Capability List"""
-        sd = SourceDescription()
+        sd = SourceDescription(spec_version='1.0')
         sd.read(uri='tests/testdata/examples_from_spec_v1_0/resourcesync_ex_7.xml')
         self.assertEqual(len(sd.resources), 1, '1 capability list')
         cl = sd.resources[0]
@@ -147,7 +148,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_ex_08(self):
         """resourcesync_ex_8 is a simple Resource List Index with 2 Resource Lists"""
-        rl = ResourceList()
+        rl = ResourceList(spec_version='1.0')
         rl.read(
             uri='tests/testdata/examples_from_spec_v1_0/resourcesync_ex_8.xml', index_only=True)
         self.assertEqual(rl.capability, 'resourcelist')
@@ -161,7 +162,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_ex_12(self):
         """resourcesync_ex_12 is a Source Description that talks about 3 sets of resources"""
-        sd = SourceDescription()
+        sd = SourceDescription(spec_version='1.0')
         sd.read(uri='tests/testdata/examples_from_spec_v1_0/resourcesync_ex_12.xml')
         self.assertEqual(len(sd), 3)
         self.assertEqual(sd.uris(), ['http://example.com/capabilitylist1.xml',
@@ -174,7 +175,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_01(self):
         """Simple Resource List document"""
-        rl = ResourceList()
+        rl = ResourceList(spec_version='1.0')
         rl.md_at = '2013-01-03T09:00:00Z'
         rl.add(Resource('http://example.com/res1'))
         rl.add(Resource('http://example.com/res2'))
@@ -183,7 +184,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_02(self):
         """Slightly more complex Resource List document"""
-        rl = ResourceList()
+        rl = ResourceList(spec_version='1.0')
         rl.md_at = '2013-01-03T09:00:00Z'
         rl.add(Resource(uri='http://example.com/res1',
                         lastmod='2013-01-02T13:00:00Z',
@@ -198,7 +199,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_03(self):
         """Simple Change List document """
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.md_from = '2013-01-02T00:00:00Z'
         cl.md_until = '2013-01-03T00:00:00Z'
         cl.add(Resource(uri='http://example.com/res2.pdf',
@@ -212,7 +213,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_04(self):
         """Simple Resource Dump document """
-        rd = ResourceDump()
+        rd = ResourceDump(spec_version='1.0')
         rd.md_at = '2013-01-03T09:00:00Z'
         rd.add(Resource(uri='http://example.com/resourcedump.zip',
                         lastmod='2013-01-03T09:00:00Z'))
@@ -221,7 +222,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_05(self):
         """Simple Resource Dump Manifest document """
-        rdm = ResourceDumpManifest()
+        rdm = ResourceDumpManifest(spec_version='1.0')
         rdm.md_at = '2013-01-03T09:00:00Z'
         rdm.add(Resource(uri='http://example.com/res1',
                          lastmod='2013-01-03T03:00:00Z',
@@ -236,7 +237,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_06(self):
         """Simple Capability List document """
-        cl = CapabilityList()
+        cl = CapabilityList(spec_version='1.0')
         cl.describedby = 'http://example.com/info_about_set1_of_resources.xml'
         cl.up = 'http://example.com/resourcesync_description.xml'
         cl.add_capability(
@@ -250,7 +251,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_07(self):
         """A Source Description document """
-        sd = SourceDescription()
+        sd = SourceDescription(spec_version='1.0')
         sd.describedby = 'http://example.com/info-about-source.xml'
         r = Resource(uri='http://example.com/dataset1/capabilitylist.xml',
                      capability='capabilitylist')
@@ -268,7 +269,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         writing a large Resource List in multiple files. However,
         it is possible to create manually.
         """
-        rli = ResourceList()
+        rli = ResourceList(spec_version='1.0')
         rli.sitemapindex = True
         rli.md_at = '2013-01-03T09:00:00Z'
         rli.add(Resource(uri='http://example.com/resourcelist-part1.xml'))
@@ -280,7 +281,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_12(self):
         """Source Description document with describedby links"""
-        sd = SourceDescription()
+        sd = SourceDescription(spec_version='1.0')
         sd.describedby = 'http://example.com/info_about_source.xml'
         cl1 = CapabilityList(uri='http://example.com/capabilitylist1.xml')
         cl1.describedby = 'http://example.com/info_about_set1_of_resources.xml'
@@ -296,7 +297,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_13(self):
         """Capability List document with 4 entries"""
-        cl = CapabilityList()
+        cl = CapabilityList(spec_version='1.0')
         cl.describedby = 'http://example.com/info_about_set1_of_resources.xml'
         cl.up = 'http://example.com/resourcesync_description.xml'
         cl.add_capability(capability=ResourceList(
@@ -312,7 +313,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_14(self):
         """Resource List with 2 entries and some metadata"""
-        rl = ResourceList()
+        rl = ResourceList(spec_version='1.0')
         rl.up = 'http://example.com/dataset1/capabilitylist.xml'
         rl.md_at = "2013-01-03T09:00:00Z"
         rl.md_completed = "2013-01-03T09:01:00Z"
@@ -333,7 +334,8 @@ class TestExamplesFromSpec(unittest.TestCase):
     def test_build_ex_15(self):
         """Resource List Index with metadata"""
         rl = ResourceList(
-            resources_class=ResourceListOrdered)  # order in example is non-canonical
+            resources_class=ResourceListOrdered,
+            spec_version='1.0')  # order in example is non-canonical
         rl.sitemapindex = True
         rl.up = 'http://example.com/dataset1/capabilitylist.xml'
         rl.md_at = "2013-01-03T09:00:00Z"
@@ -348,7 +350,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal(rl.as_xml(), ex_xml)
 
     def test_build_ex_16(self):
-        rl = ResourceList()
+        rl = ResourceList(spec_version='1.0')
         rl.up = 'http://example.com/dataset1/capabilitylist.xml'
         rl.index = 'http://example.com/dataset1/resourcelist-index.xml'
         rl.md_at = "2013-01-03T09:00:00Z"
@@ -367,7 +369,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_17(self):
         """Resource Dump with 3 entries and some metadata"""
-        rd = ResourceDump()
+        rd = ResourceDump(spec_version='1.0')
         rd.up = 'http://example.com/dataset1/capabilitylist.xml'
         rd.md_at = "2013-01-03T09:00:00Z"
         rd.md_completed = "2013-01-03T09:04:00Z"
@@ -403,7 +405,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_18(self):
         """Resource Dump Manifest with 2 entries and some metadata"""
-        rdm = ResourceDumpManifest()
+        rdm = ResourceDumpManifest(spec_version='1.0')
         rdm.up = 'http://example.com/dataset1/capabilitylist.xml'
         rdm.md_at = "2013-01-03T09:00:00Z"
         rdm.md_completed = "2013-01-03T09:02:00Z"
@@ -425,7 +427,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_19(self):
         """Change List with 4 changes, 'open' as no until"""
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.up = 'http://example.com/dataset1/capabilitylist.xml'
         cl.md_from = "2013-01-03T00:00:00Z"
         cl.add(Resource(uri='http://example.com/res1.html',
@@ -446,7 +448,8 @@ class TestExamplesFromSpec(unittest.TestCase):
     def test_build_ex_20(self):
         """Change List Index listing 3 Change Lists, the last one 'open'"""
         cl = ChangeListArchive(
-            resources_class=ResourceListOrdered)  # order in example is non-canonical
+            resources_class=ResourceListOrdered,   # order in example is non-canonical
+            spec_version='1.0')
         cl.sitemapindex = True
         cl.capability_name = 'changelist'
         cl.up = 'http://example.com/dataset1/capabilitylist.xml'
@@ -464,7 +467,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_21(self):
         """Change List which points back to index"""
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.up = 'http://example.com/dataset1/capabilitylist.xml'
         cl.index = 'http://example.com/dataset1/changelist.xml'
         cl.md_from = "2013-01-02T00:00:00Z"
@@ -486,7 +489,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_ex_22(self):
         """Change Dump with three dump files"""
-        cd = ChangeDump()
+        cd = ChangeDump(spec_version='1.0')
         cd.up = 'http://example.com/dataset1/capabilitylist.xml'
         cd.md_from = "2013-01-01T00:00:00Z"
         z1 = Resource(uri='http://example.com/20130101-changedump.zip',
@@ -515,7 +518,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal(cd.as_xml(), ex_xml)
 
     def test_build_ex_23(self):
-        cdm = ChangeDumpManifest()
+        cdm = ChangeDumpManifest(spec_version='1.0')
         cdm.up = "http://example.com/dataset1/capabilitylist.xml"
         cdm.md_from = "2013-01-02T00:00:00Z"
         cdm.md_until = "2013-01-03T00:00:00Z"
@@ -546,7 +549,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal_ex(cdm.as_xml(), 'resourcesync_ex_23')
 
     def test_build_ex_24(self):
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.up = "http://example.com/dataset1/capabilitylist.xml"
         cl.md_from = "2013-01-03T00:00:00Z"
         c1 = Resource(uri="http://example.com/res1",
@@ -575,7 +578,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal_ex(cl.as_xml(), 'resourcesync_ex_24')
 
     def test_build_ex_25(self):
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.up = "http://example.com/dataset1/capabilitylist.xml"
         cl.md_from = "2013-01-03T11:00:00Z"
         c1 = Resource(uri="http://example.com/res1",
@@ -593,7 +596,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal_ex(cl.as_xml(), 'resourcesync_ex_25')
 
     def test_build_ex_26(self):
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.up = "http://example.com/dataset1/capabilitylist.xml"
         cl.md_from = "2013-01-03T00:00:00Z"
         c1 = Resource(uri="http://example.com/res1.html",
@@ -608,7 +611,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal_ex(cl.as_xml(), 'resourcesync_ex_26')
 
     def test_build_ex_27(self):
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.up = "http://example.com/dataset1/capabilitylist.xml"
         cl.md_from = "2013-01-03T00:00:00Z"
         c1 = Resource(uri="http://example.com/res4",
@@ -639,7 +642,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal_ex(cl.as_xml(), 'resourcesync_ex_27')
 
     def test_build_ex_28(self):
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.up = "http://example.com/dataset1/capabilitylist.xml"
         cl.md_from = "2013-01-03T00:00:00Z"
         c1 = Resource(uri="http://example.com/res2.pdf",
@@ -668,7 +671,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal_ex(cl.as_xml(), 'resourcesync_ex_28')
 
     def test_build_ex_29(self):
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.up = "http://example.com/dataset1/capabilitylist.xml"
         cl.md_from = "2013-01-03T00:00:00Z"
         c1 = Resource(uri="http://example.com/res1",
@@ -692,7 +695,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal_ex(cl.as_xml(), 'resourcesync_ex_29')
 
     def test_build_ex_30(self):
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.up = "http://example.com/dataset1/capabilitylist.xml"
         cl.md_from = "2013-01-03T00:00:00Z"
         c1 = Resource(uri="http://example.com/res1",
@@ -707,7 +710,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal_ex(cl.as_xml(), 'resourcesync_ex_30')
 
     def test_build_ex_31(self):
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.up = "http://example.com/dataset1/capabilitylist.xml"
         cl.md_from = "2013-01-03T00:00:00Z"
         c1 = Resource(uri="http://original.example.com/res1.html",
@@ -720,7 +723,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal_ex(cl.as_xml(), 'resourcesync_ex_31')
 
     def test_build_ex_32(self):
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.up = "http://aggregator1.example.com/dataset1/capabilitylist.xml"
         cl.md_from = "2013-01-03T11:00:00Z"
         c1 = Resource(uri="http://aggregator1.example.com/res1.html",
@@ -739,7 +742,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         self._assert_xml_equal_ex(cl.as_xml(), 'resourcesync_ex_32')
 
     def test_build_ex_33(self):
-        cl = ChangeList()
+        cl = ChangeList(spec_version='1.0')
         cl.up = "http://aggregator2.example.com/dataset1/capabilitylist.xml"
         cl.md_from = "2013-01-03T12:00:00Z"
         c1 = Resource(uri="http://aggregator2.example.com/res1.html",
@@ -761,7 +764,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_archives_ex_3_1(self):
         """Resource List Archive listing 3 Resource Lists"""
-        rla = ResourceListArchive()
+        rla = ResourceListArchive(spec_version='1.0')
         rla.up = 'http://example.com/dataset1/capabilitylist.xml'
         rla.add(Resource(uri='http://example.com/resourcelist1.xml',
                          md_at='2012-11-03T09:00:00Z'))
@@ -774,7 +777,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_archives_ex_3_2(self):
         """Resource List Archive Index listing 2 component Resource List Archives"""
-        rlai = ResourceListArchive()
+        rlai = ResourceListArchive(spec_version='1.0')
         rlai.sitemapindex = True
         rlai.up = 'http://example.com/dataset1/capabilitylist.xml'
         rlai.add(Resource(uri='http://example.com/resourcelistarchive00001.xml'))
@@ -784,7 +787,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_archives_ex_4_1(self):
         """Resource Dump Archive listing 2 Resource Dumps"""
-        rda = ResourceDumpArchive()
+        rda = ResourceDumpArchive(spec_version='1.0')
         rda.up = 'http://example.com/dataset1/capabilitylist.xml'
         rda.add(Resource(uri='http://example.com/resourcedump1.xml',
                          lastmod='2012-11-03T09:05:42Z',
@@ -800,7 +803,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_archives_ex_5_1(self):
         """Change List Archive listing 3 Change Lists"""
-        cla = ChangeListArchive()
+        cla = ChangeListArchive(spec_version='1.0')
         cla.up = 'http://example.com/dataset1/capabilitylist.xml'
         cla.add(Resource(uri='http://example.com/changelist1.xml',
                          md_from='2013-01-01T09:00:00Z',
@@ -816,7 +819,7 @@ class TestExamplesFromSpec(unittest.TestCase):
 
     def test_build_archives_ex_6_1(self):
         """Change Dump Archive listing 2 Change Dumps"""
-        cda = ChangeDumpArchive()
+        cda = ChangeDumpArchive(spec_version='1.0')
         cda.up = 'http://example.com/dataset1/capabilitylist.xml'
         cda.add(Resource(uri='http://example.com/changedump-w1.xml',
                          lastmod='2012-12-20T09:02:43Z',
@@ -828,54 +831,3 @@ class TestExamplesFromSpec(unittest.TestCase):
                          md_until="2013-01-27T09:00:00Z"))
         ex_xml = self._open_ex('archives_ex_6_1').read()
         self._assert_xml_equal(cda.as_xml(), ex_xml)
-
-# UTILITIES FOR (APPROX) COMPARISON OF XML IN EXAMPLES AND OUTPUT
-
-    def _assert_xml_equal_ex(self, xml, ex):
-        """Compare XML supplied with XML from example file ex"""
-        ex_xml = self._open_ex(ex).read()
-        self._assert_xml_equal(xml, ex_xml)
-
-    def _assert_xml_equal(self, a, b):
-        context = "Element mismatch in\n%s\nvs\n%s\n" % (a, b)
-        aa = self._xml_massage_split(a)
-        bb = self._xml_massage_split(b)
-        ia = iter(aa)
-        ib = iter(bb)
-        try:
-            while (1):
-                self._assert_xml_elements_equal(self._xml_reorder_attributes(next(ia)),
-                                                self._xml_reorder_attributes(
-                                                    next(ib)),
-                                                context)
-        except StopIteration:
-            # all is good provided there were the same number of elements
-            pass
-        self.assertEqual(len(aa), len(bb), "Same length check\n%s" % (context))
-
-    def _assert_xml_elements_equal(self, a, b, context):
-        context = "Elements %s != %s\n%s" % (a, b, context)
-        self.assertEqual(a, b, context)
-
-    def _xml_reorder_attributes(self, xml):
-        """Manipulate string for single element with atts in alpha order
-
-        This is a bit of a fudge because of pattern matching. Should give
-        correct match for all matches, but might give matches in rare cases
-        that should not.
-        """
-        return(' '.join(sorted(xml.split(' '))))
-
-    def _xml_massage_split(self, xml):
-        """Massage XML for comparison and split by elements (on >)"""
-        xml = re.sub(r'\s+$', '', xml)
-        xml = re.sub(r'^\s+', '', xml)
-        xml = re.sub(r'\s+', ' ', xml)
-        # always one space before end of self-closing element
-        xml = re.sub(r'\s*/>', ' />', xml)
-        xml = re.sub(r'>\s+<', '><', xml)  # remove space between elements
-        # FUDGES, need to check these are OK
-        xml = re.sub(r"version='1.0'", 'version="1.0"', xml)
-        xml = re.sub(r"encoding='UTF-8'", 'encoding="UTF-8"', xml)
-        # return self.assertEqual( x, 'xx' )
-        return(xml.split('>'))

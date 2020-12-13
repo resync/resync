@@ -73,12 +73,16 @@ class CapabilityList(ListBase):
     section 7 and archives specification section 6.
     """
 
-    def __init__(self, resources=None, md=None, ln=None, uri=None):
+    def __init__(self, resources=None, md=None, ln=None, uri=None,
+                 spec_version='1.0', include_lastmod=True):
         """Initialize CapabilityList."""
         if (resources is None):
             resources = CapabilitySet()
-        super(CapabilityList, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
-                                             capability_name='capabilitylist')
+        super(CapabilityList, self).__init__(
+            resources=resources, md=md, ln=ln, uri=uri,
+            capability_name='capabilitylist',
+            spec_version=spec_version,
+            include_lastmod=include_lastmod)
 
     def add(self, resource, replace=False):
         """Add a resource or an iterable collection of resources.

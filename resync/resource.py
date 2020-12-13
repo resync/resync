@@ -6,6 +6,7 @@ try:  # python3
 except ImportError:  # python2
     from urlparse import urlparse
 from posixpath import basename
+
 from .w3c_datetime import str_to_datetime, datetime_to_str
 
 
@@ -55,14 +56,14 @@ class Resource(object):
     """
 
     __slots__ = ('uri', 'timestamp', 'length', 'mime_type',
-                 'md5', 'sha1', 'sha256', 'change', 'path',
-                 '_extra', 'ln')
+                 'md5', 'sha1', 'sha256', 'change', 'datetime',
+                 'path', '_extra', 'ln')
 
     CHANGE_TYPES = ['created', 'updated', 'deleted']
 
     def __init__(self, uri=None, timestamp=None, length=None,
                  md5=None, sha1=None, sha256=None, mime_type=None,
-                 change=None, path=None, lastmod=None,
+                 change=None, datetime=None, path=None, lastmod=None,
                  capability=None,
                  ts_at=None, md_at=None,
                  ts_completed=None, md_completed=None,
@@ -84,13 +85,14 @@ class Resource(object):
         self.sha1 = None
         self.sha256 = None
         self.change = None
+        self.datetime = None  # Added in ResourceSync v1.1
         self.path = None
         self._extra = None
         self.ln = None
         # Create from a Resource-like object? Copy any relevant attributes
         if (resource is not None):
             for att in ['uri', 'timestamp', 'length', 'md5', 'sha1', 'sha256',
-                        'change', 'path', 'capability',
+                        'change', 'datetime', 'path', 'capability',
                         'ts_at', 'md_at', 'ts_completed', 'md_completed',
                         'ts_from', 'md_from', 'ts_until', 'md_until', 'ln']:
                 if hasattr(resource, att):
@@ -112,6 +114,8 @@ class Resource(object):
             self.mime_type = mime_type
         if (change is not None):
             self.change = change
+        if (datetime is not None):
+            self.datetime = datetime
         if (path is not None):
             self.path = path
         if (ts_at is not None):
@@ -444,6 +448,8 @@ class Resource(object):
              str(self.md5 if self.md5 else self.sha1)]
         if (self.change is not None):
             s.append(str(self.change))
+            if self.datetime is not None:
+                s.append(" @ " + str(self.datetime))
         if (self.path is not None):
             s.append(str(self.path))
         return "[ " + " | ".join(s) + " ]"
