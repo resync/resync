@@ -166,41 +166,40 @@ def parse_capability_lists(cls_str):
 
 
 def add_shared_misc_options(opt, default_logfile):
-    """Add shared miscellaneous options to the option_group opt.
+    """Add shared miscellaneous options to the argument_group opt.
 
-    Options that both resync.py and resync-explorer.py use.
+    Options that both resync and resync-explorer use.
     """
-    opt.add_option('--hash', type=str, action='append',
-                   help="use specified hash types in addition to last modification time "
-                        "and size (repeatable, may include `md5`, `sha-1` and `sha-256`)")
-    opt.add_option('--checksum', action='store_true',
-                   help="use md5 checksum in addition to last modification time and size "
-                        "(same as --hash=md5)")
-    opt.add_option('--from', type=str, action='store', dest='from_datetime', metavar="DATETIME",
-                   help="explicit datetime value used to filter updates in change list for "
-                        "--incremental sync")
-    opt.add_option('--exclude', type=str, action='append',
-                   help="exclude resources with URI or filename matching the python regex "
-                        "supplied (see: <https://docs.python.org/2/howto/regex.html> for regex "
-                        "information, repeat option for multiple excludes)")
-    opt.add_option('--multifile', '-m', action='store_true',
-                   help="disable reading and output of sitemapindex for multifile sitemap")
-    opt.add_option('--noauth', action='store_true',
-                   help="disable checking of URL paths to ensure that the sitemaps refer "
-                        "only to resources on the same server/sub-path etc. Use with care.")
-    opt.add_option('--access-token', type=str, default=None,
-                   help="include this access token (a bearer token) in web requests")
-    opt.add_option('--delay', type=float, default=None,
-                   help="add a delay between web requests (default is None)")
+    opt.add_argument('--hash', type=str, action='append',
+                     help="use specified hash types in addition to last modification time "
+                          "and size (repeatable, may include `md5`, `sha-1` and `sha-256`)")
+    opt.add_argument('--checksum', action='store_true',
+                     help="use md5 checksum in addition to last modification time and size "
+                          "(same as --hash=md5)")
+    opt.add_argument('--from', type=str, action='store', dest='from_datetime', metavar="DATETIME",
+                     help="explicit datetime value used to filter updates in change list for "
+                          "--incremental sync")
+    opt.add_argument('--exclude', type=str, action='append',
+                     help="exclude resources with URI or filename matching the python regex "
+                          "supplied (see: <https://docs.python.org/2/howto/regex.html> for regex "
+                          "information, repeat option for multiple excludes)")
+    opt.add_argument('--multifile', '-m', action='store_true',
+                     help="disable reading and output of sitemapindex for multifile sitemap")
+    opt.add_argument('--noauth', action='store_true',
+                     help="disable checking of URL paths to ensure that the sitemaps refer "
+                          "only to resources on the same server/sub-path etc. Use with care.")
+    opt.add_argument('--access-token', type=str, default=None,
+                     help="include this access token (a bearer token) in web requests")
+    opt.add_argument('--delay', type=float, default=None,
+                     help="add a delay between web requests (default is None)")
     # Want these to show at the end
-    opt.add_option('--verbose', '-v', action='store_true',
-                   help="verbose, show additional informational messages")
-    opt.add_option('--logger', '-l', action='store_true',
-                   help="create detailed log of client actions (will write "
-                        "to %s unless specified with --logfile" %
-                        default_logfile)
-    opt.add_option('--logfile', type='str', action='store',
-                   help="create detailed log of client actions")
+    opt.add_argument('--logger', '-l', action='store_true',
+                     help="create detailed log of client actions (will write "
+                          "to %s unless specified with --logfile" % (default_logfile))
+    opt.add_argument('--logfile', type=str, action='store',
+                     help="create detailed log of client actions")
+    opt.add_argument('--verbose', '-v', action='store_true',
+                     help="verbose, show additional informational messages")
 
 
 def process_shared_misc_options(args):
