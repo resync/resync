@@ -120,7 +120,7 @@ class TestClient(TestCase):
                 self.assertTrue(
                     lc.records[-1].msg.startswith('Failed to GET http://localhost:9999/i_do_not_exist '))
             # get from file uri
-            resource = Resource(uri='http://localhost:9999/examples_from_spec/resourcesync_ex_1.xml',
+            resource = Resource(uri='http://localhost:9999/examples_from_spec_v1_0/resourcesync_ex_1.xml',
                                 length=355, md5='abc',
                                 timestamp=10)
             c.last_timestamp = 0
@@ -130,7 +130,7 @@ class TestClient(TestCase):
                 self.assertEqual(n, 1)
                 self.assertTrue(lc.records[-1].msg.startswith('Event: {'))
             # get from file uri with length and md5 warnings
-            resource = Resource(uri='http://localhost:9999/examples_from_spec/resourcesync_ex_1.xml',
+            resource = Resource(uri='http://localhost:9999/examples_from_spec_v1_0/resourcesync_ex_1.xml',
                                 length=111, md5='abc',
                                 timestamp=10)
             c.last_timestamp = 0
@@ -199,19 +199,19 @@ class TestClient(TestCase):
         # document and identifies its type
         c = Client()
         with capture_stdout() as capturer:
-            c.sitemap_name = 'tests/testdata/examples_from_spec/resourcesync_ex_1.xml'
+            c.sitemap_name = 'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml'
             c.parse_document()
         self.assertRegex(capturer.result, r'Parsed resourcelist document with 2 entries')
         with capture_stdout() as capturer:
-            c.sitemap_name = 'tests/testdata/examples_from_spec/resourcesync_ex_17.xml'
+            c.sitemap_name = 'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_17.xml'
             c.parse_document()
         self.assertRegex(capturer.result, r'Parsed resourcedump document with 3 entries')
         with capture_stdout() as capturer:
-            c.sitemap_name = 'tests/testdata/examples_from_spec/resourcesync_ex_19.xml'
+            c.sitemap_name = 'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_19.xml'
             c.parse_document()
         self.assertRegex(capturer.result, r'Parsed changelist document with 4 entries')
         with capture_stdout() as capturer:
-            c.sitemap_name = 'tests/testdata/examples_from_spec/resourcesync_ex_22.xml'
+            c.sitemap_name = 'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_22.xml'
             c.parse_document()
         self.assertRegex(capturer.result, r'Parsed changedump document with 3 entries')
         # Document that doesn't exist
@@ -220,7 +220,7 @@ class TestClient(TestCase):
         # and verbose with truncation...
         with capture_stdout() as capturer:
             c.verbose = True
-            c.sitemap_name = 'tests/testdata/examples_from_spec/resourcesync_ex_1.xml'
+            c.sitemap_name = 'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml'
             c.max_sitemap_entries = 1
             c.parse_document()
         self.assertRegex(capturer.result, r'Showing first 1 entries')
@@ -280,7 +280,7 @@ class TestClient(TestCase):
 
     def test45_write_change_list(self):
         c = Client()
-        ex1 = 'tests/testdata/examples_from_spec/resourcesync_ex_1.xml'
+        ex1 = 'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml'
         with capture_stdout() as capturer:
             c.write_change_list(ref_sitemap=ex1, newref_sitemap=ex1)
         self.assertRegex(capturer.result, r'<rs:md capability="changelist"')
@@ -344,20 +344,20 @@ class TestClient(TestCase):
         c = Client()
         with capture_stdout() as capturer:
             rl = c.read_reference_resource_list(
-                'tests/testdata/examples_from_spec/resourcesync_ex_1.xml')
+                'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml')
         self.assertEqual(len(rl), 2)
         self.assertEqual('', capturer.result)
         c.verbose = True
         with capture_stdout() as capturer:
             rl = c.read_reference_resource_list(
-                'tests/testdata/examples_from_spec/resourcesync_ex_1.xml')
+                'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml')
         self.assertEqual(len(rl), 2)
         self.assertRegex(capturer.result, r'http://example.com/res2')
         c.verbose = True
         c.max_sitemap_entries = 1
         with capture_stdout() as capturer:
             rl = c.read_reference_resource_list(
-                'tests/testdata/examples_from_spec/resourcesync_ex_1.xml')
+                'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml')
         self.assertEqual(len(rl), 2)
         self.assertRegex(capturer.result, r'http://example.com/res1')
         self.assertRegex(capturer.result, r'Showing first 1 entries')

@@ -18,6 +18,9 @@ from resync.sitemap import Sitemap
 
 class TestExamplesFromSpec(unittest.TestCase):
 
+    def _open_ex(self, ex):
+        return open('tests/testdata/examples_from_spec_v1_0/%s.xml' % (ex), 'r')
+
     def test_all_simple_read(self):
         """Just try to read each one"""
         for ex in ('archives_ex_2_1', 'archives_ex_2_2',
@@ -42,7 +45,7 @@ class TestExamplesFromSpec(unittest.TestCase):
     def test_ex_01(self):
         """resourcesync_ex_1 is a simple resource_list with 2 resources, no metadata"""
         rl = ResourceList()
-        rl.parse(uri='tests/testdata/examples_from_spec/resourcesync_ex_1.xml')
+        rl.parse(uri='tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml')
         self.assertEqual(rl.capability, 'resourcelist')
         self.assertEqual(len(rl.resources), 2, '2 resources')
         sms = sorted(rl.uris())
@@ -53,7 +56,7 @@ class TestExamplesFromSpec(unittest.TestCase):
     def test_ex_02(self):
         """resourcesync_ex_2 is a simple resource_list with 2 resources, some metadata"""
         rl = ResourceList()
-        rl.parse(uri='tests/testdata/examples_from_spec/resourcesync_ex_2.xml')
+        rl.parse(uri='tests/testdata/examples_from_spec_v1_0/resourcesync_ex_2.xml')
         self.assertEqual(len(rl.resources), 2, '2 resources')
         sms = sorted(rl.uris())
         self.assertEqual(
@@ -70,7 +73,7 @@ class TestExamplesFromSpec(unittest.TestCase):
     def test_ex_03(self):
         """resourcesync_ex_3 is a simple change_list with 2 resources"""
         cl = ChangeList()
-        cl.parse('tests/testdata/examples_from_spec/resourcesync_ex_3.xml')
+        cl.parse('tests/testdata/examples_from_spec_v1_0/resourcesync_ex_3.xml')
         self.assertEqual(len(cl.resources), 2, '2 resources')
         sms = sorted(cl.uris())
         self.assertEqual(
@@ -83,7 +86,7 @@ class TestExamplesFromSpec(unittest.TestCase):
     def test_ex_04(self):
         """resourcesync_ex_4 is a simple resource dump with one ZIP listed"""
         rd = ResourceDump()
-        rd.parse('tests/testdata/examples_from_spec/resourcesync_ex_4.xml')
+        rd.parse('tests/testdata/examples_from_spec_v1_0/resourcesync_ex_4.xml')
         self.assertEqual(len(rd.resources), 1, '1 resources')
         self.assertTrue('http://example.com/resourcedump.zip' in rd.resources)
         self.assertEqual(rd.resources[
@@ -92,7 +95,7 @@ class TestExamplesFromSpec(unittest.TestCase):
     def test_ex_05(self):
         """resourcesync_ex_5 is a simple resource dump manifest with two files listed"""
         rdm = ResourceDumpManifest()
-        rdm.parse('tests/testdata/examples_from_spec/resourcesync_ex_5.xml')
+        rdm.parse('tests/testdata/examples_from_spec_v1_0/resourcesync_ex_5.xml')
         self.assertEqual(len(rdm.resources), 2, '2 resources')
         sms = sorted(rdm.uris())
         self.assertEqual(
@@ -113,7 +116,7 @@ class TestExamplesFromSpec(unittest.TestCase):
     def test_ex_06(self):
         """resourcesync_ex_6 is a simple capability list with three capabilities"""
         capl = CapabilityList()
-        capl.parse('tests/testdata/examples_from_spec/resourcesync_ex_6.xml')
+        capl.parse('tests/testdata/examples_from_spec_v1_0/resourcesync_ex_6.xml')
         self.assertEqual(len(capl.resources), 3, '3 capabilities')
         # What capabilities are present?
         self.assertTrue(capl.has_capability('resourcelist'))
@@ -133,7 +136,7 @@ class TestExamplesFromSpec(unittest.TestCase):
     def text_ex_07(self):
         """resourcesync_ex_7 is a source description that list a single Capability List"""
         sd = SourceDescription()
-        sd.read(uri='tests/testdata/examples_from_spec/resourcesync_ex_7.xml')
+        sd.read(uri='tests/testdata/examples_from_spec_v1_0/resourcesync_ex_7.xml')
         self.assertEqual(len(sd.resources), 1, '1 capability list')
         cl = sd.resources[0]
         self.assertEqual(
@@ -146,7 +149,7 @@ class TestExamplesFromSpec(unittest.TestCase):
         """resourcesync_ex_8 is a simple Resource List Index with 2 Resource Lists"""
         rl = ResourceList()
         rl.read(
-            uri='tests/testdata/examples_from_spec/resourcesync_ex_8.xml', index_only=True)
+            uri='tests/testdata/examples_from_spec_v1_0/resourcesync_ex_8.xml', index_only=True)
         self.assertEqual(rl.capability, 'resourcelist')
         self.assertEqual(rl.md_at, '2013-01-03T09:00:00Z')
         self.assertEqual(len(rl.resources), 2, '2 resources')
@@ -159,7 +162,7 @@ class TestExamplesFromSpec(unittest.TestCase):
     def test_ex_12(self):
         """resourcesync_ex_12 is a Source Description that talks about 3 sets of resources"""
         sd = SourceDescription()
-        sd.read(uri='tests/testdata/examples_from_spec/resourcesync_ex_12.xml')
+        sd.read(uri='tests/testdata/examples_from_spec_v1_0/resourcesync_ex_12.xml')
         self.assertEqual(len(sd), 3)
         self.assertEqual(sd.uris(), ['http://example.com/capabilitylist1.xml',
                                      'http://example.com/capabilitylist2.xml',
@@ -876,6 +879,3 @@ class TestExamplesFromSpec(unittest.TestCase):
         xml = re.sub(r"encoding='UTF-8'", 'encoding="UTF-8"', xml)
         # return self.assertEqual( x, 'xx' )
         return(xml.split('>'))
-
-    def _open_ex(self, ex):
-        return open('tests/testdata/examples_from_spec/%s.xml' % (ex), 'r')
