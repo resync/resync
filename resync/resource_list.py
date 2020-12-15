@@ -141,7 +141,7 @@ class ResourceList(ListBaseWithIndex):
 
     def __init__(self, resources=None, count=None, md=None, ln=None, uri=None,
                  allow_multifile=None, mapper=None,
-                 spec_version='1.1', include_lastmod=False,
+                 spec_version='1.1', add_lastmod=False,
                  resources_class=ResourceListDict):
         """Initialize ResourceList."""
         super(ResourceList, self).__init__(
@@ -153,7 +153,7 @@ class ResourceList(ListBaseWithIndex):
             capability_name='resourcelist',
             allow_multifile=allow_multifile,
             mapper=mapper, spec_version=spec_version,
-            include_lastmod=include_lastmod,
+            add_lastmod=add_lastmod,
             resources_class=resources_class)
 
     def add(self, resource, replace=False):

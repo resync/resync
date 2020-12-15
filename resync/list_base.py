@@ -43,13 +43,13 @@ class ListBase(ResourceContainer):
     """
 
     def __init__(self, resources=None, count=None, md=None, ln=None, uri=None,
-                 capability_name='unknown', spec_version='1.1', include_lastmod=False):
+                 capability_name='unknown', spec_version='1.1', add_lastmod=False):
         """Initialize ListBase."""
         super(ListBase, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
                                        capability_name=capability_name)
         self.count = count
         self.spec_version = spec_version
-        self.include_lastmod = include_lastmod  # Optional in v1.1
+        self.add_lastmod = add_lastmod  # Optional in v1.1
         self.sitemapindex = False
         self.pretty_xml = False
         #
@@ -151,4 +151,4 @@ class ListBase(ResourceContainer):
         """Create new Sitemap object with default settings."""
         return Sitemap(pretty_xml=self.pretty_xml,
                        spec_version=self.spec_version,
-                       include_lastmod=self.include_lastmod)
+                       add_lastmod=self.add_lastmod)

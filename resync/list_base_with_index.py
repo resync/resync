@@ -49,7 +49,7 @@ class ListBaseWithIndex(ListBase):
 
     def __init__(self, resources=None, count=None, md=None, ln=None, uri=None,
                  capability_name='unknown', allow_multifile=None, mapper=None,
-                 spec_version='1.1', include_lastmod=False, resources_class=None):
+                 spec_version='1.1', add_lastmod=False, resources_class=None):
         """Initialize ListBaseWithIndex."""
         self.resources_class = list if resources_class is None else resources_class
         if (resources is None):
@@ -62,7 +62,7 @@ class ListBaseWithIndex(ListBase):
             uri=uri,
             capability_name=capability_name,
             spec_version=spec_version,
-            include_lastmod=include_lastmod)
+            add_lastmod=add_lastmod)
         # specific to lists with indexes
         self.max_sitemap_entries = 50000
         self.mapper = mapper

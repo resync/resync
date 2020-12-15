@@ -65,12 +65,12 @@ class Sitemap(object):
     so that the calling code can handle it.
     """
 
-    def __init__(self, pretty_xml=False, spec_version='1.1', include_lastmod=False):
+    def __init__(self, pretty_xml=False, spec_version='1.1', add_lastmod=False):
         """Initialize Sitemap object."""
         self.logger = logging.getLogger('resync.sitemap')
         self.pretty_xml = pretty_xml
         self.spec_1_0 = (spec_version == '1.0')  # v1.0 else assume v1.1
-        self.include_lastmod = include_lastmod  # Optional in v1.1
+        self.add_lastmod = add_lastmod  # Optional in v1.1
         # Classes used when parsing
         self.resource_class = Resource
         # Information recorded for logging
@@ -247,7 +247,7 @@ class Sitemap(object):
         sub.text = resource.uri
         e.append(sub)
         lm = resource.lastmod  # W3C Datetime in UTC
-        if lm is not None or self.spec_1_0 or self.include_lastmod:
+        if lm is not None or self.spec_1_0 or self.add_lastmod:
             # In 1.0 we either use the lastmod specified or else use the
             # datetime value because there should always be a lastmod
             if lm is None:

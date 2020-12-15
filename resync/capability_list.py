@@ -74,7 +74,7 @@ class CapabilityList(ListBase):
     """
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
-                 spec_version='1.1', include_lastmod=False):
+                 spec_version='1.1', add_lastmod=False):
         """Initialize CapabilityList."""
         if (resources is None):
             resources = CapabilitySet()
@@ -82,7 +82,7 @@ class CapabilityList(ListBase):
             resources=resources, md=md, ln=ln, uri=uri,
             capability_name='capabilitylist',
             spec_version=spec_version,
-            include_lastmod=include_lastmod)
+            add_lastmod=add_lastmod)
 
     def add(self, resource, replace=False):
         """Add a resource or an iterable collection of resources.

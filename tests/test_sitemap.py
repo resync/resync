@@ -35,7 +35,7 @@ class TestSitemap(unittest.TestCase):
                          "<url><loc>a3</loc><lastmod>2012-01-11T01:02:03Z</lastmod></url>")
         self.assertEqual(Sitemap(spec_version='1.0').resource_as_xml(r1),
                          "<url><loc>a3</loc><lastmod>2012-01-11T01:02:03Z</lastmod></url>")
-        self.assertEqual(Sitemap(spec_version='1.1', include_lastmod=True).resource_as_xml(r1),
+        self.assertEqual(Sitemap(spec_version='1.1', add_lastmod=True).resource_as_xml(r1),
                          "<url><loc>a3</loc><lastmod>2012-01-11T01:02:03Z</lastmod></url>")
         # Now just datetime specified
         r2 = Resource('aardvark')
@@ -46,7 +46,7 @@ class TestSitemap(unittest.TestCase):
                          '<url><loc>aardvark</loc><rs:md datetime="2012-01-11T04:05:06Z" /></url>')
         self.assertEqual(Sitemap(spec_version='1.0').resource_as_xml(r2),
                          '<url><loc>aardvark</loc><lastmod>2012-01-11T04:05:06Z</lastmod></url>')
-        self.assertEqual(Sitemap(spec_version='1.1', include_lastmod=True).resource_as_xml(r2),
+        self.assertEqual(Sitemap(spec_version='1.1', add_lastmod=True).resource_as_xml(r2),
                          '<url><loc>aardvark</loc><lastmod>2012-01-11T04:05:06Z</lastmod><rs:md datetime="2012-01-11T04:05:06Z" /></url>')
 
     def test_02_resource_str(self):
