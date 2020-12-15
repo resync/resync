@@ -43,7 +43,7 @@ class ListBase(ResourceContainer):
     """
 
     def __init__(self, resources=None, count=None, md=None, ln=None, uri=None,
-                 capability_name='unknown', spec_version='1.0', include_lastmod=True):
+                 capability_name='unknown', spec_version='1.1', include_lastmod=False):
         """Initialize ListBase."""
         super(ListBase, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
                                        capability_name=capability_name)

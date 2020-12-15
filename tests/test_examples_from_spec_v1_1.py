@@ -553,7 +553,7 @@ class TestExamplesFromSpec(TestCase):
         cl.up = "http://example.com/dataset1/capabilitylist.xml"
         cl.md_from = "2013-01-03T00:00:00Z"
         c1 = Resource(uri="http://example.com/res1",
-                      lastmod="2013-01-03T18:00:00Z",
+                      lastmod="2013-01-03T18:00:00Z",  # Example has lastmod and no datetime
                       change="updated",
                       md5="1584abdf8ebdc9802ac0c6a7402c03b6",
                       length=8876,

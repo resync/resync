@@ -74,7 +74,7 @@ class CapabilityList(ListBase):
     """
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
-                 spec_version='1.0', include_lastmod=True):
+                 spec_version='1.1', include_lastmod=False):
         """Initialize CapabilityList."""
         if (resources is None):
             resources = CapabilitySet()

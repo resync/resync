@@ -22,7 +22,7 @@ class ResourceDumpManifest(ResourceList):
 
     def __init__(self, resources=None, md=None, ln=None,
                  uri=None, allow_multifile=None, mapper=None,
-                 spec_version='1.0', include_lastmod=True):
+                 spec_version='1.1', include_lastmod=False):
         """Initialize ResourceDumpManifest."""
         super(ResourceDumpManifest, self).__init__(
             resources=resources, md=md, ln=ln, uri=uri, mapper=mapper,

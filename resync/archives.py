@@ -19,7 +19,7 @@ class ResourceListArchive(ListBaseWithIndex):
     """Class representing an Resource List Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
-                 spec_version='1.0', include_lastmod=True,
+                 spec_version='1.1', include_lastmod=False,
                  resources_class=None):
         """Initialize ResourceListArchive."""
         self.resources_class = list if resources_class is None else resources_class
@@ -35,7 +35,7 @@ class ChangeListArchive(ListBaseWithIndex):
     """Class representing an Change List Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
-                 spec_version='1.0', include_lastmod=True,
+                 spec_version='1.1', include_lastmod=False,
                  resources_class=None):
         """Initialize ChangeListArchive."""
         super(ChangeListArchive, self).__init__(
@@ -48,7 +48,7 @@ class ResourceDumpArchive(ListBaseWithIndex):
     """Class representing an Resource Dump Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
-                 spec_version='1.0', include_lastmod=True,
+                 spec_version='1.1', include_lastmod=False,
                  resources_class=None):
         """Initialize ResourceDumpArchive."""
         super(ResourceDumpArchive, self).__init__(
@@ -62,7 +62,7 @@ class ChangeDumpArchive(ListBaseWithIndex):
     """Class representing an Change Dump Archive."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
-                 spec_version='1.0', include_lastmod=True,
+                 spec_version='1.1', include_lastmod=False,
                  resources_class=None):
         """Initialize ChangeDumpArchive."""
         super(ChangeDumpArchive, self).__init__(

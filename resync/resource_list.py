@@ -141,7 +141,7 @@ class ResourceList(ListBaseWithIndex):
 
     def __init__(self, resources=None, count=None, md=None, ln=None, uri=None,
                  allow_multifile=None, mapper=None,
-                 spec_version='1.0', include_lastmod=True,
+                 spec_version='1.1', include_lastmod=False,
                  resources_class=ResourceListDict):
         """Initialize ResourceList."""
         super(ResourceList, self).__init__(

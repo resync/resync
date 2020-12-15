@@ -26,7 +26,7 @@ class ChangeList(ListBaseWithIndex):
     """Class representing an Change List."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
-                 mapper=None, spec_version='1.0', include_lastmod=True,
+                 mapper=None, spec_version='1.1', include_lastmod=False,
                  resources_class=list):
         """Initialize ChangeList."""
         super(ChangeList, self).__init__(

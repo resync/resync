@@ -39,7 +39,7 @@ class SourceDescription(ListBaseWithIndex):
     """
 
     def __init__(self, resources=None, md=None, ln=None,
-                 spec_version='1.0', include_lastmod=True):
+                 spec_version='1.1', include_lastmod=False):
         """Initialize based on superclass ListBaseWithIndex."""
         super(SourceDescription, self).__init__(
             resources=resources, md=md, ln=ln,
