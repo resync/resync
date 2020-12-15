@@ -63,6 +63,19 @@ class Sitemap(object):
     of a sitemapindex and multiple sitemap documents. Instead it will
     take a default and throw and exception if the other case is found
     so that the calling code can handle it.
+
+    Default is to follow ResourceSync v1.1 which distinguishes the meanings
+    of the <lastmod> element (resource modified time as used for Last-Modified
+    header) and the newly introduced <rs:md datetime="..."> attribute (the
+    change time in ChangeList and similar resources). There are two parameters
+    to control these behaviors:
+
+        spec_version - set to either '1.0' or '1.1'. If set to '1.0' then no
+            datetime attribute will be written or parsed
+        add_lastmod - set True to add a lastmod with the same value of datetime
+            if no specific lastmod is specified. Applies only when spec_version
+            '1.1' is selected, provide compatibility with systems that do not
+            understand datetime but instead rely on lastmod
     """
 
     def __init__(self, pretty_xml=False, spec_version='1.1', add_lastmod=False):
@@ -250,7 +263,7 @@ class Sitemap(object):
         if lm is not None or self.spec_1_0 or self.add_lastmod:
             # In 1.0 we either use the lastmod specified or else use the
             # datetime value because there should always be a lastmod
-            if lm is None:
+            if lm is None and (self.spec_1_0 or self.add_lastmod):
                 lm = resource.datetime  # W3C Datetime in UTC
             if lm is not None:
                 sub = Element('lastmod')
