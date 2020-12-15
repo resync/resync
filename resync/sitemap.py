@@ -114,25 +114,13 @@ class Sitemap(object):
         if (fh is None):
             xml_buf = io.StringIO()
             fh = xml_buf
-        if (sys.version_info >= (3, 0)):
-            tree.write(
-                fh,
-                encoding='unicode',
-                xml_declaration=True,
-                method='xml')
-        elif (sys.version_info >= (2, 7)):
-            tree.write(
-                fh,
-                encoding='UTF-8',
-                xml_declaration=True,
-                method='xml')
-        else:  # python2.6
-            tree.write(fh, encoding='UTF-8')
+        tree.write(
+            fh,
+            encoding='unicode',
+            xml_declaration=True,
+            method='xml')
         if (xml_buf is not None):
-            if (sys.version_info >= (3, 0)):
-                return(xml_buf.getvalue())
-            else:
-                return(xml_buf.getvalue().decode('utf-8'))
+            return(xml_buf.getvalue())
 
     # Read/parse an XML sitemap or sitemapindex
 
