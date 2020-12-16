@@ -37,37 +37,35 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser._optionals = parser.add_argument_group(
-        'MODES OF OPERATION (must specify one only). The REMOTE modes use a '
-        'remote source that is specified in a set of uri=path mappings and '
-        'potentially also using an explicit --sitemap location. The LOCAL '
-        'modes operate only to create ResourceSync descriptions on the local '
-        'filesystem based on local content')
+        'MODES OF OPERATION (must specify one only). This script operates only '
+        'to create ResourceSync descriptions on the local filesystem based on '
+        'local content')
     rem = parser.add_mutually_exclusive_group(required=True)
     rem.add_argument('--write-resourcelist', '--write-resource-list', action='store_true',
-                     help="LOCAL: write a resource list based on files on disk using uri=path mappings "
+                     help="write a resource list based on files on disk using uri=path mappings "
                           "in reverse to calculate URIs from the local paths. Scans local disk "
                           "based either on explicit --paths setting, else starting from all local "
                           "paths specified in the mappings. Writes to STDOUT by default, override "
                           "with --outfile")
     rem.add_argument('--write-changelist', '--write-change-list', action='store_true',
-                     help="LOCAL: write a change list based on comparison of a reference sitemap "
+                     help="write a change list based on comparison of a reference sitemap "
                           "(specify file with --reference) and either files on disk (using "
                           "the mapping provided) or a second sitemap (specify file with "
                           "--newreference). Otherwise follows --write-resourcelist options. Also accepts "
                           "the --empty option (with no mapping) to write and empty changelist.")
     rem.add_argument('--write-capabilitylist', '--write-capability-list', type=str, action='store',
-                     help="LOCAL: write a capability list based on the set of capabilities and "
+                     help="write a capability list based on the set of capabilities and "
                           "URIs supplied in cap_name=URI,cap_name=URI format. Otherwise "
                           "follows --write-resourcelist options.")
     rem.add_argument('--write-sourcedescription', '--write-source-description', type=str, action='store',
-                     help="LOCAL: write a Source Description document based on the set of capability "
+                     help="write a Source Description document based on the set of capability "
                           "list URIs supplied as a comma separated list. Otherwise "
                           "follows --write-resourcelist options.")
     rem.add_argument('--write-resourcedump', '--write-resource-dump', '-d', action='store_true',
-                     help="LOCAL: write a Resource Dump. Specify output file with --outfile and use other "
+                     help="write a Resource Dump. Specify output file with --outfile and use other "
                           "options as for --write-resourcelist")
     rem.add_argument('--write-changedump', '--write-change-dump', action='store_true',
-                     help="LOCAL: write a Resource Dump. Specify output file with --outfile and use other "
+                     help="write a Resource Dump. Specify output file with --outfile and use other "
                           "options as for --write-changelist")
 
     # Positional arguments
@@ -82,12 +80,6 @@ def main():
     nam.add_argument('--paths', type=str, action='store',
                      help="explicit set of paths for disk scan --resourceslist or --changelist "
                           "generation")
-    nam.add_argument('--sitemap', type=str, action='store',
-                     help="explicitly set sitemap name, overriding default sitemap.xml "
-                          "appended to first source URI specified in the mappings")
-    nam.add_argument('--capabilitylist', '--capability-list', type=str, action='store',
-                     help="explicitly set capability list URI to search for instead of "
-                          "looking for the source description")
     nam.add_argument('--reference', type=str, action='store',
                      help="reference sitemap name for --write-changelist calculation")
     nam.add_argument('--newreference', type=str, action='store',
@@ -143,18 +135,12 @@ def main():
         if (args.map):
             # Mappings apply to (almost) everything
             c.set_mappings(args.map)
-        if (args.sitemap):
-            c.sitemap_name = args.sitemap
-        if (args.capabilitylist):
-            c.capability_list_uri = args.capabilitylist
         if (args.warc):
             c.dump_format = 'warc'
         if (args.exclude):
             c.exclude_patterns = args.exclude
         if (args.multifile):
             c.allow_multifile = not args.multifile
-        if (args.noauth):
-            c.noauth = args.noauth
         if (args.max_sitemap_entries):
             c.max_sitemap_entries = args.max_sitemap_entries
 

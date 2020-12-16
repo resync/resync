@@ -3,7 +3,8 @@
 [![Build Status](https://travis-ci.org/resync/resync.svg?branch=master)](https://travis-ci.org/resync/resync)
 [![Test Coverage](https://coveralls.io/repos/github/resync/resync/badge.svg?branch=master)](https://coveralls.io/github/resync/resync)
 
-**resync** is a ResourceSync client and library in python.
+**resync** is a ResourceSync library with supporting client scipts,
+written in python.
 [ResourceSync](http://www.openarchives.org/rs/) is a synchronization
 framework for the web consisting of various capabilities that allow
 third party systems to remain synchronized with a server's evolving
@@ -16,20 +17,20 @@ Typical client usage to synchronize from a source at
 `http://source.example.com/` to a set of local files would be
 
 ```
-resync.py http://source.example.com/
+resync-sync http://source.example.com/
 ```
 
 which will create or update a local directory `./source.example.com`.
 Alternatively, the destination directory may be specified explicitly::
 
 ```
-resync.py http://source.example.com/ /tmp/my_copy
+resync-sync http://source.example.com/ /tmp/my_copy
 ```
 
 Option details and a number of different modes are described with::
 
 ```
-resync.py -h
+resync-sync -h
 ```
 
 ## Python library usage
@@ -37,7 +38,7 @@ resync.py -h
 Typical library use in a source (create and output a Resource List)::
 
 ```
-from resync import Resource,ResourceList
+from resync import Resource, ResourceList
 
 rl = ResourceList()
 rl.add( Resource('http://example.com/res1', lastmod='2013-01-01') )
@@ -83,9 +84,9 @@ python setup.py install
 ```
 
 This will install the library code in the appropriate place within
-a user-space python setup, including the clients `resync.py` and
-`resync-explorer.py`. Use of `sudo` to install in system spaces is
-generally discouraged.
+a user-space python setup, including the clients `resync-sync`,
+`resync-build` and `resync-explorer`. Use of `sudo` to install in
+system spaces is generally discouraged.
 
 The source code is maintained on [Github](https://github.com/resync/resync)
 and there may be branches/versions available there that are not

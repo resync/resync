@@ -62,7 +62,7 @@ def main():
     opt = parser.add_argument_group('MISCELANEOUS OPTIONS')
     opt.add_argument('--max-sitemap-entries', type=int, action='store',
                      help="override default size limits")
-    add_shared_misc_options(opt, default_logfile=DEFAULT_LOGFILE)
+    add_shared_misc_options(opt, default_logfile=DEFAULT_LOGFILE, include_remote=True)
 
     args = parser.parse_args()
 

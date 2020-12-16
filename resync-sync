@@ -75,7 +75,7 @@ def main():
 
     # Options that apply to multiple modes
     opt = parser.add_argument_group('MISCELANEOUS OPTIONS')
-    add_shared_misc_options(opt, default_logfile=DEFAULT_LOGFILE)
+    add_shared_misc_options(opt, default_logfile=DEFAULT_LOGFILE, include_remote=True)
     opt.add_argument('--delete', action='store_true',
                      help="allow files on destination to be deleted")
     opt.add_argument('--empty', action='store_true',
@@ -109,7 +109,7 @@ def main():
     init_logging(to_file=args.logger, logfile=args.logfile, default_logfile=DEFAULT_LOGFILE,
                  verbose=args.verbose, eval_mode=args.eval)
 
-    process_shared_misc_options(args)
+    process_shared_misc_options(args, include_remote=True)
 
     c = Client(hashes=args.hash,
                verbose=args.verbose,

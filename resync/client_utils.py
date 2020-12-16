@@ -1,6 +1,6 @@
 """ResourceSync Client Utilities.
 
-Code shared by both the resync and resync-explorer clients.
+Code shared by client scripts.
 """
 
 import argparse
@@ -165,10 +165,10 @@ def parse_capability_lists(cls_str):
     return(cls_str.split(','))
 
 
-def add_shared_misc_options(opt, default_logfile):
+def add_shared_misc_options(opt, default_logfile, include_remote=False):
     """Add shared miscellaneous options to the argument_group opt.
 
-    Options that both resync and resync-explorer use.
+    Options that the resync-sync, resync-build and resync-explorer scripts use.
     """
     opt.add_argument('--hash', type=str, action='append',
                      help="use specified hash types in addition to last modification time "
@@ -185,13 +185,14 @@ def add_shared_misc_options(opt, default_logfile):
                           "information, repeat option for multiple excludes)")
     opt.add_argument('--multifile', '-m', action='store_true',
                      help="disable reading and output of sitemapindex for multifile sitemap")
-    opt.add_argument('--noauth', action='store_true',
-                     help="disable checking of URL paths to ensure that the sitemaps refer "
-                          "only to resources on the same server/sub-path etc. Use with care.")
-    opt.add_argument('--access-token', type=str, default=None,
-                     help="include this access token (a bearer token) in web requests")
-    opt.add_argument('--delay', type=float, default=None,
-                     help="add a delay between web requests (default is None)")
+    if include_remote:
+        opt.add_argument('--noauth', action='store_true',
+                         help="disable checking of URL paths to ensure that the sitemaps refer "
+                              "only to resources on the same server/sub-path etc. Use with care.")
+        opt.add_argument('--access-token', type=str, default=None,
+                         help="include this access token (a bearer token) in web requests")
+        opt.add_argument('--delay', type=float, default=None,
+                         help="add a delay between web requests (default is None)")
     # Want these to show at the end
     opt.add_argument('--logger', '-l', action='store_true',
                      help="create detailed log of client actions (will write "
@@ -202,16 +203,17 @@ def add_shared_misc_options(opt, default_logfile):
                      help="verbose, show additional informational messages")
 
 
-def process_shared_misc_options(args):
+def process_shared_misc_options(args, include_remote=False):
     """Process shared miscellaneous options in args.
 
-    Options that both resync.py and resync-explorer.py use.
+    Parse options that the resync-sync, resync-build and resync-explorer scripts use.
     """
     if args.checksum:
         args.hash.append('md5')
-    if args.access_token:
-        set_url_or_file_open_config('bearer_token', args.access_token)
-    if args.delay:
-        if args.delay < 0.0:
-            raise argparse.ArgumentTypeError("--delay must be non-negative!")
-        set_url_or_file_open_config('delay', args.delay)
+    if include_remote:
+        if args.access_token:
+            set_url_or_file_open_config('bearer_token', args.access_token)
+        if args.delay:
+            if args.delay < 0.0:
+                raise argparse.ArgumentTypeError("--delay must be non-negative!")
+            set_url_or_file_open_config('delay', args.delay)
