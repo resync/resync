@@ -1,4 +1,4 @@
-from tests.testcase_with_tmpdir import TestCase
+from .testlib import TestCase
 
 import logging
 import os.path

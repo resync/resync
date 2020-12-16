@@ -21,10 +21,10 @@ def datetime_to_str(dt='now', no_fractions=False):
     in UTC. At preesent this code will return 6 decimal digits
     if any fraction of a second is given. It would perhaps be
     better to return only the number of decimal digits necessary,
-    up to a resultion of 1 microsecond.
+    up to a resolution of 1 microsecond.
 
     Special cases:
-    - Returns datetime str for now if no parameter given.
+    - Returns datetime str for 'now' if no parameter given.
     - Returns None if None is supplied.
     """
     if (dt is None):
@@ -102,7 +102,7 @@ def str_to_datetime(s, context='datetime'):
     # with dt.tzinfo module but this has variation in behavior
     # between python 2.6 and 2.7... so do here for now
     m = re.match(r"(\d\d\d\d\-\d\d\-\d\dT\d\d:\d\d(:\d\d)?)(Z|([+-])"
-                 "(\d\d):(\d\d))$", s)
+                 r"(\d\d):(\d\d))$", s)
     if (m is None):
         raise ValueError("Bad datetime format (%s)" % s)
     str = m.group(1) + 'Z'

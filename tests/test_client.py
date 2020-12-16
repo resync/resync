@@ -1,6 +1,4 @@
-from tests.testcase_with_tmpdir import TestCase
-from tests.capture_stdout import capture_stdout
-from tests.webserver_context import webserver
+from .testlib import TestCase, capture_stdout, webserver
 
 import unittest
 import re
@@ -18,6 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 class TestClient(TestCase):
+    """Test cases for resync.client."""
 
     def test01_make_resource_list_empty(self):
         c = Client()
@@ -121,7 +120,7 @@ class TestClient(TestCase):
                 self.assertTrue(
                     lc.records[-1].msg.startswith('Failed to GET http://localhost:9999/i_do_not_exist '))
             # get from file uri
-            resource = Resource(uri='http://localhost:9999/examples_from_spec/resourcesync_ex_1.xml',
+            resource = Resource(uri='http://localhost:9999/examples_from_spec_v1_0/resourcesync_ex_1.xml',
                                 length=355, md5='abc',
                                 timestamp=10)
             c.last_timestamp = 0
@@ -131,7 +130,7 @@ class TestClient(TestCase):
                 self.assertEqual(n, 1)
                 self.assertTrue(lc.records[-1].msg.startswith('Event: {'))
             # get from file uri with length and md5 warnings
-            resource = Resource(uri='http://localhost:9999/examples_from_spec/resourcesync_ex_1.xml',
+            resource = Resource(uri='http://localhost:9999/examples_from_spec_v1_0/resourcesync_ex_1.xml',
                                 length=111, md5='abc',
                                 timestamp=10)
             c.last_timestamp = 0
@@ -200,37 +199,33 @@ class TestClient(TestCase):
         # document and identifies its type
         c = Client()
         with capture_stdout() as capturer:
-            c.sitemap_name = 'tests/testdata/examples_from_spec/resourcesync_ex_1.xml'
+            c.sitemap_name = 'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml'
             c.parse_document()
-        self.assertTrue(
-            re.search(r'Parsed resourcelist document with 2 entries', capturer.result))
+        self.assertRegex(capturer.result, r'Parsed resourcelist document with 2 entries')
         with capture_stdout() as capturer:
-            c.sitemap_name = 'tests/testdata/examples_from_spec/resourcesync_ex_17.xml'
+            c.sitemap_name = 'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_17.xml'
             c.parse_document()
-        self.assertTrue(
-            re.search(r'Parsed resourcedump document with 3 entries', capturer.result))
+        self.assertRegex(capturer.result, r'Parsed resourcedump document with 3 entries')
         with capture_stdout() as capturer:
-            c.sitemap_name = 'tests/testdata/examples_from_spec/resourcesync_ex_19.xml'
+            c.sitemap_name = 'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_19.xml'
             c.parse_document()
-        self.assertTrue(
-            re.search(r'Parsed changelist document with 4 entries', capturer.result))
+        self.assertRegex(capturer.result, r'Parsed changelist document with 4 entries')
         with capture_stdout() as capturer:
-            c.sitemap_name = 'tests/testdata/examples_from_spec/resourcesync_ex_22.xml'
+            c.sitemap_name = 'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_22.xml'
             c.parse_document()
-        self.assertTrue(
-            re.search(r'Parsed changedump document with 3 entries', capturer.result))
+        self.assertRegex(capturer.result, r'Parsed changedump document with 3 entries')
         # Document that doesn't exist
         c.sitemap_name = '/does_not_exist'
         self.assertRaises(ClientFatalError, c.parse_document)
         # and verbose with truncation...
         with capture_stdout() as capturer:
             c.verbose = True
-            c.sitemap_name = 'tests/testdata/examples_from_spec/resourcesync_ex_1.xml'
+            c.sitemap_name = 'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml'
             c.max_sitemap_entries = 1
             c.parse_document()
-        self.assertTrue(re.search(r'Showing first 1 entries', capturer.result))
-        self.assertTrue(re.search(r'\[0\] ', capturer.result))
-        self.assertFalse(re.search(r'\[1\] ', capturer.result))
+        self.assertRegex(capturer.result, r'Showing first 1 entries')
+        self.assertRegex(capturer.result, r'\[0\] ')
+        self.assertNotRegex(capturer.result, r'\[1\] ')
 
     def test40_write_resource_list_mappings(self):
         c = Client()
@@ -240,14 +235,10 @@ class TestClient(TestCase):
         with capture_stdout() as capturer:
             c.write_resource_list()
         # sys.stderr.write(capturer.result)
-        self.assertTrue(
-            re.search(r'<rs:md at="\S+" capability="resourcelist"', capturer.result))
-        self.assertTrue(
-            re.search(r'<url><loc>http://example.org/d1/file_a</loc>', capturer.result))
-        self.assertTrue(
-            re.search(r'<url><loc>http://example.org/d1/file_b</loc>', capturer.result))
-        self.assertTrue(
-            re.search(r'<url><loc>http://example.org/d2/file_x</loc>', capturer.result))
+        self.assertRegex(capturer.result, r'<rs:md at="\S+" capability="resourcelist"')
+        self.assertRegex(capturer.result, r'<url><loc>http://example.org/d1/file_a</loc>')
+        self.assertRegex(capturer.result, r'<url><loc>http://example.org/d1/file_b</loc>')
+        self.assertRegex(capturer.result, r'<url><loc>http://example.org/d2/file_x</loc>')
 
     def test41_write_resource_list_path(self):
         c = Client()
@@ -257,21 +248,18 @@ class TestClient(TestCase):
         # included
         with capture_stdout() as capturer:
             c.write_resource_list(paths='tests/testdata/dir1', links=links)
-        self.assertTrue(
-            re.search(r'<rs:md at="\S+" capability="resourcelist"', capturer.result))
-        self.assertTrue(
-            re.search(r'<url><loc>http://example.org/dir1/file_a</loc>', capturer.result))
-        self.assertTrue(
-            re.search(r'<url><loc>http://example.org/dir1/file_b</loc>', capturer.result))
-        self.assertFalse(
-            re.search(r'<url><loc>http://example.org/dir2/file_x</loc>', capturer.result))
+        print("capturer.result: " + capturer.result)
+        self.assertRegex(capturer.result, r'<rs:md at="\S+" capability="resourcelist"')
+        self.assertRegex(capturer.result, r'<url><loc>http://example.org/dir1/file_a</loc>')
+        self.assertRegex(capturer.result, r'<url><loc>http://example.org/dir1/file_b</loc>')
+        self.assertNotRegex(capturer.result, r'<url><loc>http://example.org/dir2/file_x</loc>')
         # check link present
-        self.assertTrue(re.search(r'rel="uri_c"', capturer.result))
-        self.assertTrue(re.search(r'href="uri_d"', capturer.result))
+        self.assertRegex(capturer.result, r'rel="uri_c"')
+        self.assertRegex(capturer.result, r'href="uri_d"')
         # Travis CI does not preserve timestamps from github so test here for the file
         # size but not the datestamp
-        # self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_a</loc><lastmod>[\w\-:]+</lastmod><rs:md length="20" /></url>', capturer.result ) )
-        # self.assertTrue( re.search(r'<url><loc>http://example.org/dir1/file_b</loc><lastmod>[\w\-:]+</lastmod><rs:md length="45" /></url>', capturer.result ) )
+        # self.assertRegex(capturer.result, r'<url><loc>http://example.org/dir1/file_a</loc><lastmod>[\w\-:]+</lastmod><rs:md length="20" /></url>')
+        # self.assertRegex(capturer.result, r'<url><loc>http://example.org/dir1/file_b</loc><lastmod>[\w\-:]+</lastmod><rs:md length="45" /></url>')
         # to file
         outfile = os.path.join(self.tmpdir, 'rl_out.xml')
         c.write_resource_list(paths='tests/testdata/dir1', outfile=outfile)
@@ -292,19 +280,16 @@ class TestClient(TestCase):
 
     def test45_write_change_list(self):
         c = Client()
-        ex1 = 'tests/testdata/examples_from_spec/resourcesync_ex_1.xml'
+        ex1 = 'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml'
         with capture_stdout() as capturer:
             c.write_change_list(ref_sitemap=ex1, newref_sitemap=ex1)
-        self.assertTrue(
-            re.search(r'<rs:md capability="changelist"', capturer.result))
+        self.assertRegex(capturer.result, r'<rs:md capability="changelist"')
         # compare ex1 with testdata on disk
         c.set_mappings(['http://example.org/', 'tests/testdata/'])
         with capture_stdout() as capturer:
             c.write_change_list(ref_sitemap=ex1, paths='tests/testdata/dir1')
-        self.assertTrue(
-            re.search(r'<rs:md capability="changelist"', capturer.result))
-        self.assertTrue(re.search(
-            r'<url><loc>http://example.com/res1</loc><rs:md change="deleted" /></url>', capturer.result))
+        self.assertRegex(capturer.result, r'<rs:md capability="changelist"')
+        self.assertRegex(capturer.result, r'<url><loc>http://example.com/res1</loc><rs:md change="deleted" /></url>')
         # to file
         outfile = os.path.join(self.tmpdir, 'cl_out.xml')
         c.write_change_list(
@@ -317,13 +302,10 @@ class TestClient(TestCase):
         # simple case to STDOUT
         with capture_stdout() as capturer:
             c.write_capability_list(caps)
-        self.assertTrue(re.search(r'<urlset ', capturer.result))
-        self.assertTrue(
-            re.search(r'<rs:md capability="capabilitylist" />', capturer.result))
-        self.assertTrue(
-            re.search(r'<url><loc>uri_a</loc><rs:md capability="a"', capturer.result))
-        self.assertTrue(
-            re.search(r'<url><loc>uri_b</loc><rs:md capability="b"', capturer.result))
+        self.assertRegex(capturer.result, r'<urlset ')
+        self.assertRegex(capturer.result, r'<rs:md capability="capabilitylist" />')
+        self.assertRegex(capturer.result, r'<url><loc>uri_a</loc><rs:md capability="a"')
+        self.assertRegex(capturer.result, r'<url><loc>uri_b</loc><rs:md capability="b"')
         # to file (just check that something is written)
         outfile = os.path.join(self.tmpdir, 'caps_out.xml')
         c.write_capability_list(capabilities=caps, outfile=outfile)
@@ -334,18 +316,15 @@ class TestClient(TestCase):
         # simple case to STDOUT
         with capture_stdout() as capturer:
             c.write_source_description(['a', 'b', 'c'])
-        self.assertTrue(re.search(r'<urlset ', capturer.result))
-        self.assertTrue(
-            re.search(r'<rs:md capability="description" />', capturer.result))
-        self.assertTrue(re.search(
-            r'<url><loc>a</loc><rs:md capability="capabilitylist" /></url>', capturer.result))
-        self.assertTrue(re.search(
-            r'<url><loc>b</loc><rs:md capability="capabilitylist" /></url>', capturer.result))
+        self.assertRegex(capturer.result, r'<urlset ')
+        self.assertRegex(capturer.result, r'<rs:md capability="description" />')
+        self.assertRegex(capturer.result, r'<url><loc>a</loc><rs:md capability="capabilitylist" /></url>')
+        self.assertRegex(capturer.result, r'<url><loc>b</loc><rs:md capability="capabilitylist" /></url>')
         # more complex case to STDOUT
         with capture_stdout() as capturer:
             c.write_source_description(
                 capability_lists=['http://a.b/'], links=[{'rel': 'c', 'href': 'd'}])
-        self.assertTrue(re.search(r'http://a.b/', capturer.result))
+        self.assertRegex(capturer.result, r'http://a.b/')
         # to file (just check that something is written)
         outfile = os.path.join(self.tmpdir, 'sd_out.xml')
         c.write_source_description(capability_lists=[
@@ -359,31 +338,30 @@ class TestClient(TestCase):
         # with dump file
         with capture_stdout() as capturer:
             c.write_dump_if_requested(ChangeList(), '/tmp/a_file')
-        self.assertTrue(re.search(r'FIXME', capturer.result))
+        self.assertRegex(capturer.result, r'FIXME')
 
     def test49_read_reference_resource_list(self):
         c = Client()
         with capture_stdout() as capturer:
             rl = c.read_reference_resource_list(
-                'tests/testdata/examples_from_spec/resourcesync_ex_1.xml')
+                'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml')
         self.assertEqual(len(rl), 2)
         self.assertEqual('', capturer.result)
         c.verbose = True
         with capture_stdout() as capturer:
             rl = c.read_reference_resource_list(
-                'tests/testdata/examples_from_spec/resourcesync_ex_1.xml')
+                'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml')
         self.assertEqual(len(rl), 2)
-        self.assertTrue(re.search(r'http://example.com/res2', capturer.result))
+        self.assertRegex(capturer.result, r'http://example.com/res2')
         c.verbose = True
         c.max_sitemap_entries = 1
         with capture_stdout() as capturer:
             rl = c.read_reference_resource_list(
-                'tests/testdata/examples_from_spec/resourcesync_ex_1.xml')
+                'tests/testdata/examples_from_spec_v1_0/resourcesync_ex_1.xml')
         self.assertEqual(len(rl), 2)
-        self.assertTrue(re.search(r'http://example.com/res1', capturer.result))
-        self.assertTrue(re.search(r'Showing first 1 entries', capturer.result))
-        self.assertFalse(
-            re.search(r'http://example.com/res2', capturer.result))
+        self.assertRegex(capturer.result, r'http://example.com/res1')
+        self.assertRegex(capturer.result, r'Showing first 1 entries')
+        self.assertNotRegex(capturer.result, r'http://example.com/res2')
 
     def test50_log_status(self):
         c = Client()

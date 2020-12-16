@@ -1,10 +1,18 @@
-resync change log
-=================
+# resync change log
 
-The first two components of the version tags are tied to the ResourceSync 
-core specification version. Versions 1.0.x implement the v1.0 
-ResourceSync specification which was standardized as ANSI/NISO Z39.99-2014
-<http://www.openarchives.org/rs/1.0/toc>.
+v2.0.0 2020-12-16
+  * Supports ResourceSync v1.1 ANSI/NISO Z39.99-2017 <http://www.openarchives.org/rs/1.1/toc> as default
+  * Support for the prior v1.0 ANSI/NISO Z39.99-2014 <http://www.openarchives.org/rs/1.0/toc> is retained with `spec-version='1.0'` option in scripts and `spec_version='1.0'` in various classes
+  * Split old `resync` script into `resync-sync` and `resync-build`
+  * Move scripts from `bin` dir to base dir for easier testing/development (now that there is no conflict with the module name)
+  * Switch from optparse to argparse, use exclusive argument group for commands
+  * Add --access_token option to pass bearer token with web requests
+  * Add --delay option to pause between successive web requests
+  * Drop Python 2.7, 3.3 & 3.4 from tests, add 3.7 & 3.8
+  * Fix various depracation warnings and errors for 3.7 & 3.8
+  * Switch from pep8 to pycodestyle in tests
+  * Change README from RDS to github flavored Markdown
+  * Move libraries to support tests into test/testlib
 
 v1.0.9 2018-10-23
   * Add -t/--tries and -T/--timeout options (https://github.com/resync/resync/issues/34)

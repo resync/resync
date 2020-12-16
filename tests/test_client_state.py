@@ -1,6 +1,6 @@
-from tests.testcase_with_tmpdir import TestCase
+from .testlib import TestCase
+
 import os.path
-import unittest
 from resync.client_state import ClientState
 
 

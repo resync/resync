@@ -25,8 +25,9 @@ from .resource import Resource
 from .url_authority import UrlAuthority
 from .hashes import Hashes
 from .client_state import ClientState
-from .client_utils import ClientFatalError, ClientError, url_or_file_open
+from .client_utils import ClientFatalError, ClientError
 from .list_base_with_index import ListBaseIndexError
+from .url_or_file_open import url_or_file_open
 from .w3c_datetime import str_to_datetime, datetime_to_str
 
 
@@ -40,8 +41,9 @@ class Client(object):
       debug   - very verbose for automated analysis
     """
 
-    def __init__(self, hashes=None, verbose=False, dryrun=False):
+    def __init__(self, spec_version='1.1', hashes=None, verbose=False, dryrun=False):
         """Initialize Client object with default parameters."""
+        self.spec_version = spec_version
         self.hashes = set(hashes) if hashes else set()
         self.verbose = verbose
         self.dryrun = dryrun
@@ -381,12 +383,14 @@ class Client(object):
         # Check all changes have timestamp and record last
         self.last_timestamp = 0
         for resource in src_change_list:
-            if (resource.timestamp is None):
+            if resource.timestamp is None and resource.ts_datetime is None:
                 raise ClientFatalError(
-                    "Aborting - missing timestamp for change in %s" %
-                    (uri))
-            if (resource.timestamp > self.last_timestamp):
-                self.last_timestamp = resource.timestamp
+                    "Aborting - no datetime or lastmod for change in %s" %
+                    (resource.uri))
+            # Work with 1.0 or 1.1 -- use datetime if given, else lastmod
+            ts = resource.ts_datetime if resource.ts_datetime is not None else resource.timestamp
+            if (ts > self.last_timestamp):
+                self.last_timestamp = ts
         # 4. Check that the change list has authority over URIs listed
         # FIXME - What does authority mean for change list? Here use both the
         # change list URI and, if we used it, the sitemap URI
@@ -395,14 +399,14 @@ class Client(object):
             if (not change_list_uri):
                 uauth_sm = UrlAuthority(self.sitemap)
                 for resource in src_change_list:
-                    if (not uauth_cs.has_authority_over(resource.uri) and
-                            (change_list_uri or not uauth_sm.has_authority_over(resource.uri))):
+                    if (not uauth_cs.has_authority_over(resource.uri)
+                            and (change_list_uri or not uauth_sm.has_authority_over(resource.uri))):
                         raise ClientFatalError(
                             "Aborting as change list (%s) mentions resource at a location it does not have authority over (%s), override with --noauth" %
                             (change_list, resource.uri))
         # 5. Prune entries before starting timestamp and dupe changes for a
         # resource
-        num_skipped = src_change_list.prune_before(from_timestamp)
+        num_skipped = src_change_list.prune_updates_before(from_timestamp, spec_version=self.spec_version)
         if (num_skipped > 0):
             self.logger.info(
                 "Skipped %d changes before %s" %
@@ -586,8 +590,8 @@ class Client(object):
         """
         num_deleted = 0
         uri = resource.uri
-        if (resource.timestamp is not None and
-                resource.timestamp > self.last_timestamp):
+        if (resource.timestamp is not None
+                and resource.timestamp > self.last_timestamp):
             self.last_timestamp = resource.timestamp
         if (allow_deletion):
             if (self.dryrun):

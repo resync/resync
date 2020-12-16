@@ -5,25 +5,16 @@ intended as the base class for ResourceList, ChangeList,
 CapabilityList etc.. Adds common read() and write() methods.
 """
 
-import collections
-import os
 from datetime import datetime
+import io
+import os
 import re
 import sys
-try:  # python2
-    # Must try this first as io also exists in python2
-    # but in the wrong one!
-    import StringIO as io
-except ImportError:  # python3
-    import io
 import logging
-try:  # python3
-    from urllib.request import URLopener
-except ImportError:  # pragma: no cover  python2
-    from urllib import URLopener  # pragma: no cover
 
 from .resource_container import ResourceContainer
 from .sitemap import Sitemap
+from .url_or_file_open import url_or_file_open
 
 
 class ListBase(ResourceContainer):
@@ -39,15 +30,26 @@ class ListBase(ResourceContainer):
 
     ln - link information for the list (<rs:ln>)
 
-    sitemapindex - defaults to False, set True if this is an index object
+    uri - the URL of this list
+
+    capability_name -
+
+    spec_version - default to None for latest version supported, else explicit
+        version such as '1.0'
+
+    Internal variables:
+      sitemapindex - defaults to False, set True if this is an index object
+      pretty_xml - defaults to False, set True for more human readable output
     """
 
     def __init__(self, resources=None, count=None, md=None, ln=None, uri=None,
-                 capability_name='unknown'):
+                 capability_name='unknown', spec_version='1.1', add_lastmod=False):
         """Initialize ListBase."""
         super(ListBase, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
                                        capability_name=capability_name)
         self.count = count
+        self.spec_version = spec_version
+        self.add_lastmod = add_lastmod  # Optional in v1.1
         self.sitemapindex = False
         self.pretty_xml = False
         #
@@ -96,7 +98,7 @@ class ListBase(ResourceContainer):
         """
         if (uri is not None):
             try:
-                fh = URLopener().open(uri)
+                fh = url_or_file_open(uri)
             except IOError as e:
                 raise Exception(
                     "Failed to load sitemap/sitemapindex from %s (%s)" %
@@ -107,7 +109,7 @@ class ListBase(ResourceContainer):
             # Legacy support for str argument, see
             # https://github.com/resync/resync/pull/21
             # One test for this in tests/test_list_base.py
-            self.logger.warn(
+            self.logger.warning(
                 "Legacy parse(str=...), use parse(str_data=...) instead")
             fh = io.StringIO(kwargs['str'])
         if (fh is None):
@@ -147,4 +149,6 @@ class ListBase(ResourceContainer):
 
     def new_sitemap(self):
         """Create new Sitemap object with default settings."""
-        return Sitemap(pretty_xml=self.pretty_xml)
+        return Sitemap(pretty_xml=self.pretty_xml,
+                       spec_version=self.spec_version,
+                       add_lastmod=self.add_lastmod)

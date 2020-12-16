@@ -1,17 +1,12 @@
 """Read and write ResourceSync documents as sitemaps."""
 
-import re
-import os
-import sys
+import io
 import logging
+import os
+import re
+import sys
 from defusedxml.ElementTree import parse
 from xml.etree.ElementTree import ElementTree, Element, tostring
-try:  # python2
-    # Must try this first as io also exists in python2
-    # but in the wrong one!
-    import StringIO as io
-except ImportError:  # python3
-    import io
 
 from .resource import Resource
 from .resource_container import ResourceContainer
@@ -68,17 +63,38 @@ class Sitemap(object):
     of a sitemapindex and multiple sitemap documents. Instead it will
     take a default and throw and exception if the other case is found
     so that the calling code can handle it.
+
+    Default is to follow ResourceSync v1.1 which distinguishes the meanings
+    of the <lastmod> element (resource modified time as used for Last-Modified
+    header) and the newly introduced <rs:md datetime="..."> attribute (the
+    change time in ChangeList and similar resources). There are two parameters
+    to control these behaviors:
+
+        spec_version - set to either '1.0' or '1.1'. If set to '1.0' then no
+            datetime attribute will be written or parsed
+        add_lastmod - set True to add a lastmod with the same value of datetime
+            if no specific lastmod is specified. Applies only when spec_version
+            '1.1' is selected, provide compatibility with systems that do not
+            understand datetime but instead rely on lastmod
     """
 
-    def __init__(self, pretty_xml=False):
+    def __init__(self, pretty_xml=False, spec_version='1.1', add_lastmod=False):
         """Initialize Sitemap object."""
         self.logger = logging.getLogger('resync.sitemap')
         self.pretty_xml = pretty_xml
+        self.spec_1_0 = (spec_version == '1.0')  # v1.0 else assume v1.1
+        self.add_lastmod = add_lastmod  # Optional in v1.1
         # Classes used when parsing
         self.resource_class = Resource
         # Information recorded for logging
         self.resources_created = 0    # Set during parsing sitemap
         self.parsed_index = None      # Set True for sitemapindex, False for sitemap
+        # rs:md attributes
+        self.md_att_keys = ['md_at', 'capability', 'change', 'datetime',
+                            'md_completed', 'md_from', 'hash', 'length',
+                            'path', 'mime_type', 'md_until']
+        if self.spec_1_0:
+            self.md_att_keys.remove('datetime')
 
     # Write the XML for a sitemap or sitemapindex
 
@@ -117,25 +133,13 @@ class Sitemap(object):
         if (fh is None):
             xml_buf = io.StringIO()
             fh = xml_buf
-        if (sys.version_info >= (3, 0)):
-            tree.write(
-                fh,
-                encoding='unicode',
-                xml_declaration=True,
-                method='xml')
-        elif (sys.version_info >= (2, 7)):
-            tree.write(
-                fh,
-                encoding='UTF-8',
-                xml_declaration=True,
-                method='xml')
-        else:  # python2.6
-            tree.write(fh, encoding='UTF-8')
+        tree.write(
+            fh,
+            encoding='unicode',
+            xml_declaration=True,
+            method='xml')
         if (xml_buf is not None):
-            if (sys.version_info >= (3, 0)):
-                return(xml_buf.getvalue())
-            else:
-                return(xml_buf.getvalue().decode('utf-8'))
+            return(xml_buf.getvalue())
 
     # Read/parse an XML sitemap or sitemapindex
 
@@ -193,7 +197,7 @@ class Sitemap(object):
         in_preamble = True
         self.resources_created = 0
         seen_top_level_md = False
-        for e in etree.getroot().getchildren():
+        for e in list(etree.getroot()):
             # look for <rs:md> and <rs:ln>, first <url> ends
             # then look for resources in <url> blocks
             if (e.tag == resource_tag):
@@ -255,23 +259,25 @@ class Sitemap(object):
         sub = Element('loc')
         sub.text = resource.uri
         e.append(sub)
-        if (resource.timestamp is not None):
-            # Create appriate element for timestamp
-            sub = Element('lastmod')
-            sub.text = str(resource.lastmod)  # W3C Datetime in UTC
-            e.append(sub)
+        lm = resource.lastmod  # W3C Datetime in UTC
+        if lm is not None or self.spec_1_0 or self.add_lastmod:
+            # In 1.0 we either use the lastmod specified or else use the
+            # datetime value because there should always be a lastmod
+            if lm is None and (self.spec_1_0 or self.add_lastmod):
+                lm = resource.datetime  # W3C Datetime in UTC
+            if lm is not None:
+                sub = Element('lastmod')
+                sub.text = lm
+                e.append(sub)
         md_atts = {}
-        for att in ('capability', 'change', 'hash', 'length', 'path', 'mime_type',
-                    'md_at', 'md_completed', 'md_from', 'md_until'):
+        for att in self.md_att_keys:
             val = getattr(resource, att, None)
             if (val is not None):
-                md_atts[self._xml_att_name(att)] = str(val)
+                md_atts[att] = str(val)
         if (len(md_atts) > 0):
-            md = Element('rs:md', md_atts)
-            e.append(md)
+            self.add_element_with_atts_to_etree(e, 'rs:md', md_atts, add_return=False)
         # add any <rs:ln>
-        if (hasattr(resource, 'ln') and
-                resource.ln is not None):
+        if (hasattr(resource, 'ln') and resource.ln is not None):
             for ln in resource.ln:
                 self.add_element_with_atts_to_etree(e, 'rs:ln', ln)
         if (self.pretty_xml):
@@ -342,7 +348,7 @@ class Sitemap(object):
             # have on element, look at attributes
             md = self.md_from_etree(md_elements[0], context=loc)
             # simple attributes that map directly to Resource object attributes
-            for att in ('capability', 'change', 'length', 'path', 'mime_type'):
+            for att in ('capability', 'change', 'datetime', 'length', 'path', 'mime_type'):
                 if (att in md):
                     setattr(resource, att, md[att])
             # The ResourceSync beta spec lists md5, sha-1 and sha-256 fixity
@@ -366,11 +372,12 @@ class Sitemap(object):
         Parameters:
             md_element  - etree element <rs:md>
             context     - context for error reporting
+
+        ResourceSync v1.1 adds the datetime attribute
         """
         md = {}
         # grab all understood attributes into md dict
-        for att in ('capability', 'change', 'hash', 'length', 'path', 'mime_type',
-                    'md_at', 'md_completed', 'md_from', 'md_until'):
+        for att in self.md_att_keys:
             xml_att = self._xml_att_name(att)
             val = md_element.attrib.get(xml_att, None)
             if (val is not None):
@@ -446,8 +453,8 @@ class Sitemap(object):
 
     # Metadata and link elements
 
-    def add_element_with_atts_to_etree(self, etree, name, atts):
-        """Add element with name and atts to etree iff there are any atts.
+    def add_element_with_atts_to_etree(self, etree, name, atts, add_return=True):
+        """Add empty element with name and atts to etree iff there are any atts.
 
         Parameters:
             etree - an etree object
@@ -461,8 +468,17 @@ class Sitemap(object):
                 xml_atts[self._xml_att_name(att)] = str(val)
         if (len(xml_atts) > 0):
             e = Element(name, xml_atts)
-            if (self.pretty_xml):
+            if (add_return and self.pretty_xml):
                 e.tail = "\n"
+            # There is no real reason why the attribute keys should be sorted
+            # but ElementTree serialization up to Python 3.7 always wrote XML
+            # with attributes in sort order. This was changed in Python 3.8
+            # to be the order of addition. Adding sorting here keeps consistent
+            # behavior for all versions. See:
+            # https://docs.python.org/3/library/xml.etree.elementtree.html#element-objects
+            attribs = sorted(e.attrib.items())
+            e.attrib.clear()
+            e.attrib.update(attribs)
             etree.append(e)
 
     def _xml_att_name(self, att):

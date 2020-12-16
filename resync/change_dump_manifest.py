@@ -23,13 +23,14 @@ class ChangeDumpManifest(ChangeList):
     """
 
     def __init__(self, resources=None, md=None, ln=None,
-                 uri=None, allow_multifile=None, mapper=None):
+                 uri=None, allow_multifile=None, mapper=None,
+                 spec_version='1.1', add_lastmod=False):
         """Initialize ChangeDumpManifest.
 
         Simply sets capability_name to 'changedump-manifest' when
         subclassing ChangeList.
         """
         super(ChangeDumpManifest, self).__init__(
-            resources=resources, md=md, ln=ln,
-            uri=uri, mapper=mapper)
+            resources=resources, md=md, ln=ln, uri=uri, mapper=mapper,
+            spec_version=spec_version, add_lastmod=add_lastmod)
         self.capability_name = 'changedump-manifest'

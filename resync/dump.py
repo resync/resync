@@ -96,7 +96,7 @@ class Dump(object):
         # without this installed
         try:
             from warc import WARCFile, WARCHeader, WARCRecord
-        except:
+        except ImportError:
             raise DumpError("Failed to load WARC library")
         wf = WARCFile(dumpfile, mode="w", compress=self.compress)
         # Add all files in the resources
@@ -175,8 +175,7 @@ class Dump(object):
             manifest.add(resource)
             manifest_size += resource.length
             manifest_files += 1
-            if (manifest_size >= self.max_size or
-                    manifest_files >= self.max_files):
+            if (manifest_size >= self.max_size or manifest_files >= self.max_files):
                 yield(manifest)
                 # Need to start a new manifest
                 manifest = self.manifest_class()

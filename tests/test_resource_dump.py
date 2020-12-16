@@ -1,5 +1,6 @@
 """Tests for resync.resource_dump."""
-from tests.testcase_with_tmpdir import TestCase
+from .testlib import TestCase
+
 import os.path
 try:  # python2
     # Must try this first as io also exists in python2

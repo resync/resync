@@ -1,0 +1,163 @@
+#!/usr/bin/env python
+"""resync-sync: The ResourceSync command line synchronization client.
+
+Copyright 2012-2020 Simeon Warner
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License
+"""
+
+import argparse
+import sys
+
+from resync import __version__
+from resync.client import Client, ClientFatalError
+from resync.client_utils import init_logging, count_true_args, parse_links, parse_capabilities, parse_capability_lists, add_shared_misc_options, process_shared_misc_options
+
+DEFAULT_LOGFILE = 'resync-client.log'
+
+
+def main():
+    """Main function to implement command line script."""
+    if (sys.version_info < (3, 5)):
+        sys.exit("This program requires python version 3.5 or later")
+
+    # Options and arguments
+    parser = argparse.ArgumentParser(
+        description="ResourceSync command line client (v" + __version__ + ")",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser._optionals = parser.add_argument_group(
+        'MODES OF OPERATION (must specify one only). A source that is specified '
+        'either in a set of uri=path mappings or else using an explicit --sitemap '
+        'location')
+    rem = parser.add_mutually_exclusive_group(required=True)
+    rem.add_argument('--baseline', '-b', action='store_true',
+                     help='baseline sync of resources from remote source (src) to local filesystem (dst)')
+    rem.add_argument('--incremental', '--inc', '-i', action='store_true',
+                     help='incremental sync of resources from remote source (src) to local filesystem (dst). Uses either timestamp recorded from last baseline or incremental sync for this source, or explicit --from parameter, to determine the earlier update timestamp to act on.')
+    rem.add_argument('--audit', '-a', action='store_true',
+                     help="audit sync state of destination wrt source")
+    rem.add_argument('--parse', '-p', action='store_true',
+                     help="parse a remote sitemap/sitemapindex (from mapping or explicit --sitemap) and show summary information including document type and number of entries")
+
+    # Positional arguments
+    map = parser.add_argument_group('URI MAPPING TO FILESYSTEM for REMOTE modes')
+    map.add_argument(metavar='uri=path | uri path', dest='map', type=str, nargs='*',
+                     help="remote URI of source for remote synchronization operations (may "
+                          "also combine uri=local path)")
+
+    # Specification of map between remote URI and local file paths, and remote
+    # sitemap
+    nam = parser.add_argument_group('FILE/URI NAMING OPTIONS')
+    nam.add_argument('--sitemap', type=str, action='store',
+                     help="explicitly set sitemap name, overriding default sitemap.xml "
+                          "appended to first source URI specified in the mappings")
+    nam.add_argument('--capabilitylist', '--capability-list', type=str, action='store',
+                     help="explicitly set capability list URI to search for instead of "
+                          "looking for the source description")
+    nam.add_argument('--reference', type=str, action='store',
+                     help="reference sitemap name for --write-changelist calculation")
+    nam.add_argument('--newreference', type=str, action='store',
+                     help="updated reference sitemap name for --write-changelist calculation")
+    nam.add_argument('--changelist-uri', '--change-list-uri', type=str, action='store',
+                     help="explicitly set the changelist URI that will be use in --inc mode, "
+                          "overrides process of getting this from the sitemap")
+
+    # Options that apply to multiple modes
+    opt = parser.add_argument_group('MISCELANEOUS OPTIONS')
+    add_shared_misc_options(opt, default_logfile=DEFAULT_LOGFILE, include_remote=True)
+    opt.add_argument('--delete', action='store_true',
+                     help="allow files on destination to be deleted")
+    opt.add_argument('--empty', action='store_true',
+                     help="combine with --changelist to write and empty changelist, perhaps with links")
+    opt.add_argument('--strictauth', action='store_true',
+                     help="use more strict checking of URLs to ensure that the ResourceSync "
+                          "documents refer only to resources on the same server or sub-domains, "
+                          "and on the same server to sub-paths. This is the authority model "
+                          "of Sitemaps but there are legitimate uses where these rules would "
+                          "not be followed.")
+    opt.add_argument('--dryrun', '-n', action='store_true',
+                     help="don't update local resources, say what would be done")
+    opt.add_argument('--ignore-failures', action='store_true',
+                     help="continue past download failures")
+    # These likely only useful for experimentation
+    opt.add_argument('--max-sitemap-entries', type=int, action='store',
+                     help="override default size limits")
+    opt.add_argument('--eval', '-e', action='store_true',
+                     help="output evaluation of source/client synchronization performance... "
+                          "be warned, this is very verbose")
+    opt.add_argument('--tries', '-t', type=int, action='store', metavar='TRIES',
+                     help="set number of tries to TRIES. The default is to retry 20 times, "
+                          "with the exception of fatal errors like \"connection refused\" "
+                          "or \"not found\" (404), which are not retried.")
+    opt.add_argument('--timeout', '-T', type=int, action='store', metavar='SECONDS',
+                     help="set the request timeout for resource downloads to SECONDS seconds")
+
+    args = parser.parse_args()
+
+    # Configure logging module and create logger instance
+    init_logging(to_file=args.logger, logfile=args.logfile, default_logfile=DEFAULT_LOGFILE,
+                 verbose=args.verbose, eval_mode=args.eval)
+
+    process_shared_misc_options(args, include_remote=True)
+
+    c = Client(spec_version=args.spec_version,
+               hashes=args.hash,
+               verbose=args.verbose,
+               dryrun=args.dryrun)
+
+    try:
+        if (args.map):
+            # Mappings apply to (almost) everything
+            c.set_mappings(args.map)
+        if (args.sitemap):
+            c.sitemap_name = args.sitemap
+        if (args.capabilitylist):
+            c.capability_list_uri = args.capabilitylist
+        if (args.exclude):
+            c.exclude_patterns = args.exclude
+        if (args.multifile):
+            c.allow_multifile = not args.multifile
+        if (args.noauth):
+            c.noauth = args.noauth
+        if (args.strictauth):
+            c.strictauth = args.strictauth
+        if (args.max_sitemap_entries):
+            c.max_sitemap_entries = args.max_sitemap_entries
+        if (args.ignore_failures):
+            c.ignore_failures = args.ignore_failures
+        if (args.tries):
+            c.tries = args.tries
+        if (args.timeout):
+            c.timeout = args.timeout
+
+        # Finally, do something...
+        if (args.baseline or args.audit):
+            c.baseline_or_audit(allow_deletion=args.delete,
+                                audit_only=args.audit)
+        elif (args.incremental):
+            c.incremental(allow_deletion=args.delete,
+                          change_list_uri=args.changelist_uri,
+                          from_datetime=args.from_datetime)
+        elif (args.parse):
+            c.parse_document()
+        else:
+            parser.error("Unknown mode requested")
+    # Any problem we expect will come as a ClientFatalError, anything else
+    # is... an exception ;-)
+    except ClientFatalError as e:
+        sys.stderr.write("\nFatalError: " + str(e) + "\n")
+
+
+if __name__ == '__main__':
+    main()

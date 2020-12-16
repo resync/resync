@@ -3,9 +3,10 @@
 import re
 try:  # python3
     from urllib.parse import urlparse
-except:  # python2
+except ImportError:  # python2
     from urlparse import urlparse
 from posixpath import basename
+
 from .w3c_datetime import str_to_datetime, datetime_to_str
 
 
@@ -33,12 +34,13 @@ class Resource(object):
         mime_type - MIME type
         md5, sha1, sha256 - digests, have hash accessor
         change - change type
+        ts_datetime - time of the change, has datetime accessor
         path - path in dump
 
     If non-core attributes are needed then the '_extra' attribute
     has a dict of values. The ones explicitly used here are:
 
-        capability - Capability nam
+        capability - Capability name
         ts_at - at time, has md_at accessor
         ts_completed - completed time, has md_completed accessor
         ts_from - from time, has md_from accessor
@@ -55,15 +57,15 @@ class Resource(object):
     """
 
     __slots__ = ('uri', 'timestamp', 'length', 'mime_type',
-                 'md5', 'sha1', 'sha256', 'change', 'path',
-                 '_extra', 'ln')
+                 'md5', 'sha1', 'sha256', 'change', 'ts_datetime',
+                 'path', '_extra', 'ln')
 
     CHANGE_TYPES = ['created', 'updated', 'deleted']
 
     def __init__(self, uri=None, timestamp=None, length=None,
                  md5=None, sha1=None, sha256=None, mime_type=None,
-                 change=None, path=None, lastmod=None,
-                 capability=None,
+                 change=None, ts_datetime=None, datetime=None, path=None,
+                 lastmod=None, capability=None,
                  ts_at=None, md_at=None,
                  ts_completed=None, md_completed=None,
                  ts_from=None, md_from=None,
@@ -84,13 +86,14 @@ class Resource(object):
         self.sha1 = None
         self.sha256 = None
         self.change = None
+        self.ts_datetime = None  # Added in ResourceSync v1.1
         self.path = None
         self._extra = None
         self.ln = None
         # Create from a Resource-like object? Copy any relevant attributes
         if (resource is not None):
             for att in ['uri', 'timestamp', 'length', 'md5', 'sha1', 'sha256',
-                        'change', 'path', 'capability',
+                        'change', 'ts_datetime', 'path', 'capability',
                         'ts_at', 'md_at', 'ts_completed', 'md_completed',
                         'ts_from', 'md_from', 'ts_until', 'md_until', 'ln']:
                 if hasattr(resource, att):
@@ -112,6 +115,8 @@ class Resource(object):
             self.mime_type = mime_type
         if (change is not None):
             self.change = change
+        if (ts_datetime is not None):
+            self.ts_datetime = ts_datetime
         if (path is not None):
             self.path = path
         if (ts_at is not None):
@@ -129,6 +134,8 @@ class Resource(object):
         # Timestamp setters
         if (lastmod is not None):
             self.lastmod = lastmod
+        if (datetime is not None):
+            self.datetime = datetime
         if (md_at is not None):
             self.md_at = md_at
         if (md_completed is not None):
@@ -149,8 +156,8 @@ class Resource(object):
         the idea of extra properties.
         """
         # Add validity check for self.change
-        if (prop == 'change' and Resource.CHANGE_TYPES and
-                value is not None and value not in Resource.CHANGE_TYPES):
+        if (prop == 'change' and Resource.CHANGE_TYPES
+                and value is not None and value not in Resource.CHANGE_TYPES):
             raise ChangeTypeError(value)
         else:
             try:
@@ -174,13 +181,23 @@ class Resource(object):
 
     @property
     def lastmod(self):
-        """The Last-Modified data in W3C Datetime syntax, Z notation."""
+        """The Last-Modified date for the resource in W3C Datetime syntax, Z notation."""
         return datetime_to_str(self.timestamp)
 
     @lastmod.setter
     def lastmod(self, lastmod):
-        """Set timestamp from a W3C Datetime Last-Modified value."""
+        """Set last modified timestamp from a W3C Datetime Last-Modified value."""
         self.timestamp = str_to_datetime(lastmod, context='lastmod')
+
+    @property
+    def datetime(self):
+        """The datetime of the resource change in W3C Datetime syntax, Z notation."""
+        return datetime_to_str(self.ts_datetime)
+
+    @datetime.setter
+    def datetime(self, datetime):
+        """Set timestamp from a W3C Datetime Last-Modified value."""
+        self.ts_datetime = str_to_datetime(datetime, context='ts_datetime')
 
     @property
     def md_at(self):
@@ -422,15 +439,15 @@ class Resource(object):
             return(False)
         if (self.timestamp is not None or other.timestamp is not None):
             # not equal if only one timestamp specified
-            if (self.timestamp is None or
-                    other.timestamp is None or
-                    abs(self.timestamp - other.timestamp) >= delta):
+            if (self.timestamp is None
+                    or other.timestamp is None
+                    or abs(self.timestamp - other.timestamp) >= delta):
                 return(False)
-        if ((self.md5 is not None and other.md5 is not None) and
-                self.md5 != other.md5):
+        if ((self.md5 is not None and other.md5 is not None)
+                and self.md5 != other.md5):
             return(False)
-        if ((self.length is not None and other.length is not None) and
-                self.length != other.length):
+        if ((self.length is not None and other.length is not None)
+                and self.length != other.length):
             return(False)
         return(True)
 
@@ -444,6 +461,8 @@ class Resource(object):
              str(self.md5 if self.md5 else self.sha1)]
         if (self.change is not None):
             s.append(str(self.change))
+            if self.datetime is not None:
+                s.append(" @ " + str(self.datetime))
         if (self.path is not None):
             s.append(str(self.path))
         return "[ " + " | ".join(s) + " ]"

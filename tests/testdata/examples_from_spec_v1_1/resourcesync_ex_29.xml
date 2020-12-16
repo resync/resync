@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="up"
+         href="http://example.com/dataset1/capabilitylist.xml"/>
+  <rs:md capability="changelist"
+         from="2013-01-03T00:00:00Z"/>
+  <url>
+      <loc>http://example.com/res1</loc>
+      <lastmod>2013-01-03T18:00:00Z</lastmod>
+      <rs:md hash="md5:1584abdf8ebdc9802ac0c6a7402c03b6"
+             length="8876"
+             type="text/html"
+             change="updated"/>
+      <rs:ln rel="memento"
+             href="http://example.com/20130103070000/res1"
+             modified="2013-01-02T18:00:00Z"
+             hash="md5:1584abdf8ebdc9802ac0c6a7402c03b6"
+             length="8876"
+             type="text/html"/>
+      <rs:ln rel="timegate"
+             href="http://example.com/timegate/http://example.com/res1"/>
+      <rs:ln rel="timemap"
+             href="http://example.com/timemap/http://example.com/res1"
+             type="application/link-format"/>
+  </url>
+</urlset>

@@ -25,27 +25,6 @@ class TestResourceContainer(unittest.TestCase):
         self.assertEqual(resources[0].uri, 'a')
         self.assertEqual(resources[3].uri, 'd')
 
-    def test03_prune_before(self):
-        rc = ResourceContainer()
-        rc.resources.append(Resource('a', timestamp=1))
-        rc.resources.append(Resource('b', timestamp=2))
-        rc.resources.append(Resource('c', timestamp=3))
-        rc.resources.append(Resource('d', timestamp=4))
-        rc.prune_before(3)
-        self.assertEqual(len(rc.resources), 2)
-        i = iter(rc)
-        self.assertEqual(next(i).uri, 'c')
-        self.assertEqual(next(i).uri, 'd')
-        # put some more back out of order
-        rc.resources.append(Resource('a', timestamp=1))
-        rc.resources.append(Resource('b', timestamp=2))
-        rc.resources.append(Resource('e', timestamp=1000))
-        rc.prune_before(3.5)
-        self.assertEqual(len(rc.resources), 2)
-        i = iter(rc)
-        self.assertEqual(next(i).uri, 'd')
-        self.assertEqual(next(i).uri, 'e')
-
     def test04_prune_dupes(self):
         rc = ResourceContainer()
         rc.resources.append(Resource('a', timestamp=1, change='created'))

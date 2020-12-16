@@ -1,0 +1,201 @@
+#!/usr/bin/env python
+"""resync-build: The ResourceSync command line list builder.
+
+Copyright 2012-2020 Simeon Warner
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License
+"""
+
+import argparse
+import sys
+
+from resync import __version__
+from resync.client import Client, ClientFatalError
+from resync.client_utils import init_logging, count_true_args, parse_links, parse_capabilities, parse_capability_lists, add_shared_misc_options, process_shared_misc_options
+
+DEFAULT_LOGFILE = 'resync-client.log'
+
+
+def main():
+    """Main function to implement command line script."""
+    if (sys.version_info < (3, 5)):
+        sys.exit("This program requires python version 3.5 or later")
+
+    # Options and arguments
+    parser = argparse.ArgumentParser(
+        description="ResourceSync build script (v" + __version__ + ")",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser._optionals = parser.add_argument_group(
+        'MODES OF OPERATION (must specify one only). This script operates only '
+        'to create ResourceSync descriptions on the local filesystem based on '
+        'local content')
+    rem = parser.add_mutually_exclusive_group(required=True)
+    rem.add_argument('--write-resourcelist', '--write-resource-list', action='store_true',
+                     help="write a resource list based on files on disk using uri=path mappings "
+                          "in reverse to calculate URIs from the local paths. Scans local disk "
+                          "based either on explicit --paths setting, else starting from all local "
+                          "paths specified in the mappings. Writes to STDOUT by default, override "
+                          "with --outfile")
+    rem.add_argument('--write-changelist', '--write-change-list', action='store_true',
+                     help="write a change list based on comparison of a reference sitemap "
+                          "(specify file with --reference) and either files on disk (using "
+                          "the mapping provided) or a second sitemap (specify file with "
+                          "--newreference). Otherwise follows --write-resourcelist options. Also accepts "
+                          "the --empty option (with no mapping) to write and empty changelist.")
+    rem.add_argument('--write-capabilitylist', '--write-capability-list', type=str, action='store',
+                     help="write a capability list based on the set of capabilities and "
+                          "URIs supplied in cap_name=URI,cap_name=URI format. Otherwise "
+                          "follows --write-resourcelist options.")
+    rem.add_argument('--write-sourcedescription', '--write-source-description', type=str, action='store',
+                     help="write a Source Description document based on the set of capability "
+                          "list URIs supplied as a comma separated list. Otherwise "
+                          "follows --write-resourcelist options.")
+    rem.add_argument('--write-resourcedump', '--write-resource-dump', '-d', action='store_true',
+                     help="write a Resource Dump. Specify output file with --outfile and use other "
+                          "options as for --write-resourcelist")
+    rem.add_argument('--write-changedump', '--write-change-dump', action='store_true',
+                     help="write a Resource Dump. Specify output file with --outfile and use other "
+                          "options as for --write-changelist")
+
+    # Positional arguments
+    map = parser.add_argument_group('URI MAPPING TO FILESYSTEM for REMOTE modes')
+    map.add_argument(metavar='uri=path | uri path', dest='map', type=str, nargs='*',
+                     help="remote URI of source for remote synchronization operations (may "
+                          "also combine uri=local path)")
+
+    nam = parser.add_argument_group('FILE/URI NAMING OPTIONS')
+    nam.add_argument('--outfile', type=str, action='store',
+                     help="write output to specified file rather than STDOUT or default")
+    nam.add_argument('--paths', type=str, action='store',
+                     help="explicit set of paths for disk scan --resourceslist or --changelist "
+                          "generation")
+    nam.add_argument('--reference', type=str, action='store',
+                     help="reference sitemap name for --write-changelist calculation")
+    nam.add_argument('--newreference', type=str, action='store',
+                     help="updated reference sitemap name for --write-changelist calculation")
+
+    lks = parser.add_argument_group("LINK GENERATION")
+    lks.add_argument('--link', type=str, action='append',
+                     help="add discovery links to the output sitemap, "
+                          "format: rel,href[,att1=val1,att2=val2] "
+                          "(repeat option for multiple links)")
+    lks.add_argument('--describedby-link', type=str, action='store',
+                     help="add an <rs:md rel=\"describedby\" link to "
+                          "a description of the feed at the URI given")
+    lks.add_argument('--sourcedescription-link', '--source-description-link',
+                     type=str, action='store',
+                     help="for a Capability List add a <rs:md rel=\"up\" link to the"
+                          "Source Description document at the URI given, else ignored")
+    lks.add_argument('--capabilitylist-link', '--capability-list-link',
+                     type=str, action='store',
+                     help="for all documents except a Capability List or a "
+                          "Source Description, add an <rs:md rel=\"up\" link "
+                          "to the Capability List at the URI given")
+
+    # Options that apply to multiple modes
+    opt = parser.add_argument_group('MISCELANEOUS OPTIONS')
+    add_shared_misc_options(opt, default_logfile=DEFAULT_LOGFILE)
+    opt.add_argument('--empty', action='store_true',
+                     help="combine with --changelist to write and empty changelist, perhaps with links")
+    opt.add_argument('--warc', action='store_true',
+                     help="write dumps in WARC format (instead of ZIP+Sitemap default)")
+    opt.add_argument('--dryrun', '-n', action='store_true',
+                     help="don't update local resources, say what would be done")
+    # These likely only useful for experimentation
+    opt.add_argument('--max-sitemap-entries', type=int, action='store',
+                     help="override default size limits")
+    opt.add_argument('--eval', '-e', action='store_true',
+                     help="output evaluation of source/client synchronization performance... "
+                          "be warned, this is very verbose")
+
+    args = parser.parse_args()
+
+    # Configure logging module and create logger instance
+    init_logging(to_file=args.logger, logfile=args.logfile, default_logfile=DEFAULT_LOGFILE,
+                 verbose=args.verbose, eval_mode=args.eval)
+
+    process_shared_misc_options(args)
+
+    c = Client(spec_version=args.spec_version,
+               hashes=args.hash,
+               verbose=args.verbose,
+               dryrun=args.dryrun)
+
+    try:
+        if (args.map):
+            # Mappings apply to (almost) everything
+            c.set_mappings(args.map)
+        if (args.warc):
+            c.dump_format = 'warc'
+        if (args.exclude):
+            c.exclude_patterns = args.exclude
+        if (args.multifile):
+            c.allow_multifile = not args.multifile
+        if (args.max_sitemap_entries):
+            c.max_sitemap_entries = args.max_sitemap_entries
+
+        # Links apply to anything that writes sitemaps
+        links = parse_links(args.link)
+        # Add specific links is appropriate cases
+        if (args.capabilitylist_link
+                and not args.write_capabilitylist
+                and not args.write_sourcedescription):
+            # rel="up" to Capability List in all but Capability List
+            # and Source Description
+            links.insert(0, {'rel': 'up', 'href': args.capabilitylist_link})
+        if (args.sourcedescription_link and args.write_capabilitylist):
+            # rel="up" to Source Description from Capability List
+            links.insert(0, {'rel': 'up', 'href': args.sourcedescription_link})
+        if (args.describedby_link):
+            links.insert(0, {'rel': 'describedby',
+                             'href': args.describedby_link})
+
+        # Finally, do something...
+        if (args.write_resourcelist or args.write_resourcedump):
+            c.write_resource_list(paths=args.paths,
+                                  outfile=args.outfile,
+                                  links=links,
+                                  dump=args.write_resourcedump)
+        elif (args.write_changelist or args.write_changedump):
+            if (not args.reference and not args.empty):
+                parser.error("Must supply --reference sitemap for --changelist, or --empty")
+            c.write_change_list(ref_sitemap=args.reference,
+                                newref_sitemap=(args.newreference if (
+                                    args.newreference) else None),
+                                empty=args.empty,
+                                paths=args.paths,
+                                outfile=args.outfile,
+                                links=links,
+                                dump=args.write_changedump)
+        elif (args.write_capabilitylist):
+            c.write_capability_list(
+                capabilities=parse_capabilities(args.write_capabilitylist),
+                outfile=args.outfile,
+                links=links)
+        elif (args.write_sourcedescription):
+            c.write_source_description(
+                capability_lists=parse_capability_lists(
+                    args.write_sourcedescription),
+                outfile=args.outfile,
+                links=links)
+        else:
+            parser.error("Unknown mode requested")
+    # Any problem we expect will come as a ClientFatalError, anything else
+    # is... an exception ;-)
+    except ClientFatalError as e:
+        sys.stderr.write("\nFatalError: " + str(e) + "\n")
+
+
+if __name__ == '__main__':
+    main()

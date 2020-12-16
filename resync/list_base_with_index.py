@@ -11,17 +11,14 @@ from datetime import datetime
 import re
 import sys
 import itertools
-try:  # python3
-    from urllib.request import URLopener
-except ImportError:  # python2
-    from urllib import URLopener
 
+from .hashes import Hashes
 from .list_base import ListBase
+from .mapper import Mapper, MapperError
 from .resource import Resource
 from .sitemap import Sitemap
-from .mapper import Mapper, MapperError
 from .url_authority import UrlAuthority
-from .hashes import Hashes
+from .url_or_file_open import url_or_file_open
 
 
 class ListBaseWithIndex(ListBase):
@@ -52,13 +49,20 @@ class ListBaseWithIndex(ListBase):
 
     def __init__(self, resources=None, count=None, md=None, ln=None, uri=None,
                  capability_name='unknown', allow_multifile=None, mapper=None,
-                 resources_class=None):
+                 spec_version='1.1', add_lastmod=False, resources_class=None):
         """Initialize ListBaseWithIndex."""
         self.resources_class = list if resources_class is None else resources_class
         if (resources is None):
             resources = self.resources_class()
-        super(ListBaseWithIndex, self).__init__(resources=resources, count=count, md=md, ln=ln,
-                                                uri=uri, capability_name=capability_name)
+        super(ListBaseWithIndex, self).__init__(
+            resources=resources,
+            count=count,
+            md=md,
+            ln=ln,
+            uri=uri,
+            capability_name=capability_name,
+            spec_version=spec_version,
+            add_lastmod=add_lastmod)
         # specific to lists with indexes
         self.max_sitemap_entries = 50000
         self.mapper = mapper
@@ -84,7 +88,7 @@ class ListBaseWithIndex(ListBase):
         are mapped to the filesystem also.
         """
         try:
-            fh = URLopener().open(uri)
+            fh = url_or_file_open(uri)
             self.num_files += 1
         except IOError as e:
             raise IOError(
@@ -150,13 +154,13 @@ class ListBaseWithIndex(ListBase):
             else:
                 # The individual sitemaps should be at a URL (scheme/server/path)
                 # that the sitemapindex URL can speak authoritatively about
-                if (self.check_url_authority and
-                        not UrlAuthority(sitemapindex_uri).has_authority_over(sitemap_uri)):
+                if (self.check_url_authority
+                        and not UrlAuthority(sitemapindex_uri).has_authority_over(sitemap_uri)):
                     raise ListBaseIndexError(
                         "The sitemapindex (%s) refers to sitemap at a location it does not have authority over (%s)" %
                         (sitemapindex_uri, sitemap_uri))
         try:
-            fh = URLopener().open(sitemap_uri)
+            fh = url_or_file_open(sitemap_uri)
             self.num_files += 1
         except IOError as e:
             raise ListBaseIndexError(
@@ -187,8 +191,8 @@ class ListBaseWithIndex(ListBase):
         In the case that no len() is available for self.resources then
         then self.count must be set beforehand to avoid an exception.
         """
-        if (self.max_sitemap_entries is None or
-                len(self) <= self.max_sitemap_entries):
+        if (self.max_sitemap_entries is None
+                or len(self) <= self.max_sitemap_entries):
             return(False)
         return(int(math.ceil(len(self) / float(self.max_sitemap_entries))))
 
@@ -409,7 +413,7 @@ class ListBaseWithIndex(ListBase):
         Test is to see whether have either an explicit file: URI or whether
         there is no scheme name.
         """
-        return(re.match('file:', uri) or not re.match('\w{3,4}:', uri))
+        return(re.match(r'file:', uri) or not re.match(r'\w{3,4}:', uri))
 
 
 class ListBaseIndexError(Exception):

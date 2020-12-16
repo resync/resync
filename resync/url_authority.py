@@ -70,8 +70,7 @@ class UrlAuthority(object):
             # Maybe should allow parallel for 3+ components, eg. a.example.org,
             # b.example.org
         path = os.path.dirname(s.path)
-        if (self.strict and
-                path != self.master_path and
-                not path.startswith(self.master_path)):
+        if (self.strict and path != self.master_path
+                and not path.startswith(self.master_path)):
             return(False)
         return(True)

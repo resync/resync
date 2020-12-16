@@ -43,25 +43,25 @@ class Mapper():
         source base URI. In the case that the source base URI is a local
         path already then an indentity mapping is used.
         """
-        if (use_default_path and
-                len(mappings) == 1 and
-                re.search(r"=", mappings[0]) is None):
+        if (use_default_path
+                and len(mappings) == 1
+                and re.search(r"=", mappings[0]) is None):
             path = self.path_from_uri(mappings[0])
             self.logger.warning("Using URI mapping: %s -> %s" %
                                 (mappings[0], path))
             self.mappings.append(Map(mappings[0], path))
-        elif (len(mappings) == 2 and
-              re.search(r"=", mappings[0]) is None and
-              re.search(r"=", mappings[1]) is None):
+        elif (len(mappings) == 2
+                and re.search(r"=", mappings[0]) is None
+                and re.search(r"=", mappings[1]) is None):
             self.mappings.append(Map(mappings[0], mappings[1]))
         else:
             for mapping in mappings:
-                l = mapping.split('=')
-                if (len(l) != 2):
+                entry = mapping.split('=')
+                if (len(entry) != 2):
                     raise MapperError(
                         "Bad mapping argument (%s), got %s" %
-                        (mapping, str(l)))
-                (src_uri, dst_path) = l
+                        (mapping, str(entry)))
+                (src_uri, dst_path) = entry
                 # Check for dupes
                 for map in self.mappings:
                     if (src_uri == map.src_uri):
@@ -129,10 +129,10 @@ class Mapper():
         if (netloc == ''):
             return(uri)
         path = '/'.join([netloc, path])
-        path = re.sub('[^\w\-\.]', '_', path)
-        path = re.sub('__+', '_', path)
-        path = re.sub('[_\.]+$', '', path)
-        path = re.sub('^[_\.]+', '', path)
+        path = re.sub(r'[^\w\-\.]', '_', path)
+        path = re.sub(r'__+', '_', path)
+        path = re.sub(r'[_\.]+$', '', path)
+        path = re.sub(r'^[_\.]+', '', path)
         return(path)
 
     def __repr__(self):

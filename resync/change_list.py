@@ -15,7 +15,7 @@ ChangeList containing descriptions pertaining to that
 particular resource.
 """
 
-import collections
+import collections.abc
 
 from .list_base_with_index import ListBaseWithIndex
 from .resource import Resource, ChangeTypeError
@@ -26,11 +26,14 @@ class ChangeList(ListBaseWithIndex):
     """Class representing an Change List."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
-                 mapper=None, resources_class=list):
+                 mapper=None, spec_version='1.1', add_lastmod=False,
+                 resources_class=list):
         """Initialize ChangeList."""
-        super(ChangeList, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
-                                         capability_name='changelist', mapper=mapper,
-                                         resources_class=resources_class)
+        super(ChangeList, self).__init__(
+            resources=resources, md=md, ln=ln, uri=uri,
+            capability_name='changelist', mapper=mapper,
+            spec_version=spec_version, add_lastmod=add_lastmod,
+            resources_class=resources_class)
 
     def add_if_changed(self, resource):
         """Add resource if change is not None else ChangeTypeError."""
@@ -45,7 +48,7 @@ class ChangeList(ListBaseWithIndex):
         Allows multiple resource_change objects for the same
         resource (ie. URI) and preserves the order of addition.
         """
-        if isinstance(resource, collections.Iterable):
+        if isinstance(resource, collections.abc.Iterable):
             for r in resource:
                 self.add_if_changed(r)
         else:
@@ -60,3 +63,24 @@ class ChangeList(ListBaseWithIndex):
         for resource in resources:
             rc = Resource(resource=resource, change=change)
             self.add(rc)
+
+    def prune_updates_before(self, timestamp, spec_version='1.1'):
+        """Remove all resource updates earlier than the given timestamp.
+
+        Returns the number of entries removed. Will raise an excpetion
+        if there are any entries without a datetime (1.1) or
+        timestamp (1.0).
+        """
+        n = 0
+        pruned = []
+        use_timestamp = (spec_version == '1.0')  # Else use datetime
+        for r in self.resources:
+            ts = r.timestamp if use_timestamp else r.ts_datetime
+            if (ts is None):
+                raise Exception("Entry %s has no update datetime/timestamp" % (r.uri))
+            elif (ts >= timestamp):
+                pruned.append(r)
+            else:
+                n += 1
+        self.resources = pruned
+        return(n)

@@ -10,7 +10,7 @@ base class for ResourceList, ChangeList, etc. This class provides
 only the data storage and manipulation, the ListBase class
 adds IO.
 """
-import collections
+import collections.abc
 from .w3c_datetime import datetime_to_str
 
 
@@ -114,8 +114,7 @@ class ResourceContainer(object):
     def link(self, rel):
         """Look for link with specified rel, return else None."""
         for link in self.ln:
-            if ('rel' in link and
-                    link['rel'] == rel):
+            if ('rel' in link and link['rel'] == rel):
                 return(link)
         return(None)
 
@@ -190,7 +189,7 @@ class ResourceContainer(object):
 
         Must be implemented in derived class.
         """
-        if isinstance(resource, collections.Iterable):
+        if isinstance(resource, collections.abc.Iterable):
             for r in resource:
                 self.resources.append(r)
         else:
@@ -202,24 +201,6 @@ class ResourceContainer(object):
         for r in self.resources:
             uris.append(r.uri)
         return(uris)
-
-    def prune_before(self, timestamp):
-        """Remove all resources with timestamp earlier than that given.
-
-        Returns the number of entries removed. Will raise an excpetion
-        if there are any entries without a timestamp.
-        """
-        n = 0
-        pruned = []
-        for r in self.resources:
-            if (r.timestamp is None):
-                raise Exception("Entry %s has no timestamp" % (r.uri))
-            elif (r.timestamp >= timestamp):
-                pruned.append(r)
-            else:
-                n += 1
-        self.resources = pruned
-        return(n)
 
     def prune_dupes(self):
         """Remove all but the last entry for a given resource URI.

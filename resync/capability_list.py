@@ -5,7 +5,7 @@ each capability. The Capability List object may also contain metadata
 and links like other lists.
 """
 
-import collections
+import collections.abc
 
 from .resource import Resource
 from .resource_set import ResourceSet
@@ -73,12 +73,16 @@ class CapabilityList(ListBase):
     section 7 and archives specification section 6.
     """
 
-    def __init__(self, resources=None, md=None, ln=None, uri=None):
+    def __init__(self, resources=None, md=None, ln=None, uri=None,
+                 spec_version='1.1', add_lastmod=False):
         """Initialize CapabilityList."""
         if (resources is None):
             resources = CapabilitySet()
-        super(CapabilityList, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
-                                             capability_name='capabilitylist')
+        super(CapabilityList, self).__init__(
+            resources=resources, md=md, ln=ln, uri=uri,
+            capability_name='capabilitylist',
+            spec_version=spec_version,
+            add_lastmod=add_lastmod)
 
     def add(self, resource, replace=False):
         """Add a resource or an iterable collection of resources.
@@ -88,7 +92,7 @@ class CapabilityList(ListBase):
 
         See add_capability() for normal method of adding capabilities.
         """
-        if isinstance(resource, collections.Iterable):
+        if isinstance(resource, collections.abc.Iterable):
             for r in resource:
                 self.resources.add(r, replace)
         else:

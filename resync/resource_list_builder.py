@@ -26,9 +26,6 @@ class ResourceListBuilder():
     - set_length set true to include file length in resource_list (defaults true)
     - exclude_dirs is a list of directory names to exclude
       (defaults to ['CVS','.git'))
-
-    FIXME - should add options to set sha1 and sha256 in addition or as
-    alternatives to md5.
     """
 
     def __init__(self, mapper=None, set_hashes=None,
@@ -50,7 +47,7 @@ class ResourceListBuilder():
         self.set_path = set_path
         self.set_hashes = set_hashes if (set_hashes and len(set_hashes) > 0) else None
         self.set_length = set_length
-        self.exclude_files = ['sitemap\d{0,5}.xml']
+        self.exclude_files = [r'sitemap\d{0,5}.xml']
         self.exclude_dirs = ['CVS', '.git']
         self.include_symlinks = False
         # Used internally only:

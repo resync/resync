@@ -1,15 +1,17 @@
-"""Module config for resync."""
+"""Module config for resync.
 
-from resync._version import __version__
+This is the one place the version number for resync is stored.
+"""
+__version__ = '2.0.0'
 
 # Enable easy import for core classes, e.g.
 # from resync import Resource
-from resync.source_description import SourceDescription
-from resync.capability_list import CapabilityList
-from resync.resource_list import ResourceList
-from resync.change_list import ChangeList
-from resync.resource_dump import ResourceDump
-from resync.resource_dump_manifest import ResourceDumpManifest
-from resync.change_dump import ChangeDump
-from resync.archives import ResourceListArchive, ResourceDumpArchive, ChangeListArchive, ChangeDumpArchive
-from resync.resource import Resource
+from .source_description import SourceDescription
+from .capability_list import CapabilityList
+from .resource_list import ResourceList
+from .change_list import ChangeList
+from .resource_dump import ResourceDump
+from .resource_dump_manifest import ResourceDumpManifest
+from .change_dump import ChangeDump
+from .archives import ResourceListArchive, ResourceDumpArchive, ChangeListArchive, ChangeDumpArchive
+from .resource import Resource

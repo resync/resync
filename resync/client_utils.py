@@ -1,31 +1,16 @@
 """ResourceSync Client Utilities.
 
-Factor out code shared by both the resync and resync-explorer
-clients.
-
-Copyright 2012-2018 Simeon Warner
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License
+Code shared by client scripts.
 """
 
-try:  # python3
-    from urllib.request import urlopen
-except ImportError:  # pragma: no cover  python2
-    from urllib import urlopen  # pragma: no cover
+import argparse
+from datetime import datetime
 import logging
 import logging.config
-from datetime import datetime
 import re
+from urllib.request import urlopen
+
+from .url_or_file_open import set_url_or_file_open_config
 
 
 class ClientFatalError(Exception):
@@ -180,8 +165,60 @@ def parse_capability_lists(cls_str):
     return(cls_str.split(','))
 
 
-def url_or_file_open(uri):
-    """Wrapper around urlopen() to prepend file: if no scheme provided."""
-    if (not re.match(r'''\w+:''', uri)):
-        uri = 'file:' + uri
-    return(urlopen(uri))
+def add_shared_misc_options(opt, default_logfile, include_remote=False):
+    """Add shared miscellaneous options to the argument_group opt.
+
+    Options that the resync-sync, resync-build and resync-explorer scripts use.
+    """
+    opt.add_argument('--hash', type=str, action='append',
+                     help="use specified hash types in addition to last modification time "
+                          "and size (repeatable, may include `md5`, `sha-1` and `sha-256`)")
+    opt.add_argument('--checksum', action='store_true',
+                     help="use md5 checksum in addition to last modification time and size "
+                          "(same as --hash=md5)")
+    opt.add_argument('--from', type=str, action='store', dest='from_datetime', metavar="DATETIME",
+                     help="explicit datetime value used to filter updates in change list for "
+                          "--incremental sync")
+    opt.add_argument('--exclude', type=str, action='append',
+                     help="exclude resources with URI or filename matching the python regex "
+                          "supplied (see: <https://docs.python.org/2/howto/regex.html> for regex "
+                          "information, repeat option for multiple excludes)")
+    opt.add_argument('--multifile', '-m', action='store_true',
+                     help="disable reading and output of sitemapindex for multifile sitemap")
+    if include_remote:
+        opt.add_argument('--noauth', action='store_true',
+                         help="disable checking of URL paths to ensure that the sitemaps refer "
+                              "only to resources on the same server/sub-path etc. Use with care.")
+        opt.add_argument('--access-token', type=str, default=None,
+                         help="include this access token (a bearer token) in web requests")
+        opt.add_argument('--delay', type=float, default=None,
+                         help="add a delay between web requests (default is None)")
+    # Want these to show at the end
+    opt.add_argument('--logger', '-l', action='store_true',
+                     help="create detailed log of client actions (will write "
+                          "to %s unless specified with --logfile" % (default_logfile))
+    opt.add_argument('--logfile', type=str, action='store',
+                     help="create detailed log of client actions")
+    opt.add_argument('--spec-version', default='1.1', choices=('1.0', '1.1'),
+                     help="follow given ResourceSync specification version. The key difference is that v1.0 "
+                          "used lastmod for the time of a change (often also the resource Last-Modification "
+                          "time but not always). In v1.1 the rs:md datetime attribute in a ChangeList "
+                          "indicates the time of the change, and use of lastmod is entirely optional")
+    opt.add_argument('--verbose', '-v', action='store_true',
+                     help="verbose, show additional informational messages")
+
+
+def process_shared_misc_options(args, include_remote=False):
+    """Process shared miscellaneous options in args.
+
+    Parse options that the resync-sync, resync-build and resync-explorer scripts use.
+    """
+    if args.checksum:
+        args.hash.append('md5')
+    if include_remote:
+        if args.access_token:
+            set_url_or_file_open_config('bearer_token', args.access_token)
+        if args.delay:
+            if args.delay < 0.0:
+                raise argparse.ArgumentTypeError("--delay must be non-negative!")
+            set_url_or_file_open_config('delay', args.delay)
