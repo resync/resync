@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+              xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:md capability="resourcelist"
+         at="2013-01-03T09:00:00Z"/>
+  <sitemap>
+      <loc>http://example.com/resourcelist-part1.xml</loc>
+  </sitemap>
+  <sitemap>
+      <loc>http://example.com/resourcelist-part2.xml</loc>
+  </sitemap>
+</sitemapindex>

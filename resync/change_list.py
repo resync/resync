@@ -26,11 +26,14 @@ class ChangeList(ListBaseWithIndex):
     """Class representing an Change List."""
 
     def __init__(self, resources=None, md=None, ln=None, uri=None,
-                 mapper=None, resources_class=list):
+                 mapper=None, spec_version='1.1', add_lastmod=False,
+                 resources_class=list):
         """Initialize ChangeList."""
-        super(ChangeList, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
-                                         capability_name='changelist', mapper=mapper,
-                                         resources_class=resources_class)
+        super(ChangeList, self).__init__(
+            resources=resources, md=md, ln=ln, uri=uri,
+            capability_name='changelist', mapper=mapper,
+            spec_version=spec_version, add_lastmod=add_lastmod,
+            resources_class=resources_class)
 
     def add_if_changed(self, resource):
         """Add resource if change is not None else ChangeTypeError."""

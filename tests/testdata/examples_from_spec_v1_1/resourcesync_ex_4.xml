@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:md capability="resourcedump"
+         at="2013-01-03T09:00:00Z"/>
+  <url>
+      <loc>http://example.com/resourcedump.zip</loc>
+  </url>
+</urlset>

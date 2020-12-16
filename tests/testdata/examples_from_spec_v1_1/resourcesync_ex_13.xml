@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="describedby"
+         href="http://example.com/info_about_set1_of_resources.xml"/>
+  <rs:ln rel="up"
+         href="http://example.com/resourcesync_description.xml"/>
+  <rs:md capability="capabilitylist"/>
+  <url>
+      <loc>http://example.com/dataset1/resourcelist.xml</loc>
+      <rs:md capability="resourcelist"/>
+  </url>
+  <url>
+      <loc>http://example.com/dataset1/resourcedump.xml</loc>
+      <rs:md capability="resourcedump"/>
+  </url>
+  <url>
+      <loc>http://example.com/dataset1/changelist.xml</loc>
+      <rs:md capability="changelist"/>
+  </url>
+  <url>
+      <loc>http://example.com/dataset1/changedump.xml</loc>
+      <rs:md capability="changedump"/>
+  </url>
+</urlset>

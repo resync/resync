@@ -75,10 +75,8 @@ class TestResource(unittest.TestCase):
         # Valid ISO8601 but not alloed in W3C Datetime
         self.assertRaises(ValueError, setlastmod, r, "2012-11-01T01:01:01")
         self.assertRaises(ValueError, setlastmod, r, "2012-11-01 01:01:01Z")
-        self.assertRaises(ValueError, setlastmod, r,
-                          "2012-11-01T01:01:01+0000")
-        self.assertRaises(ValueError, setlastmod, r,
-                          "2012-11-01T01:01:01-1000")
+        self.assertRaises(ValueError, setlastmod, r, "2012-11-01T01:01:01+0000")
+        self.assertRaises(ValueError, setlastmod, r, "2012-11-01T01:01:01-1000")
 
     def test05_lastmod_roundtrips(self):
         r = Resource('a')
@@ -177,3 +175,10 @@ class TestResource(unittest.TestCase):
         self.assertEqual(r.mime_type, None)
         r = Resource(uri='tv2')
         self.assertEqual(r.mime_type, None)
+
+    def test14_datetime(self):
+        # v1.1 adds a datetime attribute
+        r = Resource(uri='dt1')
+        self.assertEqual(r.datetime, None)
+        r = Resource(uri='dt2', datetime='2000-01-04T00:00:00Z')
+        self.assertEqual(r.datetime, '2000-01-04T00:00:00Z')

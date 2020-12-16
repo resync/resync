@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="up"
+         href="http://example.com/dataset1/capabilitylist.xml"/>
+  <rs:md capability="changelist"
+         from="2013-01-03T00:00:00Z"/>
+  <url>
+      <loc>http://example.com/res2.pdf</loc>
+      <rs:md change="updated"
+             datetime="2013-01-03T18:00:00Z"
+             hash="md5:1584abdf8ebdc9802ac0c6a7402c03b6"
+             length="8876"
+             type="application/pdf"/>
+      <rs:ln rel="describedby"
+             href="http://example.com/res2_dublin-core_metadata.xml"
+             type="application/xml"/>
+  </url>
+  <url>
+      <loc>http://example.com/res2_dublin-core_metadata.xml</loc>
+      <rs:md change="updated"
+             datetime="2013-01-03T19:00:00Z"
+             type="application/xml"/>
+      <rs:ln rel="describes"
+             href="http://example.com/res2.pdf"
+             hash="md5:1584abdf8ebdc9802ac0c6a7402c03b6"
+             length="8876"
+             type="application/pdf"/>
+      <rs:ln rel="profile"
+             href="http://purl.org/dc/elements/1.1/"/>
+  </url>
+</urlset>

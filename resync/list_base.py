@@ -30,15 +30,26 @@ class ListBase(ResourceContainer):
 
     ln - link information for the list (<rs:ln>)
 
-    sitemapindex - defaults to False, set True if this is an index object
+    uri - the URL of this list
+
+    capability_name -
+
+    spec_version - default to None for latest version supported, else explicit
+        version such as '1.0'
+
+    Internal variables:
+      sitemapindex - defaults to False, set True if this is an index object
+      pretty_xml - defaults to False, set True for more human readable output
     """
 
     def __init__(self, resources=None, count=None, md=None, ln=None, uri=None,
-                 capability_name='unknown'):
+                 capability_name='unknown', spec_version='1.1', add_lastmod=False):
         """Initialize ListBase."""
         super(ListBase, self).__init__(resources=resources, md=md, ln=ln, uri=uri,
                                        capability_name=capability_name)
         self.count = count
+        self.spec_version = spec_version
+        self.add_lastmod = add_lastmod  # Optional in v1.1
         self.sitemapindex = False
         self.pretty_xml = False
         #
@@ -138,4 +149,6 @@ class ListBase(ResourceContainer):
 
     def new_sitemap(self):
         """Create new Sitemap object with default settings."""
-        return Sitemap(pretty_xml=self.pretty_xml)
+        return Sitemap(pretty_xml=self.pretty_xml,
+                       spec_version=self.spec_version,
+                       add_lastmod=self.add_lastmod)

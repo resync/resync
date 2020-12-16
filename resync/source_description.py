@@ -38,11 +38,15 @@ class SourceDescription(ListBaseWithIndex):
     to override.
     """
 
-    def __init__(self, resources=None, md=None, ln=None):
+    def __init__(self, resources=None, md=None, ln=None,
+                 spec_version='1.1', add_lastmod=False):
         """Initialize based on superclass ListBaseWithIndex."""
-        super(SourceDescription, self).__init__(resources=resources, md=md, ln=ln,
-                                                capability_name='description',
-                                                resources_class=ResourceSet)
+        super(SourceDescription, self).__init__(
+            resources=resources, md=md, ln=ln,
+            capability_name='description',
+            resources_class=ResourceSet,
+            spec_version=spec_version,
+            add_lastmod=add_lastmod)
         self.md['from'] = None  # usually don't want a from date
 
     def add(self, resource, replace=False):

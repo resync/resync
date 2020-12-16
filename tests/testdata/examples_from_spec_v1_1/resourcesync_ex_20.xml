@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="up"
+         href="http://example.com/dataset1/capabilitylist.xml"/>
+  <rs:md capability="changelist"
+         from="2013-01-01T00:00:00Z"/>
+  <sitemap>
+      <loc>http://example.com/20130101-changelist.xml</loc>
+      <rs:md from="2013-01-01T00:00:00Z" 
+             until="2013-01-02T00:00:00Z"/>
+  </sitemap>
+  <sitemap>
+      <loc>http://example.com/20130102-changelist.xml</loc>
+      <rs:md from="2013-01-02T00:00:00Z" 
+             until="2013-01-03T00:00:00Z"/>
+  </sitemap>
+  <sitemap>
+      <loc>http://example.com/20130103-changelist.xml</loc>
+      <rs:md from="2013-01-03T00:00:00Z"/>
+  </sitemap>
+</sitemapindex>

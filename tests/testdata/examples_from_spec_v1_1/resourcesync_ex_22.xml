@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:rs="http://www.openarchives.org/rs/terms/">
+  <rs:ln rel="up"
+         href="http://example.com/dataset1/capabilitylist.xml"/>
+  <rs:md capability="changedump"
+         from="2013-01-01T00:00:00Z"/>
+  <url>
+      <loc>http://example.com/20130101-changedump.zip</loc>
+      <lastmod>2013-01-01T23:59:59Z</lastmod>
+      <rs:md type="application/zip" 
+             length="3109"
+             from="2013-01-01T00:00:00Z"
+             until="2013-01-02T00:00:00Z"/>           
+      <rs:ln rel="contents"
+             href="http://example.com/20130101-changedump-manifest.xml"
+             type="application/xml"/>
+  </url>
+  <url>
+      <loc>http://example.com/20130102-changedump.zip</loc>
+      <lastmod>2013-01-02T23:59:59Z</lastmod>
+      <rs:md type="application/zip"
+             length="6629"
+             from="2013-01-02T00:00:00Z"
+             until="2013-01-03T00:00:00Z"/>
+      <rs:ln rel="contents"
+             href="http://example.com/20130102-changedump-manifest.xml"
+             type="application/xml"/>
+  </url>
+  <url>
+      <loc>http://example.com/20130103-changedump.zip</loc>
+      <lastmod>2013-01-03T23:59:59Z</lastmod>
+      <rs:md type="application/zip"
+             length="8124"
+             from="2013-01-03T00:00:00Z"
+             until="2013-01-04T00:00:00Z"/>
+      <rs:ln rel="contents"
+             href="http://example.com/20130103-changedump-manifest.xml"
+             type="application/xml"/>
+  </url>
+</urlset>
