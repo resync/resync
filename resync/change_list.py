@@ -63,3 +63,24 @@ class ChangeList(ListBaseWithIndex):
         for resource in resources:
             rc = Resource(resource=resource, change=change)
             self.add(rc)
+
+    def prune_updates_before(self, timestamp, spec_version='1.1'):
+        """Remove all resource updates earlier than the given timestamp.
+
+        Returns the number of entries removed. Will raise an excpetion
+        if there are any entries without a datetime (1.1) or
+        timestamp (1.0).
+        """
+        n = 0
+        pruned = []
+        use_timestamp = (spec_version == '1.0')  # Else use datetime
+        for r in self.resources:
+            ts = r.timestamp if use_timestamp else r.ts_datetime
+            if (ts is None):
+                raise Exception("Entry %s has no update datetime/timestamp" % (r.uri))
+            elif (ts >= timestamp):
+                pruned.append(r)
+            else:
+                n += 1
+        self.resources = pruned
+        return(n)

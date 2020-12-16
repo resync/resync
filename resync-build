@@ -127,7 +127,8 @@ def main():
 
     process_shared_misc_options(args)
 
-    c = Client(hashes=args.hash,
+    c = Client(spec_version=args.spec_version,
+               hashes=args.hash,
                verbose=args.verbose,
                dryrun=args.dryrun)
 

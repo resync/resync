@@ -41,8 +41,9 @@ class Client(object):
       debug   - very verbose for automated analysis
     """
 
-    def __init__(self, hashes=None, verbose=False, dryrun=False):
+    def __init__(self, spec_version='1.1', hashes=None, verbose=False, dryrun=False):
         """Initialize Client object with default parameters."""
+        self.spec_version = spec_version
         self.hashes = set(hashes) if hashes else set()
         self.verbose = verbose
         self.dryrun = dryrun
@@ -382,12 +383,14 @@ class Client(object):
         # Check all changes have timestamp and record last
         self.last_timestamp = 0
         for resource in src_change_list:
-            if (resource.timestamp is None):
+            if resource.timestamp is None and resource.ts_datetime is None:
                 raise ClientFatalError(
-                    "Aborting - missing timestamp for change in %s" %
-                    (uri))
-            if (resource.timestamp > self.last_timestamp):
-                self.last_timestamp = resource.timestamp
+                    "Aborting - no datetime or lastmod for change in %s" %
+                    (resource.uri))
+            # Work with 1.0 or 1.1 -- use datetime if given, else lastmod
+            ts = resource.ts_datetime if resource.ts_datetime is not None else resource.timestamp
+            if (ts > self.last_timestamp):
+                self.last_timestamp = ts
         # 4. Check that the change list has authority over URIs listed
         # FIXME - What does authority mean for change list? Here use both the
         # change list URI and, if we used it, the sitemap URI
@@ -403,7 +406,7 @@ class Client(object):
                             (change_list, resource.uri))
         # 5. Prune entries before starting timestamp and dupe changes for a
         # resource
-        num_skipped = src_change_list.prune_before(from_timestamp)
+        num_skipped = src_change_list.prune_updates_before(from_timestamp, spec_version=self.spec_version)
         if (num_skipped > 0):
             self.logger.info(
                 "Skipped %d changes before %s" %

@@ -199,6 +199,11 @@ def add_shared_misc_options(opt, default_logfile, include_remote=False):
                           "to %s unless specified with --logfile" % (default_logfile))
     opt.add_argument('--logfile', type=str, action='store',
                      help="create detailed log of client actions")
+    opt.add_argument('--spec-version', default='1.1', choices=('1.0', '1.1'),
+                     help="follow given ResourceSync specification version. The key difference is that v1.0 "
+                          "used lastmod for the time of a change (often also the resource Last-Modification "
+                          "time but not always). In v1.1 the rs:md datetime attribute in a ChangeList "
+                          "indicates the time of the change, and use of lastmod is entirely optional")
     opt.add_argument('--verbose', '-v', action='store_true',
                      help="verbose, show additional informational messages")
 

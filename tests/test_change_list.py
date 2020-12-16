@@ -146,3 +146,49 @@ class TestChangeList(unittest.TestCase):
 </urlset>'
         cl = ChangeList()
         self.assertRaises(SitemapParseError, cl.parse, fh=io.StringIO(xml))
+
+    def test11_prune_updates_before(self):
+        """Test prune_updates_before method."""
+        # v1.0
+        cl = ChangeList()
+        cl.resources.append(Resource('a', timestamp=1))
+        cl.resources.append(Resource('b', timestamp=2))
+        cl.resources.append(Resource('c', timestamp=3))
+        cl.resources.append(Resource('d', timestamp=4))
+        cl.prune_updates_before(3, spec_version='1.0')
+        self.assertEqual(len(cl.resources), 2)
+        i = iter(cl)
+        self.assertEqual(next(i).uri, 'c')
+        self.assertEqual(next(i).uri, 'd')
+        # put some more back out of order
+        cl.resources.append(Resource('a', timestamp=1))
+        cl.resources.append(Resource('b', timestamp=2))
+        cl.resources.append(Resource('e', timestamp=1000))
+        cl.prune_updates_before(3.5, spec_version='1.0')
+        self.assertEqual(len(cl.resources), 2)
+        i = iter(cl)
+        self.assertEqual(next(i).uri, 'd')
+        self.assertEqual(next(i).uri, 'e')
+        # without a timestamp
+        cl.resources.append(Resource('nt_1_0', ts_datetime=123))
+        self.assertRaises(Exception, cl.prune_updates_before, 3.5, spec_version='1.0')
+        # v1.1
+        cl = ChangeList()
+        cl.resources.append(Resource('aa', ts_datetime=1))
+        cl.resources.append(Resource('bb', ts_datetime=2))
+        cl.resources.append(Resource('cc', ts_datetime=3))
+        cl.prune_updates_before(3, spec_version='1.1')
+        self.assertEqual(len(cl.resources), 1)
+        i = iter(cl)
+        self.assertEqual(next(i).uri, 'cc')
+        # put some more back out of order
+        cl.resources.append(Resource('aa', ts_datetime=1))
+        cl.resources.append(Resource('bb', ts_datetime=2))
+        cl.resources.append(Resource('ee', ts_datetime=1000))
+        cl.prune_updates_before(3.5, spec_version='1.1')
+        self.assertEqual(len(cl.resources), 1)
+        i = iter(cl)
+        self.assertEqual(next(i).uri, 'ee')
+        # without a ts_datetime
+        cl.resources.append(Resource('nt_1_1', timestamp=456))
+        self.assertRaises(Exception, cl.prune_updates_before, 3.5, spec_version='1.1')
