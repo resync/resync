@@ -3,7 +3,6 @@
 import io
 import logging
 import os
-import re
 import sys
 from defusedxml.ElementTree import parse
 from xml.etree.ElementTree import ElementTree, Element, tostring
@@ -35,7 +34,7 @@ class SitemapIndexError(Exception):
         self.message = message
         self.etree = etree
 
-    def __repr__(self):
+    def __str__(self):
         """Return just the message attribute."""
         return(self.message)
 
@@ -93,6 +92,13 @@ class Sitemap(object):
         self.md_att_keys = ['md_at', 'capability', 'change', 'datetime',
                             'md_completed', 'md_from', 'hash', 'length',
                             'path', 'mime_type', 'md_until']
+        # capabilities
+        self.capabilities = ['resourcelist', 'changelist', 'resourcedump',
+                             'changedump', 'resourcedump-manifest',
+                             'changedump-manifest', 'capabilitylist',
+                             'description',
+                             'resourcelist-archive', 'resourcedump-archive',
+                             'changelist-archive', 'changedump-archive']
         if self.spec_1_0:
             self.md_att_keys.remove('datetime')
 
@@ -198,17 +204,13 @@ class Sitemap(object):
         self.resources_created = 0
         seen_top_level_md = False
         for e in list(etree.getroot()):
-            # look for <rs:md> and <rs:ln>, first <url> ends
-            # then look for resources in <url> blocks
+            # look for <rs:md> and <rs:ln>, first <url>/<sitemap> ends
+            # then look for resources in <url>/<sitemap> blocks.
+            # ignore any elements we don't recognize
             if (e.tag == resource_tag):
                 in_preamble = False  # any later rs:md or rs:ln is error
                 r = self.resource_from_etree(e, self.resource_class)
-                try:
-                    resources.add(r)
-                except SitemapDupeError:
-                    self.logger.warning(
-                        "dupe of: %s (lastmod=%s)" %
-                        (r.uri, r.lastmod))
+                resources.add(r)
                 self.resources_created += 1
             elif (e.tag == "{" + RS_NS + "}md"):
                 if (in_preamble):
@@ -227,9 +229,6 @@ class Sitemap(object):
                 else:
                     raise SitemapParseError(
                         "Found <rs:ln> after first <url> in sitemap")
-            else:
-                # element we don't recognize, ignore
-                pass
         # check that we read to right capability document
         if (capability is not None):
             if ('capability' not in resources.md):
@@ -288,19 +287,11 @@ class Sitemap(object):
         """Return string for the resource as part of an XML sitemap.
 
         Returns a string with the XML snippet representing the resource,
-        without any XML declaration.
+        without any XML declaration. (So much simpler now only Python 3.x
+        supported, see earlier versions for 2.6, 2.7 etc.)
         """
         e = self.resource_etree_element(resource)
-        if (sys.version_info >= (3, 0)):
-            # python3.x
-            return(tostring(e, encoding='unicode', method='xml'))
-        elif (sys.version_info >= (2, 7)):
-            s = tostring(e, encoding='UTF-8', method='xml')
-        else:
-            # must not specify method='xml' in python2.6
-            s = tostring(e, encoding='UTF-8')
-        # Chop off XML declaration that is added in 2.x... sigh
-        return(s.replace("<?xml version='1.0' encoding='UTF-8'?>\n", ''))
+        return(tostring(e, encoding='unicode', method='xml'))
 
     def resource_from_etree(self, etree, resource_class):
         """Construct a Resource from an etree.
@@ -382,27 +373,20 @@ class Sitemap(object):
             val = md_element.attrib.get(xml_att, None)
             if (val is not None):
                 md[att] = val
-        # capability. Allow this to be missing but do a very simple syntax
-        # check on plausible values if present
-        if ('capability' in md):
-            if (re.match(r"^[\w\-]+$", md['capability']) is None):
-                raise SitemapParseError(
-                    "Bad capability name '%s' in %s" %
-                    (capability, context))
-        # change should be one of defined values
-        if ('change' in md):
-            if (md['change'] not in ['created', 'updated', 'deleted']):
-                self.logger.warning(
-                    "Bad change attribute in <rs:md> for %s" %
-                    (context))
-        # length should be an integer
+        # capability. Allow this to be missing or a new value but warn if it
+        # isn't recognized
+        if ('capability' in md and md['capability'] not in self.capabilities):
+            self.logger.warning("Unknown capability name '%s' in %s" % (md['capability'], context))
+        # change must be one of defined values
+        if ('change' in md and md['change'] not in ['created', 'updated', 'deleted']):
+            raise SitemapParseError("Bad change attribute in <rs:md> for %s" % (context))
+        # length must be an integer
         if ('length' in md):
             try:
                 md['length'] = int(md['length'])
             except ValueError as e:
-                raise SitemapParseError(
-                    "Invalid length element in <rs:md> for %s" %
-                    (context))
+                raise SitemapParseError("Invalid length element in <rs:md> for %s" %
+                                        (context))
         return(md)
 
     def ln_from_etree(self, ln_element, context=''):
@@ -423,9 +407,8 @@ class Sitemap(object):
         # now do some checks and conversions...
         # href (MANDATORY)
         if ('href' not in ln):
-            raise SitemapParseError(
-                "Missing href in <rs:ln> in %s" %
-                (context))
+            raise SitemapParseError("Missing href in <rs:ln> in %s" %
+                                    (context))
         # rel (MANDATORY)
         if ('rel' not in ln):
             raise SitemapParseError("Missing rel in <rs:ln> in %s" % (context))
@@ -434,9 +417,8 @@ class Sitemap(object):
             try:
                 ln['length'] = int(ln['length'])
             except ValueError as e:
-                raise SitemapParseError(
-                    "Invalid length attribute value in <rs:ln> for %s" %
-                    (context))
+                raise SitemapParseError("Invalid length attribute value in <rs:ln> for %s" %
+                                        (context))
         # pri - priority, must be a number between 1 and 999999
         if ('pri' in ln):
             try:
