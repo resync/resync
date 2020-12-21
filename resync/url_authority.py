@@ -1,9 +1,6 @@
 """Determine URI authority based on DNS and paths."""
 
-try:  # python3
-    from urllib.parse import urlparse
-except ImportError:  # pragma: no cover  python2
-    from urlparse import urlparse  # pragma: no cover
+from urllib.parse import urlparse
 import os.path
 
 
