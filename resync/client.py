@@ -224,7 +224,7 @@ class Client(object):
         rlb = ResourceListBuilder(set_hashes=self.hashes, mapper=self.mapper)
         rlb.set_path = set_path
         try:
-            rlb.add_exclude_files(self.exclude_patterns)
+            rlb.add_exclude_patterns(self.exclude_patterns)
             rl = rlb.from_disk(paths=paths)
         except ValueError as e:
             raise ClientFatalError(str(e))

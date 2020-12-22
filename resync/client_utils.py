@@ -181,7 +181,7 @@ def add_shared_misc_options(opt, default_logfile, include_remote=False):
                           "--incremental sync")
     opt.add_argument('--exclude', type=str, action='append',
                      help="exclude resources with URI or filename matching the python regex "
-                          "supplied (see: <https://docs.python.org/2/howto/regex.html> for regex "
+                          "supplied (see: <https://docs.python.org/3/howto/regex.html> for regex "
                           "information, repeat option for multiple excludes)")
     opt.add_argument('--multifile', '-m', action='store_true',
                      help="disable reading and output of sitemapindex for multifile sitemap")

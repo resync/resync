@@ -173,23 +173,35 @@ class Map:
         This does not rely on the destination filepath actually
         existing on the local filesystem, just on pattern matching.
         Return source URI on success, None on failure.
+
+        Relies upon self.dst_path and self.src_path not including trailing
+        slashes. However, a match of just self.dst_path withouth a trailing
+        slash will return self.src_path with a trailing slash.
         """
-        m = re.match(self.dst_path + "/(.*)$", dst_file)
+        m = re.match(self.dst_path + "(/.*)?$", dst_file)
         if (m is None):
             return(None)
         rel_path = m.group(1)
-        return(self.src_uri + '/' + rel_path)
+        if rel_path is None:
+            rel_path = '/'
+        return self.src_uri + rel_path
 
     def src_to_dst(self, src_uri):
         """Return the dst filepath from the src URI.
 
-        Returns None on failure, destination path on success.
+        Returns None on failure, local destination path on success.
+
+        Relies upon self.dst_path and self.src_path not including trailing
+        slashes. However, a match of just self.src_path withouth a trailing
+        slash will return self.dst_path with a trailing slash.
         """
-        m = re.match(self.src_uri + "/(.*)$", src_uri)
+        m = re.match(self.src_uri + "(/.*)?$", src_uri)
         if (m is None):
             return(None)
         rel_path = m.group(1)
-        return(self.dst_path + '/' + rel_path)
+        if rel_path is None:
+            rel_path = '/'
+        return self.dst_path + rel_path
 
     def unsafe(self):
         """True if the mapping is unsafe for an update.

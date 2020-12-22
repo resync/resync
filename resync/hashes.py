@@ -34,14 +34,16 @@ class Hashes(object):
     up [http://docs.python.org/library/base64.html]
     """
 
+    NAME_TO_ATTRIBUTE = {'md5': 'md5', 'sha-1': 'sha1', 'sha-256': 'sha256'}
+
     def __init__(self, hashes=None, file=None):
-        """Initialize Hasher object with types of hash to caluclate.
+        """Initialize Hashes object with types of hash to caluclate.
 
         If file is supplied then compute for that file.
         """
         self.hashes = set()
         for hash in hashes:
-            if (hash not in ['md5', 'sha-1', 'sha-256']):
+            if (hash not in self.NAME_TO_ATTRIBUTE.keys()):
                 raise Exception("Hash type %s not supported" % (hash))
             self.hashes.add(hash)
         #
@@ -74,13 +76,23 @@ class Hashes(object):
             data = f.read(block_size)
             if not data:
                 break
-            if (self.md5_calc is not None):
+            if self.md5_calc is not None:
                 self.md5_calc.update(data)
-            if (self.sha1_calc is not None):
+            if self.sha1_calc is not None:
                 self.sha1_calc.update(data)
-            if (self.sha256_calc is not None):
+            if self.sha256_calc is not None:
                 self.sha256_calc.update(data)
         f.close()
+
+    def set(self, resource):
+        """Set hash values for resource from current file.
+
+        Assumes that resource has appropriate attributes or setters
+        with names md5, sha1, etc. and that hashes have been calculated.
+        """
+        for hash in self.hashes:
+            att = self.NAME_TO_ATTRIBUTE[hash]
+            setattr(resource, att, getattr(self, att))
 
     @property
     def md5(self):
