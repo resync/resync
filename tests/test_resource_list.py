@@ -1,15 +1,13 @@
+"""Tests for resync.resource_list."""
+
 from .testlib import TestCase
+
 import os.path
-try:  # python2
-    # Must try this first as io also exists in python2
-    # but is the wrong one!
-    import StringIO as io
-except ImportError:  # python3
-    import io
+import io
 import re
 
 from resync.resource import Resource
-from resync.resource_list import ResourceList, ResourceListDupeError
+from resync.resource_list import ResourceList, ResourceListOrdered, ResourceListDupeError
 from resync.sitemap import Sitemap, SitemapParseError
 
 
@@ -121,7 +119,8 @@ class TestResourceList(TestCase):
         r1.md5 = "aabbcc"
         self.assertEqual(i.hashes(), set(['md5']))
         r2.sha1 = "ddeeff"
-        self.assertEqual(i.hashes(), set(['md5', 'sha-1']))
+        r2.sha256 = "hhiijj"
+        self.assertEqual(i.hashes(), set(['md5', 'sha-1', 'sha-256']))
 
     def test08_iter(self):
         i = ResourceList()
@@ -129,12 +128,25 @@ class TestResourceList(TestCase):
         i.add(Resource('b', timestamp=2))
         i.add(Resource('c', timestamp=3))
         i.add(Resource('d', timestamp=4))
-        resources = []
-        for r in i:
-            resources.append(r)
+        resources = list(i.resources)
         self.assertEqual(len(resources), 4)
         self.assertEqual(resources[0].uri, 'a')
         self.assertEqual(resources[3].uri, 'd')
+
+    def test09_resource_list_ordered(self):
+        """Tests for ResourceList with ResourceListOrdered."""
+        i = ResourceList(resources_class=ResourceListOrdered)
+        i.add(Resource('a', timestamp=1))
+        i.add(Resource('d', timestamp=4))
+        i.add(Resource('c', timestamp=3))
+        self.assertEqual(list(i.resources.uris()), ['a', 'd', 'c'])
+        self.assertRaises(ResourceListDupeError, i.add, Resource('a', timestamp=11))
+        self.assertEqual(i.resources['a'].uri, 'a')
+        self.assertEqual(i.resources['a'].timestamp, 1)
+        # With replacement
+        i.add(Resource('a', timestamp=11), replace=True)
+        self.assertEqual(i.resources['a'].uri, 'a')
+        self.assertEqual(i.resources['a'].timestamp, 11)
 
     def test20_as_xml(self):
         rl = ResourceList()
