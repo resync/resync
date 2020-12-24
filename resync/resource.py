@@ -1,11 +1,8 @@
 """ResourceSync Resources - information about a web resource and changes."""
 
 import re
-try:  # python3
-    from urllib.parse import urlparse
-except ImportError:  # python2
-    from urlparse import urlparse
 from posixpath import basename
+from urllib.parse import urlparse
 
 from .w3c_datetime import str_to_datetime, datetime_to_str
 
@@ -58,19 +55,21 @@ class Resource(object):
 
     __slots__ = ('uri', 'timestamp', 'length', 'mime_type',
                  'md5', 'sha1', 'sha256', 'change', 'ts_datetime',
-                 'path', '_extra', 'ln')
+                 'path', 'ln', '_extra')
 
     CHANGE_TYPES = ['created', 'updated', 'deleted']
 
     def __init__(self, uri=None, timestamp=None, length=None,
-                 md5=None, sha1=None, sha256=None, mime_type=None,
-                 change=None, ts_datetime=None, datetime=None, path=None,
-                 lastmod=None, capability=None,
-                 ts_at=None, md_at=None,
-                 ts_completed=None, md_completed=None,
-                 ts_from=None, md_from=None,
-                 ts_until=None, md_until=None,
-                 resource=None, ln=None):
+                 mime_type=None, md5=None, sha1=None, sha256=None,
+                 change=None, ts_datetime=None, path=None, ln=None,
+                 # the following in _extra
+                 capability=None,
+                 ts_at=None, ts_completed=None, ts_from=None, ts_until=None,
+                 # and the following via setters
+                 lastmod=None, datetime=None,
+                 md_at=None, md_completed=None, md_from=None, md_until=None,
+                 # and finally another Resource to copy from
+                 resource=None):
         """Initialize Resource object.
 
         Initialize either from parameters specified or from an existing
@@ -88,14 +87,15 @@ class Resource(object):
         self.change = None
         self.ts_datetime = None  # Added in ResourceSync v1.1
         self.path = None
-        self._extra = None
         self.ln = None
-        # Create from a Resource-like object? Copy any relevant attributes
+        self._extra = None
+        # Create from a Resource-like object? Copy any attributes, both ones
+        # that have slots and ones that live in _extra
         if (resource is not None):
-            for att in ['uri', 'timestamp', 'length', 'md5', 'sha1', 'sha256',
-                        'change', 'ts_datetime', 'path', 'capability',
-                        'ts_at', 'md_at', 'ts_completed', 'md_completed',
-                        'ts_from', 'md_from', 'ts_until', 'md_until', 'ln']:
+            for att in ['uri', 'timestamp', 'length', 'mime_type',
+                        'md5', 'sha1', 'sha256', 'change', 'ts_datetime', 'path', 'ln',
+                        # the following in _extra
+                        'capability', 'ts_at', 'ts_completed', 'ts_from', 'ts_until']:
                 if hasattr(resource, att):
                     setattr(self, att, getattr(resource, att))
         # Any arguments will then override
@@ -146,7 +146,7 @@ class Resource(object):
             self.md_until = md_until
         # Sanity check
         if (self.uri is None):
-            raise ValueError("Cannot create resource without a URI")
+            raise ValueError("Cannot create Resource without a URI")
 
     def __setattr__(self, prop, value):
         """Attribute setter with check and support for extra attributes.
@@ -200,6 +200,11 @@ class Resource(object):
         self.ts_datetime = str_to_datetime(datetime, context='ts_datetime')
 
     @property
+    def ts_at(self):
+        """ts_at is the timestamp for md_at."""
+        return self._get_extra('ts_at')
+
+    @property
     def md_at(self):
         """md_at values in W3C Datetime syntax, Z notation."""
         return datetime_to_str(self._get_extra('ts_at'))
@@ -210,6 +215,11 @@ class Resource(object):
         self._set_extra(
             'ts_at',
             str_to_datetime(md_at, context='md_at datetime'))
+
+    @property
+    def ts_completed(self):
+        """ts_completed is the timestamp for md_completed."""
+        return self._get_extra('ts_completed')
 
     @property
     def md_completed(self):
@@ -224,6 +234,11 @@ class Resource(object):
             str_to_datetime(md_completed, context='md_completed datetime'))
 
     @property
+    def ts_from(self):
+        """ts_from is the timestamp for md_from."""
+        return self._get_extra('ts_from')
+
+    @property
     def md_from(self):
         """md_from value in W3C Datetime syntax, Z notation."""
         return datetime_to_str(self._get_extra('ts_from'))
@@ -234,6 +249,11 @@ class Resource(object):
         self._set_extra(
             'ts_from',
             str_to_datetime(md_from, context='md_from datetime'))
+
+    @property
+    def ts_until(self):
+        """ts_until is the timestamp for md_until."""
+        return self._get_extra('ts_until')
 
     @property
     def md_until(self):
@@ -277,8 +297,10 @@ class Resource(object):
         return(None)
 
     @hash.setter
-    def hash(self, hash):
-        """Parse space separated set of values.
+    def hash(self, hashes_str):
+        """Parse space separated set of values to set md5, sha1 and sha256.
+
+        Any existing values for md5, sha1 and sha256 will be removed first.
 
         See specification at:
         http://tools.ietf.org/html/draft-snell-atompub-link-extensions-09
@@ -287,27 +309,24 @@ class Resource(object):
         self.md5 = None
         self.sha1 = None
         self.sha256 = None
-        if (hash is None):
-            return
         hash_seen = set()
         errors = []
-        for entry in hash.split():
+        for entry in hashes_str.split():
             (hash_type, value) = entry.split(':', 1)
-            if (hash_type in hash_seen):
-                errors.append("Ignored duplicate hash type %s" % (hash_type))
+            if hash_type in hash_seen:
+                errors.append("duplicate hash type %s" % (hash_type))
             else:
                 hash_seen.add(hash_type)
-                if (hash_type == 'md5'):
+                if hash_type == 'md5':
                     self.md5 = value
-                elif (hash_type == 'sha-1'):
+                elif hash_type == 'sha-1':
                     self.sha1 = value
-                elif (hash_type == 'sha-256'):
+                elif hash_type == 'sha-256':
                     self.sha256 = value
                 else:
-                    errors.append("Ignored unsupported hash type (%s)" %
-                                  (hash_type))
-        if (len(errors) > 0):
-            raise ValueError(". ".join(errors))
+                    errors.append("unsupported hash type %s" % (hash_type))
+        if len(errors) > 0:
+            raise ValueError("Ignored " + ", ".join(errors))
 
     def link(self, rel):
         """Look for link with specified rel, return else None.
@@ -316,19 +335,16 @@ class Resource(object):
         specified rel value. If there are multiple links with the
         same rel then just the first will be returned
         """
-        if (self.ln is None):
-            return(None)
-        for link in self.ln:
-            if ('rel' in link and link['rel'] == rel):
-                return(link)
-        return(None)
+        if self.ln is not None:
+            for link in self.ln:
+                if 'rel' in link and link['rel'] == rel:
+                    return link
+        return None
 
     def link_href(self, rel):
         """Look for link with specified rel, return href from it or None."""
         link = self.link(rel)
-        if (link is not None):
-            link = link['href']
-        return(link)
+        return None if link is None else link['href']
 
     def link_set(self, rel, href, allow_duplicates=False, **atts):
         """Set/create link with specified rel, set href and any other attributes.
@@ -342,13 +358,13 @@ class Resource(object):
         Be aware that adding links to a Resource object will
         significantly increase the size of the object.
         """
-        if (self.ln is None):
+        if self.ln is None:
             # automagically create a self.ln list
             self.ln = []
             link = None
         else:
             link = self.link(rel)
-        if (link is not None and not allow_duplicates):
+        if link is not None and not allow_duplicates:
             # overwrite current value
             link['href'] = href
         else:
@@ -398,7 +414,7 @@ class Resource(object):
     @property
     def contents(self):
         """Get the URI of and ResourceSync rel="contents" link."""
-        return(self.link_href('index'))
+        return(self.link_href('contents'))
 
     @contents.setter
     def contents(self, uri, type='application/xml'):
@@ -420,36 +436,43 @@ class Resource(object):
     def __eq__(self, other):
         """Equality test for resources allowing <1s difference in timestamp.
 
-        See equal(...) for more details of equality test
+        See equal(...) for more details of equality test.
         """
         return(self.equal(other, delta=1.0))
 
     def equal(self, other, delta=0.0):
         """Equality or near equality test for resources.
 
-        Equality means:
+        Equality means that any parameters that exist for both resources match,
+        essentially "no proof of inequality":
         1. same uri, AND
         2. same timestamp WITHIN delta if specified for either, AND
-        3. same md5 if specified for both, AND
+        3. same md5|sha1|sha256 if specified for both, AND
         4. same length if specified for both
         """
-        if (other is None):
+        if other is None:
             return False
-        if (self.uri != other.uri):
-            return(False)
+        if self.uri != other.uri:
+            return False
         if (self.timestamp is not None or other.timestamp is not None):
             # not equal if only one timestamp specified
             if (self.timestamp is None
                     or other.timestamp is None
                     or abs(self.timestamp - other.timestamp) >= delta):
-                return(False)
+                return False
         if ((self.md5 is not None and other.md5 is not None)
                 and self.md5 != other.md5):
-            return(False)
+            return False
+        if ((self.sha1 is not None and other.sha1 is not None)
+                and self.sha1 != other.sha1):
+            return False
+        if ((self.sha256 is not None and other.sha256 is not None)
+                and self.sha256 != other.sha256):
+            return False
         if ((self.length is not None and other.length is not None)
                 and self.length != other.length):
-            return(False)
-        return(True)
+            return False
+        return True
 
     def __str__(self):
         """Return a human readable string for this resource.
@@ -458,11 +481,12 @@ class Resource(object):
         designed to support logging.
         """
         s = [str(self.uri), str(self.lastmod), str(self.length),
-             str(self.md5 if self.md5 else self.sha1)]
+             str(self.md5 if self.md5 else (self.sha1 if self.sha1 else self.sha256))]
         if (self.change is not None):
-            s.append(str(self.change))
+            ch = str(self.change)
             if self.datetime is not None:
-                s.append(" @ " + str(self.datetime))
+                ch += " @ " + str(self.datetime)
+            s.append(ch)
         if (self.path is not None):
             s.append(str(self.path))
         return "[ " + " | ".join(s) + " ]"

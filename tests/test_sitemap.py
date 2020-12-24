@@ -47,7 +47,7 @@ class TestSitemap(unittest.TestCase):
                          '<url><loc>aardvark</loc><lastmod>2012-01-11T04:05:06Z</lastmod><rs:md datetime="2012-01-11T04:05:06Z" /></url>')
 
     def test_02_resource_str(self):
-        r1 = Resource('3b', 1234.1, 9999, 'ab54de')
+        r1 = Resource('3b', 1234.1, length=9999, md5='ab54de')
         self.assertEqual(Sitemap().resource_as_xml(r1),
                          "<url><loc>3b</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:ab54de\" length=\"9999\" /></url>")
         r1 = Resource('3c', datetime='2013-01-02T13:00:00Z')
