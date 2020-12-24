@@ -14,6 +14,22 @@ import collections.abc
 from .w3c_datetime import datetime_to_str
 
 
+def _str_datetime_now(x='now'):
+    """Return datetime string for use with time attributes.
+
+    Handling depends on input:
+      'now'   - returns datetime for now
+      other string - no change, return same value
+      otherwise - assume datetime value, generate string
+    """
+    if (x == 'now' or not isinstance(x, str)):
+        # Now, this is wht datetime_to_str() with no arg gives
+        return datetime_to_str(x)
+    else:
+        # Assume valid datetime string
+        return x
+
+
 class ResourceContainer(object):
     """Class containing resource-like objects.
 
@@ -25,6 +41,11 @@ class ResourceContainer(object):
     - ln property that is a list of links
     - uri is optional identifier of this container object
     - capability_name - name of this capability
+
+    The properties md_from, md_at, md_until and md_completed are datetime
+    strings. The setters acceopt either a string value (not checked), the value
+    'now' to generate the current datetime, or otherwise an integer timestamp
+    value that is converted to a string.
 
     Derived classes may add extra functionality such as len() etc..
     However, any code designed to work with any ResourceContainer
@@ -45,19 +66,16 @@ class ResourceContainer(object):
 
         Baseline implementation use iterator given by resources property.
         """
-        return(iter(self.resources))
+        return iter(self.resources)
 
     def __getitem__(self, index):
         """Feed through for __getitem__ of resources property."""
-        return(self.resources[index])
+        return self.resources[index]
 
     @property
     def capability(self):
-        """Get/set the <rs:md capability="" .../> attribute."""
-        if ('capability' in self.md):
-            return(self.md['capability'])
-        else:
-            return(None)
+        """Get/set the <rs:md capability="" .../> attribute, None if not set."""
+        return self.md.get('capability')
 
     @capability.setter
     def capability(self, capability):
@@ -65,65 +83,53 @@ class ResourceContainer(object):
 
     @property
     def md_from(self):
-        """Get/set the <rs:md from="" .../> attribute."""
-        if ('md_from' in self.md):
-            return(self.md['md_from'])
-        else:
-            return(None)
+        """Get/set the <rs:md from="" .../> attribute, None if not set."""
+        return self.md.get('md_from')
 
     @md_from.setter
     def md_from(self, md_from):
-        self.md['md_from'] = self._str_datetime_now(md_from)
+        self.md['md_from'] = _str_datetime_now(md_from)
 
     @property
     def md_until(self):
-        """Get/set the <rs:md until="" .../> attribute."""
-        if ('md_until' in self.md):
-            return(self.md['md_until'])
-        else:
-            return(None)
+        """Get/set the <rs:md until="" .../> attribute, None if not set."""
+        return self.md.get('md_until')
 
     @md_until.setter
     def md_until(self, md_until):
-        self.md['md_until'] = self._str_datetime_now(md_until)
+        self.md['md_until'] = _str_datetime_now(md_until)
 
     @property
     def md_at(self):
         """Get/set the <rs:md at="" attribute."""
-        if ('md_at' in self.md):
-            return(self.md['md_at'])
-        else:
-            return(None)
+        return self.md.get('md_at')
 
     @md_at.setter
     def md_at(self, md_at):
-        self.md['md_at'] = self._str_datetime_now(md_at)
+        self.md['md_at'] = _str_datetime_now(md_at)
 
     @property
     def md_completed(self):
-        """Get/set the <rs:md completed="" .../> attribute."""
-        if ('md_completed' in self.md):
-            return(self.md['md_completed'])
-        else:
-            return(None)
+        """Get/set the <rs:md completed="" .../> attribute, None if not set."""
+        return self.md.get('md_completed')
 
     @md_completed.setter
     def md_completed(self, md_completed):
-        self.md['md_completed'] = self._str_datetime_now(md_completed)
+        self.md['md_completed'] = _str_datetime_now(md_completed)
 
     def link(self, rel):
         """Look for link with specified rel, return else None."""
         for link in self.ln:
             if ('rel' in link and link['rel'] == rel):
-                return(link)
-        return(None)
+                return link
+        return None
 
     def link_href(self, rel):
         """Look for link with specified rel, return href from it or None."""
         link = self.link(rel)
         if (link is not None):
             link = link['href']
-        return(link)
+        return link
 
     def link_set(self, rel, href, **atts):
         """Set/create link with specified rel, set href and any other attributes.
@@ -132,16 +138,16 @@ class ResourceContainer(object):
         also defines the type attributes and others are permitted also. See
         description of allowed formats in
 
-        http://www.openarchives.org/rs/resourcesync.html#DocumentFormats
+        http://www.openarchives.org/rs/resourcesync#DocumentFormats
         """
         link = self.link(rel)
-        if (link is not None):
-            # overwrite current value
-            link['href'] = href
-        else:
+        if link is None:
             # create new link
             link = {'rel': rel, 'href': href}
             self.ln.append(link)
+        else:
+            # overwrite current value
+            link['href'] = href
         for k in atts:
             link[k] = atts[k]
 
@@ -232,29 +238,3 @@ class ResourceContainer(object):
                 pruned2.append(r)
         self.resources = pruned2
         return(n)
-
-    def __str__(self):
-        """Return string of all resources in order given by interator."""
-        s = ''
-        for resource in self:
-            s += str(resource) + "\n"
-        return(s)
-
-    def _str_datetime_now(self, x=None):
-        """Return datetime string for use with time attributes.
-
-        Handling depends on input:
-          'now'   - returns datetime for now
-          number  - assume datetime values, generate string
-          other   - no change, return same value
-        """
-        if (x == 'now'):
-            # Now, this is wht datetime_to_str() with no arg gives
-            return(datetime_to_str())
-        try:
-            # Test for number
-            junk = x + 0.0
-            return datetime_to_str(x)
-        except TypeError:
-            # Didn't look like a number, treat as string
-            return x
