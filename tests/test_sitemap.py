@@ -407,7 +407,7 @@ class TestSitemap(unittest.TestCase):
 </url>'''
             et = parse(io.StringIO(xml))
             Sitemap().resource_from_etree(et, Resource)
-            self.assertIn('Ignored unsupported hash type (UNKNOWN-TYPE)', lc.records[-1].msg)
+            self.assertIn('Ignored unsupported hash type UNKNOWN-TYPE', lc.records[-1].msg)
 
     def test_32_md_from_etree(self):
         """Test md_from_etree method."""
