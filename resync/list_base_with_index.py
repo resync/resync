@@ -101,7 +101,7 @@ class ListBaseWithIndex(ListBase):
             self.logger.debug(
                 "Read %d bytes from %s" %
                 (self.content_length, uri))
-        except KeyError:
+        except (KeyError, TypeError):
             # If we don't get a length then c'est la vie
             self.logger.debug("Read ????? bytes from %s" % (uri))
             pass
@@ -170,7 +170,7 @@ class ListBaseWithIndex(ListBase):
         try:
             self.content_length = int(fh.info()['Content-Length'])
             self.bytes_read += self.content_length
-        except KeyError:
+        except (KeyError, TypeError):
             # If we don't get a length then c'est la vie
             pass
         self.logger.info(
