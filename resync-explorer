@@ -70,7 +70,7 @@ def main():
                  verbose=args.verbose)
 
     print("----- ResourceSync Explorer -----")
-    process_shared_misc_options(args)
+    process_shared_misc_options(args, include_remote=True)
 
     c = Explorer(hashes=args.hash,
                  verbose=args.verbose)
