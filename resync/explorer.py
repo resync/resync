@@ -17,7 +17,6 @@ import distutils.dir_util
 import re
 import time
 import logging
-import requests
 
 from .mapper import Mapper
 from .sitemap import Sitemap
@@ -164,7 +163,7 @@ class Explorer(Client):
                 caps = 'resource'
             else:
                 caps = self.allowed_entries(capability)
-        elif (r.capability is 'resource'):
+        elif (r.capability == 'resource'):
             caps = r.capability
         else:
             caps = [r.capability]
@@ -278,38 +277,36 @@ class Explorer(Client):
         print("HEAD %s" % (uri))
         if (re.match(r'^\w+:', uri)):
             # Looks like a URI
-            response = requests.head(uri)
+            with url_or_file_open(uri, method='HEAD') as response:
+                status_code = response.code()
+                headers = response.headers()
         else:
             # Mock up response if we have a local file
-            response = self.head_on_file(uri)
-        print("  status: %s" % (response.status_code))
-        if (response.status_code == '200'):
+            (status_code, headers) = self.head_on_file(uri)
+        print("  status: %s" % (status_code))
+        if (status_code == '200'):
             # print some of the headers
             for header in ['content-length', 'last-modified',
                            'lastmod', 'content-type', 'etag']:
-                if header in response.headers:
+                if header in headers:
                     check_str = ''
                     if (check_headers is not None and header in check_headers):
-                        if (response.headers[header] == check_headers[header]):
+                        if (headers[header] == check_headers[header]):
                             check_str = ' MATCHES EXPECTED VALUE'
                         else:
                             check_str = ' EXPECTED %s' % (
                                 check_headers[header])
-                    print(
-                        "  %s: %s%s" %
-                        (header, response.headers[header], check_str))
+                    print("  %s: %s%s" % (header, headers[header], check_str))
 
     def head_on_file(self, file):
-        """Mock up requests.head(..) response on local file."""
-        response = HeadResponse()
-        if (not os.path.isfile(file)):
-            response.status_code = '404'
-        else:
-            response.status_code = '200'
-            response.headers[
-                'last-modified'] = datetime_to_str(os.path.getmtime(file))
-            response.headers['content-length'] = os.path.getsize(file)
-        return(response)
+        """Get fake status code and headers from local file."""
+        status_code = '404'
+        headers = {}
+        if os.path.isfile(file):
+            status_code = '200'
+            headers['last-modified'] = datetime_to_str(os.path.getmtime(file))
+            headers['content-length'] = os.path.getsize(file)
+        return(status_code, headers)
 
     def allowed_entries(self, capability):
         """Return list of allowed entries for given capability document.
@@ -365,15 +362,6 @@ class XResource(object):
         self.uri = urljoin(context, uri)
         self.acceptable_capabilities = acceptable_capabilities
         self.checks = checks
-
-
-class HeadResponse(object):
-    """Object to mock up requests.head(...) response."""
-
-    def __init__(self):
-        """Initialize with no status_code and no headers."""
-        self.status_code = None
-        self.headers = {}
 
 
 class ExplorerQuit(Exception):

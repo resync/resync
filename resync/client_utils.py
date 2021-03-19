@@ -7,8 +7,6 @@ import argparse
 from datetime import datetime
 import logging
 import logging.config
-import re
-from urllib.request import urlopen
 
 from .url_or_file_open import set_url_or_file_open_config
 

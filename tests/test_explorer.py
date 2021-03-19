@@ -8,7 +8,7 @@ import sys
 from resync.client import Client
 from resync.client_utils import ClientFatalError
 from resync.capability_list import CapabilityList
-from resync.explorer import Explorer, XResource, HeadResponse, ExplorerQuit
+from resync.explorer import Explorer, XResource, ExplorerQuit
 from resync.resource import Resource
 
 
@@ -29,11 +29,6 @@ class TestExplorer(unittest.TestCase):
         self.assertEqual(x.uri, 'http://example.org/abc')
         self.assertEqual(x.acceptable_capabilities, [1, 2])
         self.assertEqual(x.checks, [3, 4])
-
-    def test02_head_response(self):
-        hr = HeadResponse()
-        self.assertEqual(hr.status_code, None)
-        self.assertEqual(len(hr.headers), 0)
 
     def test03_explorer_quit(self):
         eq = ExplorerQuit()
@@ -105,13 +100,14 @@ class TestExplorer(unittest.TestCase):
 
     def test08_head_on_file(self):
         e = Explorer()
-        r1 = e.head_on_file('tests/testdata/does_not_exist')
-        self.assertEqual(r1.status_code, '404')
-        r2 = e.head_on_file('tests/testdata/dir1/file_a')
-        self.assertEqual(r2.status_code, '200')
+        (status_code, headers) = e.head_on_file('tests/testdata/does_not_exist')
+        self.assertEqual(status_code, '404')
+        self.assertEqual(headers, {})
+        (status_code, headers) = e.head_on_file('tests/testdata/dir1/file_a')
+        self.assertEqual(status_code, '200')
         self.assertTrue(re.match(r'^\d\d\d\d\-\d\d\-\d\d',
-                                 r2.headers['last-modified']))
-        self.assertEqual(r2.headers['content-length'], 20)
+                        headers['last-modified']))
+        self.assertEqual(headers['content-length'], 20)
 
     def test09_allowed_entries(self):
         e = Explorer()
