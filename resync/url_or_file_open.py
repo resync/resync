@@ -21,11 +21,14 @@ def set_url_or_file_open_config(key, value):
     CONFIG[key] = value
 
 
-def url_or_file_open(uri):
+def url_or_file_open(uri, method=None, timeout=None):
     """Wrapper around urlopen() to prepend file: if no scheme provided.
 
     Can be used as a context manager because the return value from urlopen(...)
     supports both that and straightforwrd use as simple file handle object.
+
+    If timeout is exceeded then urlopen(..) will raise a socket.timeout exception. If
+    no timeout is specified then the global default will be used.
     """
     if (not re.match(r'''\w+:''', uri)):
         uri = 'file:' + uri
@@ -42,4 +45,5 @@ def url_or_file_open(uri):
     if NUM_REQUESTS != 0 and CONFIG['delay'] is not None and not uri.startswith('file:'):
         time.sleep(CONFIG['delay'])
     NUM_REQUESTS += 1
-    return urlopen(Request(url=uri, headers=headers))
+    maybe_timeout = {} if timeout is None else {'timeout': timeout}
+    return urlopen(Request(url=uri, headers=headers, method=method), **maybe_timeout)
