@@ -3,7 +3,6 @@
 import os
 import os.path
 import re
-import sys
 import time
 import logging
 from defusedxml.ElementTree import parse
@@ -24,8 +23,10 @@ class ResourceListBuilder():
     - set_hashes to indicate which hashes should be calculated for each resource
     - set_path set true to add path attribute for each resource
     - set_length set true to include file length in resource_list (defaults true)
-    - exclude_dirs is a list of directory names to exclude
-      (defaults to ['CVS','.git'))
+    - exclude_patterns is a list of files and directory names patterns to exclude
+      using re.match(..). These patterns are left anchored so thus need to be
+      preceded with .* if there may be arbitrary leading characters (defaults to
+      empty)
     """
 
     def __init__(self, mapper=None, set_hashes=None,
@@ -37,9 +38,10 @@ class ResourceListBuilder():
 
         The following attributes may be set to determine information added to
         each Resource object based on the disk scan:
-        - set_hashes - Set of digests to computer for each resource. This may add
+        - set_hashes - Set of digests to compute for each resource. This may add
         significant time to the scan process as each file has to be read to
-        compute the hash. Empty set or None means no hashes calculated
+        compute the hash. Empty set or None means no hashes calculated, names
+        defined in Hashes object
         - set_length - False to not add length for each resources
         - set_path - True to add local path information for each file/resource
         """
@@ -47,34 +49,38 @@ class ResourceListBuilder():
         self.set_path = set_path
         self.set_hashes = set_hashes if (set_hashes and len(set_hashes) > 0) else None
         self.set_length = set_length
-        self.exclude_files = [r'sitemap\d{0,5}.xml']
-        self.exclude_dirs = ['CVS', '.git']
+        self.exclude_patterns = []
         self.include_symlinks = False
+        self.log_count_increment = 50000  # Write log message after 50000 files
         # Used internally only:
         self.logger = logging.getLogger('resync.resource_list_builder')
-        self.compiled_exclude_files = []
+        self.compiled_exclude_patterns = []
 
-    def add_exclude_files(self, exclude_patterns):
-        """Add more patterns of files to exclude while building resource_list."""
+    def add_exclude_patterns(self, exclude_patterns):
+        """Add more patterns of files or directories to exclude while building resource_list.
+
+        After patterns are added the set of compiled patterns is updated.
+        """
         for pattern in exclude_patterns:
-            self.exclude_files.append(pattern)
+            self.exclude_patterns.append(pattern)
+        self._compile_excludes()
 
-    def compile_excludes(self):
-        """Compile a set of regexps for files to be exlcuded from scans."""
-        self.compiled_exclude_files = []
-        for pattern in self.exclude_files:
+    def _compile_excludes(self):
+        # Compile a set of regexps for files and directories to be exlcuded from scans
+        self.compiled_exclude_patterns = []
+        for pattern in self.exclude_patterns:
             try:
-                self.compiled_exclude_files.append(re.compile(pattern))
+                self.compiled_exclude_patterns.append(re.compile(pattern))
             except re.error as e:
                 raise ValueError(
-                    "Bad python regex in exclude '%s': %s" % (pattern, str(e)))
+                    "Bad python regex in exclude pattern '%s': %s" % (pattern, str(e)))
 
-    def exclude_file(self, file):
-        """True if file should be exclude based on name pattern."""
-        for pattern in self.compiled_exclude_files:
-            if (pattern.match(file)):
-                return(True)
-        return(False)
+    def _exclude(self, file):
+        # True if file should be exclude based on name pattern.
+        for pattern in self.compiled_exclude_patterns:
+            if pattern.match(file):
+                return True
+        return False
 
     def from_disk(self, resource_list=None, paths=None):
         """Create or extend resource_list with resources from disk scan.
@@ -105,8 +111,6 @@ class ResourceListBuilder():
         # Either use resource_list passed in or make a new one
         if (resource_list is None):
             resource_list = ResourceList()
-        # Compile exclude pattern matches
-        self.compile_excludes()
         # Work out start paths from map if not explicitly specified
         if (paths is None):
             paths = []
@@ -131,23 +135,24 @@ class ResourceListBuilder():
             raise ValueError("Must specify path, resource_list and mapper")
         # is path a directory or a file? for each file: create Resource object,
         # add, increment counter
-        if (sys.version_info < (3, 0)):
-            path = path.decode('utf-8')
         if os.path.isdir(path):
             num_files = 0
             for dirpath, dirs, files in os.walk(path, topdown=True):
                 for file_in_dirpath in files:
                     num_files += 1
-                    if (num_files % 50000 == 0):
+                    if (num_files % self.log_count_increment == 0):
                         self.logger.info(
                             "ResourceListBuilder.from_disk_add_path: %d files..." % (num_files))
                     self.add_file(resource_list=resource_list,
                                   dir=dirpath, file=file_in_dirpath)
-                    # prune list of dirs based on self.exclude_dirs
-                    for exclude in self.exclude_dirs:
-                        if exclude in dirs:
-                            self.logger.debug("Excluding dir %s" % (exclude))
-                            dirs.remove(exclude)
+                # prune list of dirs based on self.exclude_dirs
+                prune = []
+                for dir in dirs:
+                    if self._exclude(dir):
+                        self.logger.debug("Excluding dir '%s'" % (dir))
+                        prune.append(dir)
+                for dir in prune:
+                    dirs.remove(dir)
         else:
             # single file
             self.add_file(resource_list=resource_list, file=path)
@@ -157,37 +162,27 @@ class ResourceListBuilder():
 
         Follows object settings of set_path, set_hashes and set_length.
         """
+        if self._exclude(file):
+            self.logger.debug("Excluding file '%s'" % (file))
+            return
+        # get abs filename and also URL
+        if (dir is not None):
+            file = os.path.join(dir, file)
+        if os.path.islink(file) and not self.include_symlinks:
+            self.logger.warning("Ignoring symlink '%s'" % (file))
+            return
         try:
-            if self.exclude_file(file):
-                self.logger.debug("Excluding file %s" % (file))
-                return
-            # get abs filename and also URL
-            if (dir is not None):
-                file = os.path.join(dir, file)
-            if (not os.path.isfile(file) or not (
-                    self.include_symlinks or not os.path.islink(file))):
-                return
-            uri = self.mapper.dst_to_src(file)
-            if (uri is None):
-                raise Exception("Internal error, mapping failed")
+            uri = self.mapper.dst_to_src(file)  # might throw MapperError
             file_stat = os.stat(file)
         except OSError as e:
-            sys.stderr.write("Ignoring file %s (error: %s)" % (file, str(e)))
+            self.logger.warning("Ignoring file '%s' (error: %s)" % (file, str(e)))
             return
         timestamp = file_stat.st_mtime  # UTC
         r = Resource(uri=uri, timestamp=timestamp)
-        if (self.set_path):
-            # add full local path
+        if self.set_path:  # add full local path
             r.path = file
-        if (self.set_hashes):
-            hasher = Hashes(self.set_hashes, file)
-            if ('md5' in self.set_hashes):
-                r.md5 = hasher.md5
-            if ('sha-1' in self.set_hashes):
-                r.sha1 = hasher.sha1
-            if ('sha-256' in self.set_hashes):
-                r.sha256 = hasher.sha256
-        if (self.set_length):
-            # add length
+        if self.set_hashes:  # add any hashes requested
+            Hashes(self.set_hashes, file).set(r)
+        if self.set_length:  # add length
             r.length = file_stat.st_size
         resource_list.add(r)

@@ -1,10 +1,13 @@
 import unittest
 import re
 import os
+from testfixtures import LogCapture
 import time
+
 from resync.resource_list_builder import ResourceListBuilder
+from resync.resource_list import ResourceList
 from resync.resource import Resource
-from resync.mapper import Mapper
+from resync.mapper import Mapper, MapperError
 
 
 class TestResourceListBuilder(unittest.TestCase):
@@ -137,3 +140,84 @@ class TestResourceListBuilder(unittest.TestCase):
         self.assertFalse(u'x:/A_\u00c3_tilde.txt' in uris)
         # Snowman is single char
         self.assertFalse(u'x:snowman_\u2603.txt' in uris)
+
+    def test10_add_exclude_patterns(self):
+        """Test add_exclude_patterns method."""
+        rlb = ResourceListBuilder()
+        self.assertEqual(len(rlb.exclude_patterns), 0)
+        rlb.add_exclude_patterns(['aaa', 'bbb'])
+        self.assertIn('aaa', rlb.exclude_patterns)
+        self.assertIn('bbb', rlb.exclude_patterns)
+
+    def test11_compile_excludes(self):
+        """Test _compile_excludes method."""
+        rlb = ResourceListBuilder()
+        self.assertEqual(len(rlb.compiled_exclude_patterns), 0)
+        rlb.exclude_patterns = [r'aaa\d+', r'bbb']
+        rlb._compile_excludes()
+        self.assertEqual(len(rlb.compiled_exclude_patterns), 2)
+        # Error case
+        rlb.exclude_patterns.append('bad regex \\')
+        self.assertRaises(ValueError, rlb._compile_excludes)
+
+    def test12_exclude(self):
+        """Test _exclude method."""
+        rlb = ResourceListBuilder()
+        rlb.add_exclude_patterns(['.*frog.*'])
+        rlb._compile_excludes()
+        self.assertTrue(rlb._exclude('a frog'))
+        self.assertFalse(rlb._exclude('toad'))
+
+    def test13_from_disk_add_path(self):
+        """Test from_disk_add_path method."""
+        # Check sanity check - must have path, resource_list and mapper
+        rlb = ResourceListBuilder(mapper=Mapper())
+        self.assertRaises(ValueError, rlb.from_disk_add_path, path='aaa')
+        self.assertRaises(ValueError, rlb.from_disk_add_path, resource_list=ResourceList())
+        rlb = ResourceListBuilder()
+        self.assertRaises(ValueError, rlb.from_disk_add_path, path='aaa', resource_list=ResourceList())
+        # Check log message
+        rlb = ResourceListBuilder(mapper=Mapper(['http://example.org/', 'tests']))
+        rlb.log_count_increment = 2
+        rl = ResourceList()
+        with LogCapture() as lc:
+            rlb.from_disk_add_path(path='tests/testdata/dir1', resource_list=rl)
+            self.assertIn('from_disk_add_path: 2 files...', lc.records[-1].msg)
+        # text excluding dirs -- just one file under find2 not excluced
+        rlb = ResourceListBuilder(mapper=Mapper(['http://example.org/', 'tests']))
+        rl = ResourceList()
+        rlb.add_exclude_patterns(['find1', 'find3'])
+        rlb._compile_excludes()
+        rlb.from_disk_add_path(path='tests/testdata/find', resource_list=rl)
+        self.assertEqual(len(rl), 1)
+
+    def test14_add_file(self):
+        """Test add_file method."""
+        rlb = ResourceListBuilder(mapper=Mapper(['http://example.org/', 'tests']))
+        rl = ResourceList()
+        rlb.add_exclude_patterns(['.*ro'])
+        with LogCapture() as lc:
+            # escluded
+            rlb.add_file(resource_list=rl, file='frog')
+            self.assertIn("Excluding file 'frog'", lc.records[-1].msg)
+            # mapper error
+            self.assertRaises(MapperError, rlb.add_file, resource_list=rl, file='i-dont-exist')
+            # map OK but doesn't exist
+            rlb.add_file(resource_list=rl, file='tests/i-dont-exist')
+            self.assertIn("Ignoring file 'tests/i-dont-exist'", lc.records[-1].msg)
+            # ignore symlink by default
+            rlb.add_file(resource_list=rl, file='tests/testdata/symlink/dir2/a_file.txt')
+            self.assertIn("Ignoring symlink 'tests/testdata/symlink/dir2/a_file.txt'", lc.records[-1].msg)
+            # ...or not
+            rl = ResourceList()
+            rlb.include_symlinks = True
+            rlb.add_file(resource_list=rl, file='tests/testdata/symlink/dir2/a_file.txt')
+            self.assertEqual(len(rl), 1)
+        # Check hashing
+        rlb = ResourceListBuilder(mapper=Mapper(['http://example.org/', 'tests/testdata/dir1/']),
+                                  set_hashes=['md5', 'sha-1', 'sha-256'])
+        rl = ResourceList()
+        rlb.add_file(resource_list=rl, file='tests/testdata/dir1/file_a')
+        self.assertEqual(rl['http://example.org/file_a'].md5, '6bf26fd66601b528d2e0b47eaa87edfd')
+        self.assertEqual(rl['http://example.org/file_a'].sha1, 'c60a598a5d9e489cf50533eeead6d70f15eafcf8')
+        self.assertEqual(rl['http://example.org/file_a'].sha256, '1c6291bfac0322752c4632ebd69bf6d81d53985fbf5ee54de5cc1fefba6566b6')

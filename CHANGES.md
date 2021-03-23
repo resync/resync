@@ -1,5 +1,12 @@
 # resync change log
 
+v2.0.1 2021-03-23
+  * Route all URI and file requests through `resync/url_or_file_open.py` so that settings such as authentication headers can be consistently applied
+  * Do not exclude any directories from sync by default, specify with --exclude
+  * Fix comparison of using possibly multiple checksums
+  * Improve test coverage
+  * Remove Python 2 cruft
+
 v2.0.0 2020-12-16
   * Supports ResourceSync v1.1 ANSI/NISO Z39.99-2017 <http://www.openarchives.org/rs/1.1/toc> as default
   * Support for the prior v1.0 ANSI/NISO Z39.99-2014 <http://www.openarchives.org/rs/1.0/toc> is retained with `spec-version='1.0'` option in scripts and `spec_version='1.0'` in various classes

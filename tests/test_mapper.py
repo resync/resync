@@ -33,9 +33,8 @@ class TestMapper(unittest.TestCase):
         self.assertEqual(m.src_to_dst('http://e.org/p/'), '/tmp/q/')
         self.assertEqual(m.src_to_dst('http://e.org/p/aa'), '/tmp/q/aa')
         self.assertEqual(m.src_to_dst('http://e.org/p/aa/bb'), '/tmp/q/aa/bb')
-        self.assertEqual(m.src_to_dst(
-            'http://e.org/p/aa/bb/'), '/tmp/q/aa/bb/')
-        self.assertRaises(MapperError, m.src_to_dst, 'http://e.org/p')
+        self.assertEqual(m.src_to_dst('http://e.org/p/aa/bb/'), '/tmp/q/aa/bb/')
+        self.assertEqual(m.src_to_dst('http://e.org/p'), '/tmp/q/')
         self.assertRaises(MapperError, m.src_to_dst, 'http://e.org/pa')
         self.assertRaises(MapperError, m.src_to_dst, 'nomatch')
 
@@ -44,7 +43,7 @@ class TestMapper(unittest.TestCase):
         self.assertEqual(m.dst_to_src('/tmp/q/'), 'http://e.org/p/')
         self.assertEqual(m.dst_to_src('/tmp/q/bb'), 'http://e.org/p/bb')
         self.assertEqual(m.dst_to_src('/tmp/q/bb/cc'), 'http://e.org/p/bb/cc')
-        self.assertRaises(MapperError, m.dst_to_src, '/tmp/q')
+        self.assertEqual(m.dst_to_src('/tmp/q'), 'http://e.org/p/')
         self.assertRaises(MapperError, m.dst_to_src, '/tmp/qa')
         self.assertRaises(MapperError, m.dst_to_src, 'nomatch')
 
@@ -96,17 +95,44 @@ class TestMapper(unittest.TestCase):
         self.assertEqual(Mapper(['a=b', 'b=c']).default_src_uri(), 'a')
         self.assertRaises(MapperError, Mapper().default_src_uri)
 
-    # Tests for Map class
 
-    def test10_map_unsafe(self):
+class TestMap(unittest.TestCase):
+
+    def test01_map_unsafe(self):
+        """Test unsafe method."""
         self.assertFalse(Map('http://example.com/', 'path').unsafe())
         # Note the first is a URI and the second is a (silly) path in the
         # following
-        self.assertFalse(
-            Map('http://example.com/', 'http://example.com/').unsafe())
+        self.assertFalse(Map('http://example.com/', 'http://example.com/').unsafe())
         self.assertFalse(Map('a', 'b').unsafe())
         self.assertFalse(Map('path/a', 'path/b').unsafe())
         # The following are unsafe
         self.assertTrue(Map('path', 'path').unsafe())
         self.assertTrue(Map('path/a', 'path').unsafe())
         self.assertTrue(Map('path', 'path/b').unsafe())
+
+    def test02_dst_to_src(self):
+        """Test dst_to_src method."""
+        m = Map('uri:a/b', 'path/c')
+        self.assertEqual(m.dst_to_src('path/c/file'), 'uri:a/b/file')
+        self.assertEqual(m.dst_to_src('path/c/file/'), 'uri:a/b/file/')
+        self.assertEqual(m.dst_to_src('path/c'), 'uri:a/b/')
+        self.assertEqual(m.dst_to_src('path/c/'), 'uri:a/b/')
+        self.assertEqual(m.dst_to_src('path/cliff'), None)
+        # Note that trailing slashes on the map elements have no effect
+        m = Map('uri:a/b/', 'path/c/')
+        self.assertEqual(m.dst_to_src('path/c'), 'uri:a/b/')
+        self.assertEqual(m.dst_to_src('path/c/'), 'uri:a/b/')
+        self.assertEqual(m.dst_to_src('path/cliff'), None)
+        # Failed maps return None
+        self.assertEqual(m.dst_to_src('c/file'), None)
+        self.assertEqual(m.dst_to_src(''), None)
+
+    def test03_src_to_dst(self):
+        """Test src_to_dst method."""
+        m = Map('uri:x/', '/tmp/gg/')
+        self.assertEqual(m.src_to_dst('uri:other'), None)
+        self.assertEqual(m.src_to_dst('uri:x'), '/tmp/gg/')
+        self.assertEqual(m.src_to_dst('uri:x/'), '/tmp/gg/')
+        self.assertEqual(m.src_to_dst('uri:x/lizard'), '/tmp/gg/lizard')
+        self.assertEqual(m.src_to_dst('uri:x/lizard/'), '/tmp/gg/lizard/')

@@ -1,27 +1,24 @@
+"""Test for resync.sitemap."""
+
+import io
+from testfixtures import LogCapture
 import re
 import sys
 import unittest
-try:  # python2
-    # Must try this first as io also exists in python2
-    # but in the wrong one!
-    import StringIO as io
-except ImportError:  # python3
-    import io
+import xml.etree.ElementTree  # for xml.etree.ElementTree.ParseError
+from defusedxml.ElementTree import parse
 
 from resync.resource import Resource
 from resync.resource_list import ResourceList
 from resync.sitemap import Sitemap, SitemapIndexError, SitemapParseError
 
-# etree gives ParseError in 2.7,3.x; ExpatError in 2.6
-etree_error_class = None
-if (sys.version_info < (2, 7)):
-    from xml.parsers.expat import ExpatError
-    etree_error_class = ExpatError
-else:
-    # In python3 this seems only to work with the full class name??
-    # from xml.etree.ElementTree import ParseError
-    import xml.etree.ElementTree
-    etree_error_class = xml.etree.ElementTree.ParseError
+
+class TestSitemapIndexError(unittest.TestCase):
+
+    def test_str(self):
+        """Test str(...) gives just message part."""
+        err = SitemapIndexError("howdy", "this should be the etree")
+        self.assertEqual(str(err), "howdy")
 
 
 class TestSitemap(unittest.TestCase):
@@ -50,7 +47,7 @@ class TestSitemap(unittest.TestCase):
                          '<url><loc>aardvark</loc><lastmod>2012-01-11T04:05:06Z</lastmod><rs:md datetime="2012-01-11T04:05:06Z" /></url>')
 
     def test_02_resource_str(self):
-        r1 = Resource('3b', 1234.1, 9999, 'ab54de')
+        r1 = Resource('3b', 1234.1, length=9999, md5='ab54de')
         self.assertEqual(Sitemap().resource_as_xml(r1),
                          "<url><loc>3b</loc><lastmod>1970-01-01T00:20:34.100000Z</lastmod><rs:md hash=\"md5:ab54de\" length=\"9999\" /></url>")
         r1 = Resource('3c', datetime='2013-01-02T13:00:00Z')
@@ -115,7 +112,8 @@ class TestSitemap(unittest.TestCase):
         i = iter(m)
         self.assertEqual(Sitemap().resources_as_xml(i), "<?xml version='1.0' encoding='UTF-8'?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:rs=\"http://www.openarchives.org/rs/terms/\"><url><loc>a</loc><lastmod>2001-01-01T00:00:00Z</lastmod><rs:md length=\"1234\" /></url><url><loc>b</loc><lastmod>2002-02-02T00:00:00Z</lastmod><rs:md length=\"56789\" /></url></urlset>")
 
-    def test_10_sitemap(self):
+    def test_10_parse_xml(self):
+        """Test parse_xml method with string XML."""
         xml = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
 <url><loc>http://e.com/a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md hash="md5:Q2hlY2sgSW50ZWdyaXR5IQ==" length=\"12\" /></url>\
@@ -130,8 +128,7 @@ class TestSitemap(unittest.TestCase):
             self.assertEqual(r.lastmod, '2012-03-14T18:37:36Z')
             self.assertEqual(r.length, 12)
             self.assertEqual(r.md5, 'Q2hlY2sgSW50ZWdyaXR5IQ==')
-
-    def test_11_parse_2(self):
+        # ..another
         xml = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
 <url><loc>/tmp/rs_test/src/file_a</loc><lastmod>2012-03-14T18:37:36Z</lastmod><rs:md length=\"12\" /></url>\
@@ -141,6 +138,54 @@ class TestSitemap(unittest.TestCase):
         i = s.parse_xml(fh=io.StringIO(xml))
         self.assertFalse(s.parsed_index, 'was a sitemap')
         self.assertEqual(s.resources_created, 2, 'got 2 resources')
+
+    def test_11_parse_xml_error(self):
+        """Test exceptiona from parse_xml method."""
+        # bad params
+        s = Sitemap()
+        self.assertRaises(ValueError, s.parse_xml)
+        # got a sitemap when told to expect and indexp
+        xml = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+</urlset>'
+        self.assertRaises(SitemapIndexError, s.parse_xml, fh=io.StringIO(xml), sitemapindex=True)
+        # dupe entries DO NOT create an error
+        xml = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<url><loc>/mouse</loc><lastmod>2020-12-21T00:00:00Z</lastmod><rs:md length=\"12\" /></url>\
+<url><loc>/mouse</loc><lastmod>2020-12-21T00:00:00Z</lastmod><rs:md length=\"12\" /></url>\
+</urlset>'
+        s = Sitemap()
+        i = s.parse_xml(fh=io.StringIO(xml))
+        self.assertEqual(len(i.resources), 2)
+        # preamble rs:md after <url> is error
+        xml = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<url><loc>/frog</loc><lastmod>2020-12-21T00:01:00Z</lastmod><rs:md length=\"5\" /></url>\
+<rs:md capability=\"resourcelist\"/>\
+<url><loc>/toad</loc><lastmod>2020-12-21T00:02:00Z</lastmod><rs:md length=\"8\" /></url>\
+</urlset>'
+        self.assertRaises(SitemapParseError, s.parse_xml, fh=io.StringIO(xml))
+        # preamble rs:ln after <url> is also error
+        xml = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<url><loc>/wills</loc><lastmod>2020-12-21T00:01:00Z</lastmod><rs:md length=\"5\" /></url>\
+<rs:ln rel="up" href="http://example.com/resourcesync_description.xml"/>\
+</urlset>'
+        s = Sitemap()
+        self.assertRaises(SitemapParseError, s.parse_xml, fh=io.StringIO(xml))
+        # but random unknown junk should be ignored...
+        xml = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<junk1>beetle</junk1>\
+<rs:md capability=\"resourcelist\"/>\
+<junk2>fly</junk2>\
+<url><loc>/whale</loc><lastmod>2020-12-21T00:01:00Z</lastmod><rs:md length=\"5\" /></url>\
+<junk3>ant</junk3>\
+</urlset>'
+        s = Sitemap()
+        i = s.parse_xml(fh=io.StringIO(xml))
+        self.assertEqual(len(i.resources), 1)
 
     def test_12_parse_multi_loc(self):
         xml_start = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n\
@@ -192,9 +237,9 @@ class TestSitemap(unittest.TestCase):
     def test_15_parse_illformed(self):
         s = Sitemap()
         # ExpatError in python2.6, ParserError in 2.7,3.x
-        self.assertRaises(etree_error_class, s.parse_xml,
+        self.assertRaises(xml.etree.ElementTree.ParseError, s.parse_xml,
                           io.StringIO('not xml'))
-        self.assertRaises(etree_error_class, s.parse_xml,
+        self.assertRaises(xml.etree.ElementTree.ParseError, s.parse_xml,
                           io.StringIO('<urlset><url>something</urlset>'))
 
     def test_16_parse_valid_xml_but_other(self):
@@ -326,3 +371,65 @@ class TestSitemap(unittest.TestCase):
         r2 = next(i)
         self.assertEqual(r2.uri, '/tmp/rs_test/src/file_b')
         self.assertEqual(r2.change, None)
+
+    def test_31_resource_from_etree(self):
+        """Test resource_from_etree method."""
+        # multiple <loc>
+        xml = '''<?xml version=\'1.0\' encoding=\'UTF-8\'?>
+<url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<loc>a_name</loc>
+<loc>another_name_oops</loc>
+</url>'''
+        et = parse(io.StringIO(xml))
+        self.assertRaises(SitemapParseError, Sitemap().resource_from_etree, et, Resource)
+        # no <loc>
+        xml = '''<?xml version=\'1.0\' encoding=\'UTF-8\'?>
+<url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<no_loc_element />
+</url>'''
+        et = parse(io.StringIO(xml))
+        self.assertRaises(SitemapParseError, Sitemap().resource_from_etree, et, Resource)
+        # muktiple <rs:md> not allowed
+        xml = '''<?xml version=\'1.0\' encoding=\'UTF-8\'?>
+<url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<loc>a_name</loc>
+<rs:md type="text/plain" />
+<rs:md something="123" />
+</url>'''
+        et = parse(io.StringIO(xml))
+        self.assertRaises(SitemapParseError, Sitemap().resource_from_etree, et, Resource)
+        # warn is hash invalid
+        with LogCapture() as lc:
+            xml = '''<?xml version=\'1.0\' encoding=\'UTF-8\'?>
+<url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:rs="http://www.openarchives.org/rs/terms/">\
+<loc>a_name</loc>
+<rs:md hash="UNKNOWN-TYPE:blah" />
+</url>'''
+            et = parse(io.StringIO(xml))
+            Sitemap().resource_from_etree(et, Resource)
+            self.assertIn('Ignored unsupported hash type UNKNOWN-TYPE', lc.records[-1].msg)
+
+    def test_32_md_from_etree(self):
+        """Test md_from_etree method."""
+        # Warning for unknwon capability
+        with LogCapture() as lc:
+            xml = '''<?xml version=\'1.0\' encoding=\'UTF-8\'?>
+<rs:md xmlns:rs="http://www.openarchives.org/rs/terms/" capability="WHY" />
+'''
+            et = parse(io.StringIO(xml)).getroot()
+            Sitemap().md_from_etree(et)
+            self.assertIn("Unknown capability name 'WHY'", lc.records[-1].msg)
+        # Bad value for change is an error
+        with LogCapture() as lc:
+            xml = '''<?xml version=\'1.0\' encoding=\'UTF-8\'?>
+<rs:md xmlns:rs="http://www.openarchives.org/rs/terms/" change="BAD" />
+'''
+            et = parse(io.StringIO(xml)).getroot()
+            self.assertRaises(SitemapParseError, Sitemap().md_from_etree, et)
+        # length must be an integer
+        with LogCapture() as lc:
+            xml = '''<?xml version=\'1.0\' encoding=\'UTF-8\'?>
+<rs:md xmlns:rs="http://www.openarchives.org/rs/terms/" length="short" />
+'''
+            et = parse(io.StringIO(xml)).getroot()
+            self.assertRaises(SitemapParseError, Sitemap().md_from_etree, et)

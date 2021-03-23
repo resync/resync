@@ -11,7 +11,8 @@ import distutils.dir_util
 import re
 import time
 import logging
-import requests
+import shutil
+import socket
 
 from .resource_list_builder import ResourceListBuilder
 from .resource_list import ResourceList
@@ -224,7 +225,7 @@ class Client(object):
         rlb = ResourceListBuilder(set_hashes=self.hashes, mapper=self.mapper)
         rlb.set_path = set_path
         try:
-            rlb.add_exclude_files(self.exclude_patterns)
+            rlb.add_exclude_patterns(self.exclude_patterns)
             rl = rlb.from_disk(paths=paths)
         except ValueError as e:
             raise ClientFatalError(str(e))
@@ -504,15 +505,12 @@ class Client(object):
             # 1. GET
             for try_i in range(1, self.tries + 1):
                 try:
-                    r = requests.get(resource.uri, timeout=self.timeout, stream=True)
-                    # Fail on 4xx or 5xx
-                    r.raise_for_status()
-                    with open(filename, 'wb') as fd:
-                        for chunk in r.iter_content(chunk_size=1024):
-                            fd.write(chunk)
+                    with url_or_file_open(resource.uri, timeout=self.timeout) as fh_in:
+                        with open(filename, 'wb') as fh_out:
+                            shutil.copyfileobj(fh_in, fh_out)
                     num_updated += 1
                     break
-                except requests.Timeout as e:
+                except socket.timeout as e:
                     if try_i < self.tries:
                         msg = 'Download timed out, retrying...'
                         self.logger.info(msg)
@@ -525,7 +523,7 @@ class Client(object):
                             return(num_updated)
                         else:
                             raise ClientFatalError(msg)
-                except (requests.RequestException, IOError) as e:
+                except IOError as e:
                     msg = "Failed to GET %s -- %s" % (resource.uri, str(e))
                     if (self.ignore_failures):
                         self.logger.warning(msg)

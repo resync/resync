@@ -1,7 +1,7 @@
 # resync
 
-[![Build Status](https://travis-ci.org/resync/resync.svg?branch=master)](https://travis-ci.org/resync/resync)
-[![Test Coverage](https://coveralls.io/repos/github/resync/resync/badge.svg?branch=master)](https://coveralls.io/github/resync/resync)
+[![Build Status](https://travis-ci.org/resync/resync.svg?branch=main)](https://travis-ci.org/resync/resync)
+[![Test Coverage](https://coveralls.io/repos/github/resync/resync/badge.svg?branch=main)](https://coveralls.io/github/resync/resync)
 
 **resync** is a ResourceSync library with supporting client scipts,
 written in python.
@@ -102,7 +102,7 @@ Thanks to: [Bernhard Haslhofer](https://github.com/behas),
 [Robert Sanderson](<https://github.com/azaroth42)
 and [other contributors](https://github.com/resync/resync/graphs/contributors).
 
-See [CONTRIBUTING.md](https://github.com/resync/resync/blob/master/CONTRIBUTING.md)
+See [CONTRIBUTING.md](https://github.com/resync/resync/blob/main/CONTRIBUTING.md)
 for guidelines for contributing.
 
 ## Copyright and License
