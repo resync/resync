@@ -1,7 +1,7 @@
 # resync change log
 
 v2.0.2 ????
-  * ...
+  * Add --user-agent option to set web User-Agent string
 
 v2.0.1 2021-03-23
   * Route all URI and file requests through `resync/url_or_file_open.py` so that settings such as authentication headers can be consistently applied

@@ -11,7 +11,8 @@ from . import __version__
 NUM_REQUESTS = 0
 CONFIG = {
     'bearer_token': None,
-    'delay': None
+    'delay': None,
+    'user_agent': 'resync/' + __version__
 }
 
 
@@ -32,7 +33,7 @@ def url_or_file_open(uri, method=None, timeout=None):
     """
     if (not re.match(r'''\w+:''', uri)):
         uri = 'file:' + uri
-    headers = {'User-Agent': 'resync/' + __version__}
+    headers = {'User-Agent': CONFIG['user_agent']}
     # Do we need to send an Authorization header?
     # FIXME - This token will be added blindy to all requests. This is insecure
     # if the --noauth setting is used allowing requests across different domains.

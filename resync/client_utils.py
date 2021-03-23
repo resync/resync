@@ -191,6 +191,8 @@ def add_shared_misc_options(opt, default_logfile, include_remote=False):
                          help="include this access token (a bearer token) in web requests")
         opt.add_argument('--delay', type=float, default=None,
                          help="add a delay between web requests (default is None)")
+        opt.add_argument('--user-agent', type=str, default=None,
+                         help="set User-Agent string sent with web requests (default is resync/version)")
     # Want these to show at the end
     opt.add_argument('--logger', '-l', action='store_true',
                      help="create detailed log of client actions (will write "
@@ -211,7 +213,7 @@ def process_shared_misc_options(args, include_remote=False):
 
     Parse options that the resync-sync, resync-build and resync-explorer scripts use.
     """
-    if args.checksum:
+    if args.checksum and 'md5' not in args.hash:
         args.hash.append('md5')
     if include_remote:
         if args.access_token:
@@ -220,3 +222,5 @@ def process_shared_misc_options(args, include_remote=False):
             if args.delay < 0.0:
                 raise argparse.ArgumentTypeError("--delay must be non-negative!")
             set_url_or_file_open_config('delay', args.delay)
+        if args.user_agent:
+            set_url_or_file_open_config('user_agent', args.user_agent)
