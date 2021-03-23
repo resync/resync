@@ -2,7 +2,7 @@
 
 This is the one place the version number for resync is stored.
 """
-__version__ = '2.0.1'
+__version__ = '2.0.2'
 
 # Enable easy import for core classes, e.g.
 # from resync import Resource

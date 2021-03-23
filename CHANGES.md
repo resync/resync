@@ -1,5 +1,8 @@
 # resync change log
 
+v2.0.2 ????
+  * ...
+
 v2.0.1 2021-03-23
   * Route all URI and file requests through `resync/url_or_file_open.py` so that settings such as authentication headers can be consistently applied
   * Do not exclude any directories from sync by default, specify with --exclude
