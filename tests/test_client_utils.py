@@ -1,11 +1,13 @@
 from .testlib import TestCase
 
+import argparse
 import logging
 import os.path
 import re
 import unittest
-from resync.client_utils import init_logging, count_true_args, parse_links, parse_link, parse_capabilities, parse_capability_lists
+from resync.client_utils import init_logging, count_true_args, parse_links, parse_link, parse_capabilities, parse_capability_lists, add_shared_misc_options, process_shared_misc_options
 from resync.client import ClientFatalError
+from resync.url_or_file_open import CONFIG
 
 
 class TestClientUtils(TestCase):
@@ -75,3 +77,63 @@ class TestClientUtils(TestCase):
     def test06_parse_capability_lists(self):
         # Input string of the form: uri,uri
         self.assertEqual(parse_capability_lists('a,b'), ['a', 'b'])
+
+    def test07_add_shared_misc_options(self):
+        """Test add_shared_misc_options method."""
+        parser = argparse.ArgumentParser()
+        add_shared_misc_options(parser, default_logfile='/tmp/abc.log')
+        args = parser.parse_args(['--hash', 'md5', '--hash', 'sha-1',
+                                  '--checksum',
+                                  '--from', '2020-01-01T01:01:01Z',
+                                  '--exclude', 'ex1', '--exclude', 'ex2',
+                                  '--multifile',
+                                  '--logger', '--logfile', 'log.out',
+                                  '--spec-version', '1.0',
+                                  '-v'])
+        self.assertEqual(args.hash, ['md5', 'sha-1'])
+        self.assertTrue(args.checksum)
+        self.assertEqual(args.from_datetime, '2020-01-01T01:01:01Z')
+        self.assertEqual(args.exclude, ['ex1', 'ex2'])
+        self.assertTrue(args.multifile)
+        self.assertTrue(args.logger)
+        self.assertEqual(args.logfile, 'log.out')
+        self.assertEqual(args.spec_version, '1.0')
+        self.assertTrue(args.verbose)
+        # Remote options
+        parser = argparse.ArgumentParser()
+        add_shared_misc_options(parser, default_logfile='/tmp/abc.log', include_remote=True)
+        args = parser.parse_args(['--noauth',
+                                  '--access-token', 'VerySecretToken',
+                                  '--delay', '1.23',
+                                  '--user-agent', 'rc/2.1.1'])
+        self.assertTrue(args.noauth)
+        self.assertEqual(args.access_token, 'VerySecretToken')
+        self.assertEqual(args.delay, 1.23)
+        self.assertEqual(args.user_agent, 'rc/2.1.1')
+        # Remote options note selected
+        parser = argparse.ArgumentParser()
+        add_shared_misc_options(parser, default_logfile='/tmp/abc.log', include_remote=False)
+        self.assertRaises(SystemExit, parser.parse_args, ['--access-token', 'VerySecretToken'])
+
+    def test08_process_shared_misc_options(self):
+        """Test process_shared_misc_options method."""
+        global CONFIG
+        config_copy = CONFIG.copy()
+        args = argparse.Namespace(hash=['sha-1'], checksum='md5')
+        process_shared_misc_options(args)
+        self.assertEqual(args.hash, ['sha-1', 'md5'])
+        # Remote options
+        args = argparse.Namespace(access_token='ExtraSecretToken',
+                                  delay=2.5,
+                                  user_agent='me',
+                                  checksum=None)
+        process_shared_misc_options(args, include_remote=True)
+        self.assertEqual(CONFIG['bearer_token'], 'ExtraSecretToken')
+        self.assertEqual(CONFIG['delay'], 2.5)
+        self.assertEqual(CONFIG['user_agent'], 'me')
+        # Negative delay is bad...
+        args = argparse.Namespace(access_token=None, delay=-1.0, user_agent=None, checksum=None)
+        self.assertRaises(argparse.ArgumentTypeError, process_shared_misc_options, args, include_remote=True)
+        # Config is a global so reset back to old version
+        for (k, v) in config_copy.items():
+            CONFIG[k] = v
