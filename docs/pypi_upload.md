@@ -9,9 +9,9 @@ resync is at <https://pypi.python.org/pypi/resync> on pypi
 0. In `develop` branch: bump version number in `resync/__init__.py` and check `CHANGES.md` is up to date
 1. Check all tests good with appropriate Python 3.x (`python setup.py test` and CI)
 2. Check code is up-to-date with github version
-3. Check out `master` and merge in `develop`
+3. Check out `main` and merge in `develop`
 4. Check all tests still good (`python setup.py test` and CI)
-5. Make sure master `README.md` has correct travis-ci icon link
+5. Make sure main `README.md` has correct travis-ci icon link
 6. Check branches as expected (`git branch -a`)
 7. Check local build and version reported OK (`python setup.py build; python setup.py install; resync-sync -h`)
 8. Check client works with simulator:
