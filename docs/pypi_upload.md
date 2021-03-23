@@ -72,7 +72,7 @@ git push --tags
 rm -r dist
 python setup.py sdist bdist_wheel; ls dist
 # Should be source and wheel files for just this version
-twine upload dist/*    
+twine upload dist/*
 ```
 
 10. Check on PyPI at <https://pypi.python.org/pypi/resync>
