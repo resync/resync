@@ -78,6 +78,7 @@ def webserver(dir='/tmp/htdocs', host='localhost', port=9999):
     finally:
         # Close the server
         p.terminate()
+        time.sleep(0.1)
 
 
 if __name__ == '__main__':
