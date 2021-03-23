@@ -91,7 +91,7 @@ class TestUrlAuthority(unittest.TestCase):
 
     def test07_no_init_data(self):
         uauth = UrlAuthority()
-        self.assertEqual(uauth.master_scheme, 'none')
+        self.assertEqual(uauth.primary_scheme, 'none')
         self.assertFalse(uauth.has_authority_over(
             'http://a.example.org/sitemap.xml'))
         self.assertFalse(uauth.has_authority_over(
