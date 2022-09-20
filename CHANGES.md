@@ -1,6 +1,6 @@
 # resync change log
 
-v2.0.2 ????
+v2.0.2 2022-09-30
   * Add --user-agent option to set web User-Agent string
   * Avoid misleading "(0 bytes)" output when no Content-Length given (https://github.com/resync/resync/issues/52)
 

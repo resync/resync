@@ -1,8 +1,5 @@
 # resync
 
-[![Build Status](https://travis-ci.org/resync/resync.svg?branch=main)](https://travis-ci.org/resync/resync)
-[![Test Coverage](https://coveralls.io/repos/github/resync/resync/badge.svg?branch=main)](https://coveralls.io/github/resync/resync)
-
 **resync** is a ResourceSync library with supporting client scipts,
 written in python.
 [ResourceSync](http://www.openarchives.org/rs/) is a synchronization
