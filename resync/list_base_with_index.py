@@ -167,15 +167,16 @@ class ListBaseWithIndex(ListBase):
                 "Failed to load sitemap from %s listed in sitemap index %s (%s)" %
                 (sitemap_uri, sitemapindex_uri, str(e)))
         # Get the Content-Length if we can (works fine for local files)
+        length_str = "size not given"
         try:
             self.content_length = int(fh.info()['Content-Length'])
+            length_str = "%d bytes" % self.content_length
             self.bytes_read += self.content_length
         except (KeyError, TypeError):
             # If we don't get a length then c'est la vie
             pass
         self.logger.info(
-            "Reading sitemap from %s (%d bytes)" %
-            (sitemap_uri, self.content_length))
+            "Reading sitemap from %s (%s)" % (sitemap_uri, length_str))
         component = sitemap.parse_xml(fh=fh, sitemapindex=False)
         # Copy resources into self, check any metadata
         for r in component:
